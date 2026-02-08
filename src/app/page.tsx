@@ -31,7 +31,7 @@ export default function Home() {
 
         {/* Email CTA */}
         <p className="text-white/80 text-base md:text-lg mb-8">
-          Send your CV to{" "}
+          Send your Resume to{" "}
           <a
             href="mailto:careers@topcareerlive.com"
             className="text-white underline hover:text-white/90 transition-colors"
