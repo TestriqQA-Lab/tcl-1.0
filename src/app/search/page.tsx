@@ -20,7 +20,7 @@ export default function SearchPage() {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Search Bar Section */}
-            <div className="bg-white border-b border-slate-200 py-6">
+            <div className="bg-white border-b border-slate-200 py-6 my-5 rounded-xl">
                 <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-10">
                     <div className="flex flex-col md:flex-row gap-3">
                         <div className="relative flex-1 flex items-center">
@@ -51,10 +51,10 @@ export default function SearchPage() {
             </div>
 
             {/* Results Header */}
-            <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-10 py-6">
+            <div className="max-w-7xl mx-auto md:px-6 lg:px-10 py-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-lg font-bold text-slate-900">
+                        <p className="text-md font-bold text-slate-900">
                             238 jobs found for '{searchKeyword}' in {searchLocation}
                         </p>
                     </div>
