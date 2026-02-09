@@ -82,7 +82,7 @@ export function Footer() {
             {/* Bottom Bar */}
             <div className="border-t border-gray-700/50 bg-[#151926]">
                 <div className="max-w-7xl mx-auto px-6 lg:px-10 py-5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-                    <p>© 2024 TopCareerLive. All rights reserved.</p>
+                    <p>© 2026 TopCareerLive. All rights reserved.</p>
                     <div className="flex items-center gap-6">
                         <span className="flex items-center gap-1">
                             <span className="material-symbols-outlined text-sm">public</span>

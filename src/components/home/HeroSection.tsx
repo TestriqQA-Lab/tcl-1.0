@@ -15,7 +15,7 @@ export function HeroSection() {
                 </p>
 
                 {/* Search Module */}
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-2 flex flex-col md:flex-row items-stretch gap-2 max-w-3xl mx-auto">
+                <div className="bg-white rounded-full shadow-lg border border-gray-200 p-2 flex flex-col md:flex-row items-stretch gap-2 max-w-3xl mx-auto">
                     {/* Job Title Input */}
                     <div className="flex-1 flex items-center px-4 gap-3 border-b md:border-b-0 md:border-r border-gray-200">
                         <span className="material-symbols-outlined text-gray-400">search</span>
@@ -37,7 +37,7 @@ export function HeroSection() {
                     </div>
 
                     {/* Submit Button */}
-                    <button className="bg-[#0f766d] text-white font-semibold px-8 py-4 rounded-lg hover:bg-[#0f766d]/90 transition-colors active:scale-[0.98] w-full md:w-auto">
+                    <button className="bg-[#0f766d] text-white font-semibold px-8 py-4 rounded-full hover:bg-[#0f766d]/90 transition-colors active:scale-[0.98] w-full md:w-auto">
                         Find Jobs
                     </button>
                 </div>
@@ -54,28 +54,6 @@ export function HeroSection() {
                     <button className="text-gray-600 hover:text-[#0f766d] transition-colors">Marketing</button>
                 </div>
             </div>
-
-            {/* Trust Bar */}
-            {/* <div className="mt-16 pt-10 border-t border-gray-100">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto text-center">
-                    <div>
-                        <p className="text-3xl md:text-4xl font-bold text-gray-800">10+</p>
-                        <p className="text-xs md:text-sm text-gray-500 uppercase tracking-wide mt-1">Years of Trust</p>
-                    </div>
-                    <div>
-                        <p className="text-3xl md:text-4xl font-bold text-gray-800">14M+</p>
-                        <p className="text-xs md:text-sm text-gray-500 uppercase tracking-wide mt-1">Jobs Filled</p>
-                    </div>
-                    <div>
-                        <p className="text-3xl md:text-4xl font-bold text-gray-800">500K+</p>
-                        <p className="text-xs md:text-sm text-gray-500 uppercase tracking-wide mt-1">Companies</p>
-                    </div>
-                    <div>
-                        <p className="text-3xl md:text-4xl font-bold text-gray-800">4.9★</p>
-                        <p className="text-xs md:text-sm text-gray-500 uppercase tracking-wide mt-1">User Rating</p>
-                    </div>
-                </div>
-            </div> */}
         </section>
     );
 }
