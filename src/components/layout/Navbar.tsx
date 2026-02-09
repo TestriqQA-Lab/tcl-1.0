@@ -10,39 +10,9 @@ export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 
-<<<<<<< feature/US5-Auth-UI
     const openLogin = () => setAuthModal("login");
     const openRegister = () => setAuthModal("register");
     const closeModal = () => setAuthModal(null);
-=======
-    return (
-        <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
-            <div className="max-w-7xl mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
-
-                {/* Left: Logo - Refined & Established */}
-                <Link href="/" className="flex items-center gap-3 shrink-0 group">
-                    <div className="relative">
-                        <div className="size-9 bg-gradient-to-br from-[#0f766d] to-[#0d6b63] rounded-xl flex items-center justify-center text-white shadow-sm">
-                            <span className="material-symbols-outlined text-xl">work</span>
-                        </div>
-                        <div className="absolute -top-0.5 -right-0.5 size-2 bg-amber-400 rounded-full border-2 border-white"></div>
-                    </div>
-                    <div className="flex flex-col leading-none">
-                        <span className="text-gray-900 text-base font-bold tracking-tight">TopCareerLive</span>
-                    </div>
-                </Link>
-
-                {/* Center: Primary Navigation - Icon + Text + Badge Style */}
-                <nav className="hidden lg:flex items-center gap-1">
-                    <Link
-                        href="#"
-                        className="group flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all"
-                    >
-                        <span className="material-symbols-outlined text-lg text-[#0f766d]">search</span>
-                        <span className="text-sm font-medium text-gray-800">Find Jobs</span>
-                        <span className="text-[10px] lg:hidden xl:block font-bold text-[#0f766d] bg-[#0f766d]/10 px-1.5 py-0.5 rounded">14K+</span>
-                    </Link>
->>>>>>> develop
 
     const switchToRegister = () => setAuthModal("register");
     const switchToLogin = () => setAuthModal("login");
