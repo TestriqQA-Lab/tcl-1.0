@@ -120,6 +120,12 @@ export const jobs = pgTable("jobs", {
     status: jobStatus("status").default("OPEN").notNull(),
     experienceLevel: integer("experience_level").notNull(),
     applicationDeadline: timestamp("application_deadline").notNull(),
+
+    // Job Requirements (Simplified without join tables)
+    requiredSkills: text("required_skills").array().default([]), // ["React", "Node"]
+    requiredLanguages: text("required_languages").array().default([]), // ["English", "Hindi"]
+    requiredCertifications: text("required_certifications").array().default([]), // ["AWS Certified"]
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -217,31 +223,13 @@ export const languages = pgTable("languages", {
 });
 
 // 9. Job Skills Table
-export const jobSkills = pgTable("job_skills", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    jobId: uuid("job_id").notNull().references(() => jobs.id),
-    skillId: uuid("skill_id").notNull().references(() => skills.id),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+/* Deleted: Job Skills Table - Replaced with array in Jobs table for simpler MVP */
 
 // 10. Job Certifications Table
-export const jobCertifications = pgTable("job_certifications", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    jobId: uuid("job_id").notNull().references(() => jobs.id),
-    certificationId: uuid("certification_id").notNull().references(() => certifications.id),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+/* Deleted: Job Certifications Table - Replaced with array in Jobs table for simpler MVP */
 
 // 11. Job Languages Table
-export const jobLanguages = pgTable("job_languages", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    jobId: uuid("job_id").notNull().references(() => jobs.id),
-    languageId: uuid("language_id").notNull().references(() => languages.id),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+/* Deleted: Job Languages Table - Replaced with array in Jobs table for simpler MVP */
 
 // 12. Projects Table
 export const projects = pgTable("projects", {
@@ -318,9 +306,6 @@ export const jobsRelations = relations(jobs, ({ one, many }) => ({
         references: [users.id],
     }),
     applications: many(applications),
-    skills: many(jobSkills),
-    certifications: many(jobCertifications),
-    languages: many(jobLanguages),
 }));
 
 // 3. Applications Relations
