@@ -12,6 +12,7 @@ interface DatePickerProps {
     min?: string;
     max?: string;
     className?: string;
+    disabled?: boolean;
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({
@@ -25,6 +26,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     min,
     max,
     className = '',
+    disabled = false,
 }) => {
     return (
         <div className={`w-full ${className}`}>
@@ -47,6 +49,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                     onChange={onChange}
                     min={min}
                     max={max}
+                    disabled={disabled}
                     className={`
             w-full bg-slate-50 border rounded-2xl py-2.5 pl-12 pr-4 text-slate-700 text-sm
             focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
