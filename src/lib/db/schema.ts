@@ -47,11 +47,10 @@ export const seekerProfiles = pgTable("seeker_profiles", {
     userId: uuid("user_id").notNull().references(() => users.id),
 
     // Basic Info
-    firstName: text("first_name").notNull(),
-    lastName: text("last_name").notNull(),
     isPublic: boolean("is_public").default(true).notNull(), // Account Visibility
 
     // Personal Details
+    fullName: text("full_name").notNull(),
     gender: genderEnum("gender"),
     dateOfBirth: date("date_of_birth"), // Auto-calculate age in app
     currentLocation: text("current_location"),
