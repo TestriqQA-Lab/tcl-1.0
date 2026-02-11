@@ -15,6 +15,8 @@ export const OnboardingStepper = () => {
 
         // Logic for completion based on known flow order: employment -> education
         if (pathname.includes("education") && stepPath === "employment") return "completed";
+        if (pathname.includes("preferences") && stepPath === "education") return "completed";
+        if (pathname.includes("preferences") && stepPath === "preferences") return "active";
 
         return "pending";
     };
@@ -39,14 +41,14 @@ export const OnboardingStepper = () => {
             label: "Education",
             icon: GraduationCap,
             status: getStepStatus("education"),
-            subLabel: getStepStatus("education") === "active" ? "ACTIVE STEP" : ""
+            subLabel: getStepStatus("education") === "active" ? "ACTIVE STEP" : (getStepStatus("education") === "completed" ? "COMPLETED" : "")
         },
         {
             id: "preferences",
             label: "Preferences",
             icon: Settings,
-            status: "pending",
-            subLabel: ""
+            status: getStepStatus("preferences"),
+            subLabel: getStepStatus("preferences") === "active" ? "ACTIVE STEP" : ""
         }
     ];
 

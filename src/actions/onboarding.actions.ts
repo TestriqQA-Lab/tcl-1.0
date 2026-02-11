@@ -75,7 +75,7 @@ export async function updateEmploymentAction(
                 data.keySkills.map(skill => ({
                     userId: userId,
                     skillName: skill,
-                    proficiency: "INTERMEDIATE", // Default
+                    proficiency: "INTERMEDIATE" as const, // Default
                 }))
             );
         }
@@ -138,5 +138,42 @@ export async function updateEducationAction(
     } catch (error) {
         console.error("Update Education Error:", error);
         return { error: "Failed to update education details" };
+    }
+}
+
+export async function updatePreferencesAction(
+    userId: string,
+    data: {
+        headline: string;
+        locations: string[];
+        salary: number;
+        gender: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
+    }
+) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.id !== userId) {
+            return { error: "Unauthorized" };
+        }
+
+        const { db } = await import("@/lib/db/db");
+        const { seekerProfiles } = await import("@/lib/db/schema");
+        const { eq } = await import("drizzle-orm");
+
+        await db.update(seekerProfiles)
+            .set({
+                bio: data.headline,
+                preferredWorkLocation: data.locations,
+                expectedSalaryMin: data.salary,
+                gender: data.gender,
+                updatedAt: new Date(),
+            })
+            .where(eq(seekerProfiles.userId, userId));
+
+        return { success: true };
+
+    } catch (error) {
+        console.error("Update Preferences Error:", error);
+        return { error: "Failed to update preferences" };
     }
 }

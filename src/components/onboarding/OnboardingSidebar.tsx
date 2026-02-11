@@ -9,7 +9,7 @@ interface OnboardingSidebarProps {
 
 export const OnboardingSidebar = ({ progress = 50 }: OnboardingSidebarProps) => {
     // Calculate circle circumference for SVG dasharray
-    const radius = 36;
+    const radius = 50;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
@@ -55,8 +55,8 @@ export const OnboardingSidebar = ({ progress = 50 }: OnboardingSidebarProps) => 
                         />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className={`text-2xl font-bold ${strengthColor}`}>{progress}%</span>
-                        <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                        <span className={`text-2xl font-bold leading-none mb-1 ${strengthColor}`}>{progress}%</span>
+                        <span className="text-[10px] uppercase font-bold text-gray-400 tracking-normal">
                             {strengthLabel}
                         </span>
                     </div>
