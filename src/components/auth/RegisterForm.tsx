@@ -215,7 +215,20 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
             {/* Google Sign Up */}
             <button
                 type="button"
-                onClick={() => console.log("Google sign up clicked")}
+                onClick={async () => {
+                    try {
+                        // Set role cookie before OAuth redirect
+                        document.cookie = `oauth_role=${role}; path=/; max-age=300`; // 5 minutes
+
+                        const { signIn } = await import("next-auth/react");
+                        await signIn("google", {
+                            callbackUrl: "/",
+                            redirect: true
+                        });
+                    } catch (error) {
+                        console.error("Google sign-up error:", error);
+                    }
+                }}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer"
             >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
