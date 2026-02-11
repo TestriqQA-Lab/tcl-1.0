@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { registerSchema, type RegisterFormData } from "@/lib/validation/auth";
 import { registerAction } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/Button";
+import { signIn } from "next-auth/react";
 import { CheckCircle2, Eye, EyeOff, Briefcase, GraduationCap, X, FileText, Trash2 } from "lucide-react";
 import Image from "next/image";
 
@@ -12,6 +14,7 @@ interface SeekerRegisterFormProps {
 }
 
 export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps) => {
+    const router = useRouter();
     const [formData, setFormData] = useState<RegisterFormData>({
         name: "",
         email: "",
@@ -102,11 +105,18 @@ export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps)
                 setErrors({ email: result.error }); // Generic error
             } else {
                 // Success
-                if (onSwitchToLogin) {
-                    onSwitchToLogin();
+                const loginResult = await signIn("credentials", {
+                    email: formData.email,
+                    password: formData.password,
+                    redirect: false,
+                });
+
+                if (loginResult?.ok) {
+                    // Registration & Login Successful -> Go to Onboarding
+                    router.refresh();
+                    router.push("/onboarding/employment");
                 } else {
-                    // Could redirect to dashboard or onboard
-                    window.location.href = "/login";
+                    setErrors({ email: "Registration successful but login failed. Please login manually." });
                 }
             }
         } catch (error) {
