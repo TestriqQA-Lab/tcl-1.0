@@ -131,12 +131,12 @@ export function Navbar({ session }: NavbarProps) {
                                 >
                                     Login
                                 </button>
-                                <button
-                                    onClick={openRegister}
+                                <Link
+                                    href="/register"
                                     className="text-sm font-medium text-white bg-gray-800 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
                                 >
                                     Register
-                                </button>
+                                </Link>
                             </>
                         )}
 
