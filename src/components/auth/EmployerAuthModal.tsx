@@ -24,8 +24,8 @@ export const EmployerAuthModal = ({ isOpen, onClose }: EmployerAuthModalProps) =
                 <button
                     onClick={() => setActiveTab("login")}
                     className={`flex-1 pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === "login"
-                            ? "text-[#0f766d] border-[#0f766d]"
-                            : "text-gray-500 border-transparent hover:text-gray-700"
+                        ? "text-[#0f766d] border-[#0f766d]"
+                        : "text-gray-500 border-transparent hover:text-gray-700"
                         }`}
                 >
                     Login
@@ -33,8 +33,8 @@ export const EmployerAuthModal = ({ isOpen, onClose }: EmployerAuthModalProps) =
                 <button
                     onClick={() => setActiveTab("register")}
                     className={`flex-1 pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === "register"
-                            ? "text-[#0f766d] border-[#0f766d]"
-                            : "text-gray-500 border-transparent hover:text-gray-700"
+                        ? "text-[#0f766d] border-[#0f766d]"
+                        : "text-gray-500 border-transparent hover:text-gray-700"
                         }`}
                 >
                     Sign Up
@@ -45,6 +45,7 @@ export const EmployerAuthModal = ({ isOpen, onClose }: EmployerAuthModalProps) =
                 <LoginForm
                     onSwitchToRegister={() => setActiveTab("register")}
                     onClose={onClose}
+                    role="EMPLOYER"
                 />
             ) : (
                 <RegisterForm
