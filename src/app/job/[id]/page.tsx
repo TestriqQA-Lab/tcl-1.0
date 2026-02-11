@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { JOB_DETAIL, SIMILAR_JOBS } from "@/data/job-detail-mock-data";
+import { JOB_DETAIL, SIMILAR_JOBS, SIMILAR_JOBS_FULL } from "@/data/job-detail-mock-data";
 
 export default function JobDetailPage() {
     const job = JOB_DETAIL;
 
     return (
         <div className="min-h-screen bg-slate-50">
-            <main className="max-w-[1280px] mx-auto px-4 md:px-6 py-8">
+            <main className="max-w-[1280px] mx-auto md:px-6 py-8">
                 {/* Breadcrumbs */}
                 <div className="flex items-center gap-2 mb-6 text-sm">
                     <Link href="/" className="text-gray-400 hover:text-[#0f766d] transition-colors">
@@ -94,7 +94,7 @@ export default function JobDetailPage() {
                             <ul className="space-y-4">
                                 {job.responsibilities.map((item, index) => (
                                     <li key={index} className="flex items-start gap-3">
-                                        <span className="material-symbols-outlined text-[#0f766d] mt-0.5 text-lg md:text-xl">check_circle</span>
+                                        <span className="material-symbols-outlined rounded-full bg-[#0f766d] text-white mt-0.5 text-lg md:text-xl">check_circle</span>
                                         <span className="text-gray-600 text-sm md:text-base">{item}</span>
                                     </li>
                                 ))}
@@ -109,7 +109,7 @@ export default function JobDetailPage() {
                             <ul className="space-y-4">
                                 {job.requirements.map((item, index) => (
                                     <li key={index} className="flex items-start gap-3">
-                                        <span className="material-symbols-outlined text-[#0f766d] mt-0.5 text-lg md:text-xl">verified</span>
+                                        <span className="material-symbols-outlined rounded-full bg-[#0f766d] text-white mt-0.5 text-lg md:text-xl">verified</span>
                                         <span className="text-gray-600 text-sm md:text-base">{item}</span>
                                     </li>
                                 ))}
@@ -125,6 +125,69 @@ export default function JobDetailPage() {
                             <button className="bg-[#0f766d] hover:bg-[#0f766d]/90 text-white px-8 py-3.5 rounded-xl text-sm md:text-base font-bold shadow-lg shadow-[#0f766d]/20 transition-all">
                                 Apply Now
                             </button>
+                        </section>
+
+                        {/* Similar Jobs - Bigger Cards */}
+                        <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100">
+                            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 border-b border-gray-50 pb-4">
+                                Similar Jobs You Might Like
+                            </h2>
+                            <div className="space-y-4">
+                                {SIMILAR_JOBS_FULL.map((simJob) => (
+                                    <Link
+                                        key={simJob.id}
+                                        href={`/job/${simJob.id}`}
+                                        className="group block bg-slate-50 hover:bg-white border border-slate-100 hover:border-slate-200 rounded-xl p-4 md:p-5 transition-all hover:shadow-lg"
+                                    >
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex gap-4">
+                                                <div className="size-12 md:size-14 rounded-xl bg-white flex items-center justify-center p-2 border border-slate-100 shrink-0">
+                                                    <img
+                                                        className="w-full h-full object-contain"
+                                                        src={simJob.companyLogo}
+                                                        alt={`${simJob.company} logo`}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-base md:text-lg font-bold text-gray-900 group-hover:text-[#0f766d] transition-colors">
+                                                        {simJob.title}
+                                                    </h4>
+                                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-500">
+                                                        <span className="flex items-center gap-1 font-medium text-slate-700">
+                                                            <span className="material-symbols-outlined text-[16px]">business</span>
+                                                            {simJob.company}
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            <span className="material-symbols-outlined text-[16px]">location_on</span>
+                                                            {simJob.location}
+                                                        </span>
+                                                        <span className="px-2 py-0.5 bg-teal-50 text-[#0f766d] text-xs font-bold rounded-md">
+                                                            {simJob.type}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                className="text-slate-300 hover:text-rose-500 transition-colors"
+                                                onClick={(e) => e.preventDefault()}
+                                            >
+                                                <span className="material-symbols-outlined">favorite</span>
+                                            </button>
+                                        </div>
+                                        <p className="text-slate-600 text-sm mt-3 line-clamp-2 leading-relaxed">
+                                            {simJob.description}
+                                        </p>
+                                        <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-100">
+                                            <div className="text-slate-900 font-bold text-sm md:text-base">
+                                                {simJob.salary} <span className="text-slate-400 font-normal text-xs">/ year</span>
+                                            </div>
+                                            <span className="px-4 py-2 bg-[#0f766d] text-white text-xs md:text-sm font-bold rounded-lg">
+                                                View Details
+                                            </span>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
                         </section>
                     </div>
 

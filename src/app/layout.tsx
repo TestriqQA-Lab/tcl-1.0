@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Sora, Inter } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/layout/Navbar";
+import { Navbar } from "@/components/layout/NavbarClient";
 import { Footer } from "@/components/layout/Footer";
 
 const geistSans = Geist({
@@ -30,11 +30,15 @@ export const metadata: Metadata = {
   description: "Connect with top employers, discover opportunities, and accelerate your career journey with Top Career Live.",
 };
 
-export default function RootLayout({
+import { auth } from "@/auth";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html lang="en">
       <head>
@@ -43,7 +47,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} ${inter.variable} antialiased bg-[#f8fafc] text-[#0e1b1a] flex flex-col min-h-screen font-sans`}
       >
-        <Navbar />
+        <Navbar session={session} />
         <main className="flex-grow max-w-7xl mx-auto px-6 lg:px-10 w-full">
           {children}
         </main>

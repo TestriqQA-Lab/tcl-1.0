@@ -1,15 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { loginSchema, type LoginFormData } from "@/lib/validation/auth";
+import { loginAction } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/Button";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 interface LoginFormProps {
     onSwitchToRegister?: () => void;
+    onClose?: () => void;
 }
 
-export const LoginForm = ({ onSwitchToRegister }: LoginFormProps) => {
+export const LoginForm = ({ onSwitchToRegister, onClose }: LoginFormProps) => {
+    const router = useRouter();
     const [formData, setFormData] = useState<LoginFormData>({
         email: "",
         password: "",
@@ -44,12 +48,30 @@ export const LoginForm = ({ onSwitchToRegister }: LoginFormProps) => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (validateForm()) {
-            setIsSubmitting(true);
-            console.log("Login form data:", formData);
-            setTimeout(() => setIsSubmitting(false), 1000);
+
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        setErrors({});
+
+        try {
+            const result = await loginAction(formData.email, formData.password);
+
+            if (result.error) {
+                setErrors({ email: result.error });
+            } else {
+                // Success - close modal and refresh
+                onClose?.();
+                router.refresh();
+            }
+        } catch (error) {
+            setErrors({ email: "An unexpected error occurred" });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
