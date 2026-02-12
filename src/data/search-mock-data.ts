@@ -1,78 +1,70 @@
-// Mock data for search page jobs (based on code_phone.html)
+// Mock data for search page
 
 export interface SearchJob {
     id: string;
     title: string;
     company: string;
-    logoUrl: string;
-    tags: string[];
+    companyLogo: string;
+    location: string;
+    type: string;
+    description: string;
     salary: string;
-    postedTime: string;
-    isBookmarked?: boolean;
 }
 
 export const SEARCH_JOBS: SearchJob[] = [
     {
         id: "1",
-        title: "Senior Software Engineer",
-        company: "TechFlow Solutions",
-        logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuC04heQ4q3XGw7MHKuIQvWAJVyE14MWHA9Aru6uOYqlfMkzEEeuhz-CzLb7EWdupHDUSF25yYHSRfwjBAJLxZxqbUzgp274PGr6x3W0MH_R8k2exWgSKbTUtuF0b2hCQR-0PrkYtQneGOMtlUZIQ-Cta1Drjmtl80zjdVwOROMdhRcu4EBimVLp_eROd3Eu_NdV3QROBhdG1bshjderh4EJBKogUHeEATzotBhiZK-wYGu3WgP6O1ln3IIxRoODhTSnMOehsmnmlsMp",
-        tags: ["Full-time", "Remote"],
+        title: "Senior Product Designer",
+        company: "Google",
+        companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuCdZa_HZnMhN8Y16gaQS0wmgJAX2QQPz7g8xYDA-CFKERzCSQyWqTXeboGl6ZLyt3dzfKl3hEyjjKWzF50mUvAFLYNxcbhyonFHndN8VAgQtbENjbC_IXiKlUhGlLOkrGuJnLEx8LK38Pd14SF-jHoD_kLRKZVb6-LgeEBiJd1_3hZulgs-bPp2NREZoWNTjbHbB3J40eI2_VRb-uafIV2i2Vffh_LAgxI4fGGEdl42UBJX2Ia5eNRIlStZF320YYiXBW04S0r3D3rh",
+        location: "Bengaluru (Hybrid)",
+        type: "Full-time",
+        description: "We are looking for a Senior Product Designer to lead design initiatives for our cloud infrastructure products. You will collaborate closely with engineering and PMs to define the user journey...",
         salary: "$140k - $180k",
-        postedTime: "2h ago",
-        isBookmarked: false,
     },
     {
         id: "2",
-        title: "Full Stack Developer",
-        company: "GreenLeaf Tech",
-        logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBofFHE-7OKk5ig07WeXi8vmDubJZNfi8OHP2GHvcxafgZk78uSefwor51heY8KZemgPuvj0-sIMaq8ovdbFfrkWJ2J7bk2yN0TJ7Q_0iLqNJR8dqrXLWL9CH3tGGjMSpvyjp3P6R1lCOTWVpiUgk0TIkHdPOT90Ye23HdToIpV9uKKlNAg683vndnxR9swNsfNiJ4QENWamVeDQasOZN3mQ_50G3UBIj7jqhh6PdOmlz4CexdtQ5eBYex3MMCVF5YYgOfXvVAfPjus",
-        tags: ["Contract", "Hybrid"],
-        salary: "$80 - $110/hr",
-        postedTime: "5h ago",
-        isBookmarked: true,
+        title: "UX Designer (Growth)",
+        company: "Razorpay",
+        companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuBhlor9VzdD8vX3YDQePkFjBsfp4c2Xws4UBQVap-Ye0bTqi0RgdNJeZGxy4RMAXyfQsk8l9NfkyJHUs6N7qS_l961MbASsqfl8s9OMF2IIAAeVMV25nY7rCZKgu7kbAql5cQi5P0vQGtbJ1V-SWwCyPVNi_dkIy4Z68XwDVCq7Njj-aN_swc60UKuaH-bB8Wuo68mtLymPgQcFEOLXvAjHfQEPk4h83TsWszrWpmPEdjUaoetJj514pnDg4e6S-WN1Fp5hTEZj91jU",
+        location: "Koramangala, Bengaluru",
+        type: "Remote Friendly",
+        description: "Join the growth team at India's leading fintech platform. You will be responsible for optimizing onboarding funnels and running A/B tests to improve conversion rates...",
+        salary: "$120k - $150k",
     },
     {
         id: "3",
-        title: "Lead Frontend Engineer",
-        company: "Nexus Systems",
-        logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCcSIftx4Z6GpwAeSnfT0kaqoMXnzjeDK-9jeOn--r0ovPMLpAHtA_NaB9_FimtIUU4cAzKjc4-6ILWcmthWZJcgXbc_Q1kh_OzRMVaX4EwhspzRurrciEpZEYRtJ4KjV4ZW4vXA6EDMmNhgn_YxBZMvmed7os_jZ8nnEW0IRVsCll-LIU2IOEt9ZYoJPWrXJ0GXrxj7ZgHuKnKuxmEZsp6E-KeqIYYJ6RmLqmO7bG_8S_OZiItBhD-JQNZ-VCsvQf12sp0hkwl13lC",
-        tags: ["Full-time", "On-site"],
-        salary: "$160k - $210k",
-        postedTime: "1d ago",
-        isBookmarked: false,
+        title: "Lead Visual Designer",
+        company: "Swiggy",
+        companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuCw2puTohRujx7XoA10TVVrYH39PX2duHda_hKI-8UOpoVXsBm6c8Z-TIN__1FF8wLPmBWucmE0BgO-LgirNAWbYtqSj4ELxpaPdetRDbctJz5DCPyyxKZ7c_zVT8KZ2lwfOHR551oCwvPwDDJLX0ZGNZDILIWrb7ddooXjRZXIauzK96lgGDk2anY4TsLgvX4s2CJ_oazaYLO-dv8pm0bRn0ZS62e-Wq9PCv6ERgAbiAUjG_A-SjB04r0AgFqr8KCy2kFyShJD02a3",
+        location: "Bengaluru (On-site)",
+        type: "Full-time",
+        description: "Lead the brand identity and visual strategy across all customer touchpoints. We are looking for a visionary who can elevate our aesthetic standards...",
+        salary: "$100k - $140k",
     },
     {
         id: "4",
-        title: "Senior Product Designer",
-        company: "Google",
-        logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBdAdZlkBNKNvl9pCfPHc0fMa4dpRGuayXm3cbr8CA9LDIqCO4beIUo1y9ouA6F3ZLw5YqA90dUFd4dmVZyh_MVyGe_1qIS0-IRcADI2NVPm7tWgPrYXn6befebSS-aAL3eCge73Z4PbjASJYOwHW4Wyi0gk05mZTnyKXl-6LRcZP0QTJEF6uWlyZKv9jTzUVS-08pWNnY--ABY0gRB02jARzfkpae7uIIqZcT7LTsAw1fXvJMz1AucwhPIg-_53dXRo0659YrEi8DB",
-        tags: ["Full-time", "Hybrid"],
-        salary: "$140k - $180k",
-        postedTime: "3h ago",
-        isBookmarked: false,
+        title: "Product Designer",
+        company: "Flipkart",
+        companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuA9Zr0zZLAImweO7R3BvYv5fTdgteiAgQO6aBmEvQ9_4XDCeZxqdG6iFrsK3XnPjCaosMgqEDduy9dvcBlS0ceyWB8wYDvqFb_j6IPnIvD36tvqaPsc7YElzJFxLNGEO6MW8EWJHR9VbX9BqKWAICKZtGierY06MK2-q1iT2YxQA6Pe6K-cYsYNL8SB4QcMGCJhk5KJCGF-mODYbKYh6T4t2NWXTolIs3Rljq_cTQ6lAVJp8On2TcO8zPL_eLJJYxABRk10u8wrTSxj",
+        location: "Bengaluru (Hybrid)",
+        type: "Full-time",
+        description: "Design intuitive shopping experiences for millions of users. Work on features that impact India's largest e-commerce platform and its diverse customer base...",
+        salary: "$90k - $130k",
     },
     {
         id: "5",
-        title: "UX Designer (Growth)",
-        company: "Razorpay",
-        logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAyksUJ4zn11jvirQ3rx-g5gSjlcD4t7hMWZLjMb94P71Q41E2uXVHde3vPMngKF0oL3-8kD4Ek8Rcki5poOAwRJ27eFxztD8ELInhBgT8ZI0cJKbxSK9LLnqXkk081YlrFcSMMV5v7mKNNhYpykHvvdB4QDbiaLiWwq3qDAjbxl9H_MtzTn_R9fbcnSdmqk59DQS-tQvZ-VZRKeneQZX6TEwLs1P8ARXCxFZEA9ma-80uVeLyA0ikcfwueXCAtivbzjKsh3lR6PnAd",
-        tags: ["Full-time", "Remote Friendly"],
-        salary: "$120k - $150k",
-        postedTime: "6h ago",
-        isBookmarked: false,
-    },
-    {
-        id: "6",
-        title: "Lead Visual Designer",
-        company: "Swiggy",
-        logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBswTaKOfAwevTOvqVyAd_8Q1pE7p6lrvZpV2pXqDNGg8VM-L6NB9Bk304MqxgBX4xp6bUsB4njBay6hqATFeyIUI_6826KfDv8m1XN6nvZhwm_w-ipT7OnlfGSNeNijrql7mK6kmX-I4vSI9lyIUnmuOfl1OYIeqc9-Ai9dv50Sy16Y2Mxe_WB3ZFG_63Nfk5gaEng2wnmucXKoSIQOsNpyuC7SgYKkL4hluK9mS9fPxM4u42qghBtF0ulJM9N_C3MNmnP6-71zy4q",
-        tags: ["Full-time", "On-site"],
-        salary: "$100k - $140k",
-        postedTime: "1d ago",
-        isBookmarked: false,
+        title: "UI/UX Designer",
+        company: "PhonePe",
+        companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuDDQSE2tzOxcUhSAD1bn8uJTSLE8q_yNQkDARmc5TU-z3a_UyKUjhf9wl0LKrYvMnHDNrDfn2v_feQ12R7oFy-YunVi0baDXpUFRdfN1Cg689Geusf_yTd1REODX5cZ-xLT74JuPuYH10rSwewqKZPLt-JDr4vJdYdGRcplGUT0_rx1ugSR-5qVKGV1p1G9msOhC2Hp81v9daKZZJXw9tgAt3coCsFBUYVhq4JVPy3ikrA3Je_gBHUNR1UruAyI6FhuNxpTpoSRoJDe",
+        location: "Bengaluru (Remote)",
+        type: "Remote Friendly",
+        description: "Create seamless payment experiences for one of India's fastest-growing fintech apps. Design for scale and simplicity across mobile platforms...",
+        salary: "$80k - $120k",
     },
 ];
 
 export const JOB_TYPE_FILTERS = ["Full-time", "Remote", "Contract", "Internship"];
+
 export const DATE_POSTED_FILTERS = ["Last 24 hours", "Last 7 days", "Last 30 days"];
+

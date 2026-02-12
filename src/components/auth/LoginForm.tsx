@@ -1,15 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { loginSchema, type LoginFormData } from "@/lib/validation/auth";
+import { loginAction } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/Button";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 interface LoginFormProps {
     onSwitchToRegister?: () => void;
+    onClose?: () => void;
+    role?: "SEEKER" | "EMPLOYER"; // For OAuth role assignment
 }
 
-export const LoginForm = ({ onSwitchToRegister }: LoginFormProps) => {
+export const LoginForm = ({ onSwitchToRegister, onClose, role = "SEEKER" }: LoginFormProps) => {
+    const router = useRouter();
     const [formData, setFormData] = useState<LoginFormData>({
         email: "",
         password: "",
@@ -44,12 +49,30 @@ export const LoginForm = ({ onSwitchToRegister }: LoginFormProps) => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (validateForm()) {
-            setIsSubmitting(true);
-            console.log("Login form data:", formData);
-            setTimeout(() => setIsSubmitting(false), 1000);
+
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        setErrors({});
+
+        try {
+            const result = await loginAction(formData.email, formData.password);
+
+            if (result.error) {
+                setErrors({ email: result.error });
+            } else {
+                // Success - close modal and refresh
+                onClose?.();
+                router.refresh();
+            }
+        } catch (error) {
+            setErrors({ email: "An unexpected error occurred" });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -161,7 +184,20 @@ export const LoginForm = ({ onSwitchToRegister }: LoginFormProps) => {
             {/* Google Sign In */}
             <button
                 type="button"
-                onClick={() => console.log("Google sign in clicked")}
+                onClick={async () => {
+                    try {
+                        // Set role cookie before OAuth redirect
+                        document.cookie = `oauth_role=${role}; path=/; max-age=300`; // 5 minutes
+
+                        const { signIn } = await import("next-auth/react");
+                        await signIn("google", {
+                            callbackUrl: "/",
+                            redirect: true
+                        });
+                    } catch (error) {
+                        console.error("Google sign-in error:", error);
+                    }
+                }}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer"
             >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">

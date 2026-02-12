@@ -26,6 +26,14 @@ export const registerSchema = z.object({
         .string()
         .min(1, "Password is required")
         .min(6, "Password must be at least 6 characters"),
+    mobileNumber: z
+        .string()
+        .min(10, "Mobile number must be 10 digits")
+        .max(10, "Mobile number must be 10 digits")
+        .regex(/^[0-9]+$/, "Mobile number must be digits only"),
+    workStatus: z.enum(["EXPERIENCED", "FRESHER"]),
+    resumeUrl: z.string().optional(), // In a real app, this would be a URL from upload
+    whatsappUpdates: z.boolean().default(true),
 });
 
 // Inferred types
