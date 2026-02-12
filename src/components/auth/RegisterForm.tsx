@@ -16,6 +16,9 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
         name: "",
         email: "",
         password: "",
+        mobileNumber: "",
+        workStatus: "FRESHER",
+        whatsappUpdates: true,
     });
     const [errors, setErrors] = useState<Partial<Record<keyof RegisterFormData, string>>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,7 +77,14 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
                     onSwitchToLogin();
                 } else {
                     // Fallback if no switch handler
-                    setFormData({ name: "", email: "", password: "" });
+                    setFormData({
+                        name: "",
+                        email: "",
+                        password: "",
+                        mobileNumber: "",
+                        workStatus: "FRESHER",
+                        whatsappUpdates: true,
+                    });
                     alert("Account created successfully! Please sign in.");
                 }
             }

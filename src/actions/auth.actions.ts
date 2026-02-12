@@ -64,7 +64,15 @@ export async function logoutAction() {
  * @param password - User password
  * @returns Success or error object
  */
-export async function registerAction(name: string, email: string, password: string, role: string = "SEEKER") {
+export async function registerAction(
+    name: string,
+    email: string,
+    password: string,
+    role: string = "SEEKER",
+    mobileNumber?: string,
+    workStatus?: "EXPERIENCED" | "FRESHER",
+    resumeUrl?: string
+) {
     try {
         // Validate inputs
         if (!name || !email || !password) {
@@ -107,7 +115,7 @@ export async function registerAction(name: string, email: string, password: stri
                 password: hashedPassword,
                 username,
                 userRole: validRole as "SEEKER" | "EMPLOYER",
-                phoneNumber: "0000000000", // Placeholder
+                phoneNumber: mobileNumber || null,
                 isVerified: false,
                 accountStatus: "ACTIVE",
             }).returning();
@@ -118,8 +126,9 @@ export async function registerAction(name: string, email: string, password: stri
                     userId: newUser.id,
                     fullName: name, // Uses full name from registration
                     experienceLevel: 0,
-                    resumeUrl: "",
+                    resumeUrl: resumeUrl || "",
                     coverLetter: "",
+                    workStatus: workStatus || "FRESHER", // Mapping to new field in schema
                 });
             } else if (validRole === "EMPLOYER") {
                 await tx.insert(employerProfiles).values({

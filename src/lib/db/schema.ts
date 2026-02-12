@@ -72,6 +72,15 @@ export const seekerProfiles = pgTable("seeker_profiles", {
     preferredWorkType: preferredWorkTypeEnum("preferred_work_type").array().default([]),
     preferredWorkMode: jobType("preferred_work_mode").array().default([]), // Reuse jobType (ONSITE/REMOTE/HYBRID)
 
+    // Onboarding - Employment Details
+    totalExperienceYears: integer("total_experience_years").default(0),
+    totalExperienceMonths: integer("total_experience_months").default(0),
+    currentIndustry: text("current_industry"),
+    currentDepartment: text("current_department"),
+    currentRoleCategory: text("current_role_category"),
+    currentJobRole: text("current_job_role"),
+    currentSalary: integer("current_salary"), // Annual Fixed Salary
+
     // Summary
     bio: text("bio"), // Professional Summary
     careerGoals: text("career_goals"),
@@ -167,6 +176,12 @@ export const education = pgTable("education", {
     activities: text("activities"), // Clubs/Societies
     description: text("description"), // Additional details
 
+    // Onboarding - Education Details
+    courseType: text("course_type"), // Full Time, Part Time, Correspondence
+    specialization: text("specialization"), // e.g. Artificial Intelligence
+    university: text("university"), // Stanford University
+    passingYear: integer("passing_year"),
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -183,6 +198,10 @@ export const experience = pgTable("experience", {
     endDate: date("end_date"), // Null if currently working
     currentlyWorking: boolean("currently_working").default(false),
     description: text("description"), // Responsibilities (bullet points)
+
+    // Onboarding - Employment Details
+    salary: integer("salary"), // Annual Salary at this job
+    noticePeriod: text("notice_period"), // e.g. "15 Days or less"
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
