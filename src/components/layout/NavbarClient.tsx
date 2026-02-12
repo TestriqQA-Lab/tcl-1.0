@@ -41,7 +41,7 @@ export function Navbar({ session }: NavbarProps) {
     return (
         <>
             <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
-                <div className="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
+                <div className="max-w-[1440px] mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
 
                     {/* Left: Logo - Refined & Established */}
                     <Link href="/" className="flex items-center gap-3 shrink-0 group">
