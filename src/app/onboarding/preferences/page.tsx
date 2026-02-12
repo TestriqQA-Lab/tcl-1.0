@@ -18,6 +18,31 @@ export default function PreferencesPage() {
     const [salary, setSalary] = useState<string>("1000000");
     const [gender, setGender] = useState<"MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | "">("MALE");
 
+    // Fetch Data on Mount
+    React.useEffect(() => {
+        const fetchData = async () => {
+            if (session?.user?.id) {
+                try {
+                    const { getPreferencesAction } = await import("@/actions/onboarding.actions");
+                    const result = await getPreferencesAction(session.user.id);
+
+                    if (result.success && result.data) {
+                        const { headline, locations, salary, gender } = result.data;
+
+                        if (headline) setHeadline(headline);
+                        if (locations) setLocations(locations);
+                        if (salary) setSalary(salary.toString());
+                        if (gender) setGender(gender);
+                    }
+                } catch (error) {
+                    console.error("Failed to load preferences data", error);
+                }
+            }
+        };
+
+        fetchData();
+    }, [session?.user?.id]);
+
     const suggestions = ["Bengaluru", "Pune", "Hyderabad"];
 
     const handleAddLocation = (city: string) => {
@@ -39,7 +64,12 @@ export default function PreferencesPage() {
     };
 
     const handleSubmit = async () => {
-        if (!session?.user?.id) return;
+        console.log("Submitting Preferences...");
+        if (!session?.user?.id) {
+            console.error("No active session found.");
+            alert("Session expired or invalid. Please sign in again.");
+            return;
+        }
         setIsLoading(true);
 
         try {
@@ -48,15 +78,19 @@ export default function PreferencesPage() {
                 locations,
                 salary: parseInt(salary) || 0,
                 gender: gender as any,
+                // Add missing fields here when we implement them in the UI
             });
 
             if (result.success) {
-                router.push("/dashboard");
+                console.log("Preferences saved successfully.");
+                router.push("/dashboard"); // Or wherever the next step is
             } else {
-                console.error(result.error);
+                console.error("Server Action Error:", result.error);
+                alert(`Error saving preferences: ${result.error}`);
             }
         } catch (error) {
-            console.error(error);
+            console.error("Submission Error:", error);
+            alert("An unexpected error occurred. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -137,8 +171,8 @@ export default function PreferencesPage() {
                                 onClick={() => handleAddLocation(city)}
                                 disabled={locations.includes(city)}
                                 className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${locations.includes(city)
-                                        ? "bg-gray-100 text-gray-400 border-gray-200 cursor-default"
-                                        : "bg-white border-gray-200 text-gray-600 hover:border-[#0f766d] hover:text-[#0f766d]"
+                                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-default"
+                                    : "bg-white border-gray-200 text-gray-600 hover:border-[#0f766d] hover:text-[#0f766d]"
                                     }`}
                             >
                                 + {city}
@@ -181,8 +215,8 @@ export default function PreferencesPage() {
                                 key={option.value}
                                 onClick={() => setGender(option.value as any)}
                                 className={`px-6 py-2.5 rounded-full text-sm font-medium border transition-all ${gender === option.value
-                                        ? "bg-[#0f766d] text-white border-[#0f766d] shadow-md shadow-[#0f766d]/20"
-                                        : "bg-white text-gray-600 border-gray-200 hover:border-[#0f766d] hover:text-[#0f766d]"
+                                    ? "bg-[#0f766d] text-white border-[#0f766d] shadow-md shadow-[#0f766d]/20"
+                                    : "bg-white text-gray-600 border-gray-200 hover:border-[#0f766d] hover:text-[#0f766d]"
                                     }`}
                             >
                                 {option.label}
