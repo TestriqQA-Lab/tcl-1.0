@@ -1,5 +1,4 @@
-"use client";
-
+import Link from "next/link";
 import { SearchJob } from "@/data/search-mock-data";
 
 interface SearchJobCardProps {
@@ -8,50 +7,59 @@ interface SearchJobCardProps {
 
 export function SearchJobCard({ job }: SearchJobCardProps) {
     return (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="group bg-white border border-slate-100 rounded-2xl p-4 hover:shadow-xl hover:shadow-teal-900/5 transition-all">
+            {/* Header: Logo, Title, Company, Location, Type, Favorite */}
             <div className="flex items-start justify-between">
-                <div className="flex gap-3">
-                    <div className="size-12 rounded-lg bg-slate-100 p-2 shrink-0">
+                <div className="flex gap-4">
+                    <div className="size-14 rounded-xl bg-slate-50 flex items-center justify-center p-2 border border-slate-100 shrink-0">
                         <img
+                            className="w-full h-full object-contain"
+                            src={job.companyLogo}
                             alt={`${job.company} logo`}
-                            className="size-full rounded object-contain"
-                            src={job.logoUrl}
                         />
                     </div>
                     <div>
-                        <h3 className="font-bold text-slate-900 text-sm md:text-base">{job.title}</h3>
-                        <p className="text-sm text-[#0f766d] font-medium">{job.company}</p>
+                        <h4 className="text-lg font-bold group-hover:text-[#0f766d] transition-colors">
+                            {job.title}
+                        </h4>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-slate-500">
+                            <span className="flex items-center gap-1 font-medium text-slate-700">
+                                <span className="material-symbols-outlined text-[18px]">business</span>
+                                {job.company}
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[18px]">location_on</span>
+                                {job.location}
+                            </span>
+                            <span className="px-2 py-0.5 bg-teal-50 text-[#0f766d] text-xs font-bold rounded-md">
+                                {job.type}
+                            </span>
+                        </div>
                     </div>
                 </div>
-                <button className={job.isBookmarked ? "text-[#0f766d]" : "text-slate-400 hover:text-[#0f766d] transition-colors"}>
-                    <span
-                        className="material-symbols-outlined"
-                        style={job.isBookmarked ? { fontVariationSettings: "'FILL' 1" } : {}}
-                    >
-                        bookmark
-                    </span>
+                <button className="text-slate-300 hover:text-rose-500 transition-colors">
+                    <span className="material-symbols-outlined">favorite</span>
                 </button>
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-2">
-                {job.tags.map((tag) => (
-                    <span key={tag} className="rounded bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-600">
-                        {tag}
-                    </span>
-                ))}
-                <span className="rounded bg-[#0f766d]/10 px-2 py-1 text-[11px] font-bold text-[#0f766d]">
-                    {job.salary}
-                </span>
+            {/* Description */}
+            <div className="mt-4">
+                <p className="text-slate-600 text-sm line-clamp-2 leading-relaxed">
+                    {job.description}
+                </p>
             </div>
 
-            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-                <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs">schedule</span>
-                    {job.postedTime}
-                </span>
-                <button className="rounded-lg bg-[#0f766d] px-4 py-2 text-xs font-bold text-white hover:bg-[#0f766d]/90 transition-colors">
-                    Apply Now
-                </button>
+            {/* Footer: Salary & View Details */}
+            <div className="mt-6 flex items-center justify-between border-t border-slate-50 pt-4">
+                <div className="text-slate-900 font-bold">
+                    {job.salary} <span className="text-slate-400 font-normal text-xs">/ year</span>
+                </div>
+                <Link
+                    href={`/job/${job.id}`}
+                    className="px-5 py-2 bg-[#0f766d] text-white text-sm font-bold rounded-xl hover:bg-teal-800 transition-all"
+                >
+                    View Details
+                </Link>
             </div>
         </div>
     );
