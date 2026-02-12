@@ -5,8 +5,17 @@ import { useState } from "react";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { RegisterForm } from "@/components/auth/RegisterForm";
+import { EmployerAuthModal } from "@/components/auth/EmployerAuthModal";
+import { Session } from "next-auth";
+import { logoutAction } from "@/actions/auth.actions";
+import { useRouter } from "next/navigation";
 
-export function Navbar() {
+interface NavbarProps {
+    session: Session | null;
+}
+
+export function Navbar({ session }: NavbarProps) {
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 
@@ -16,6 +25,18 @@ export function Navbar() {
 
     const switchToRegister = () => setAuthModal("register");
     const switchToLogin = () => setAuthModal("login");
+
+    const [isEmployerModalOpen, setIsEmployerModalOpen] = useState(false);
+    const openEmployerModal = () => setIsEmployerModalOpen(true);
+    const closeEmployerModal = () => setIsEmployerModalOpen(false);
+
+    const handleLogout = async () => {
+        await logoutAction();
+        router.refresh();
+    };
+
+    const user = session?.user;
+    const userInitial = user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U";
 
     return (
         <>
@@ -80,27 +101,53 @@ export function Navbar() {
 
                     {/* Right: Auth + Employer CTA */}
                     <div className="hidden lg:flex items-center gap-3">
-                        <button
-                            onClick={openLogin}
-                            className="text-sm font-medium text-gray-700 px-4 py-2 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-                        >
-                            Login
-                        </button>
-                        <button
-                            onClick={openRegister}
-                            className="text-sm font-medium text-white bg-gray-800 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-                        >
-                            Register
-                        </button>
+                        {user ? (
+                            <div className="flex items-center gap-3">
+                                {/* Profile Icon */}
+                                <div className="size-9 rounded-full bg-[#0f766d]/10 text-[#0f766d] flex items-center justify-center font-bold border border-[#0f766d]/20 overflow-hidden">
+                                    {user.image ? (
+                                        <img src={user.image} alt={user.name || "User"} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span>{userInitial}</span>
+                                    )}
+                                </div>
+                                <div className="flex flex-col mr-2">
+                                    <span className="text-sm font-semibold text-gray-900 leading-tight">{user.name || "User"}</span>
+                                    <span className="text-[10px] text-gray-500 leading-tight">{user.email}</span>
+                                </div>
+                                {/* Logout Button */}
+                                <button
+                                    onClick={handleLogout}
+                                    className="text-sm font-medium text-red-600 px-4 py-2 rounded-lg border border-red-100 hover:bg-red-50 hover:border-red-200 transition-colors"
+                                >
+                                    Logout
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={openLogin}
+                                    className="text-sm font-medium text-gray-700 px-4 py-2 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                                >
+                                    Login
+                                </button>
+                                <button
+                                    onClick={openRegister}
+                                    className="text-sm font-medium text-white bg-gray-800 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                                >
+                                    Register
+                                </button>
+                            </>
+                        )}
 
                         <div className="h-5 w-px bg-gray-200"></div>
 
-                        <Link
-                            href="#"
+                        <button
+                            onClick={openEmployerModal}
                             className="bg-[#0f766d]/10 text-[#0f766d] font-semibold text-sm px-5 py-2 rounded-lg hover:bg-[#0f766d]/20 transition-colors"
                         >
                             For Employers
-                        </Link>
+                        </button>
                     </div>
 
                     {/* Mobile Menu Toggle */}
@@ -139,27 +186,38 @@ export function Navbar() {
 
                         {/* Auth */}
                         <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-                            <button
-                                onClick={() => { openLogin(); setIsOpen(false); }}
-                                className="flex-1 text-center text-sm font-medium text-gray-700 px-4 py-2.5 rounded-lg border border-gray-200"
-                            >
-                                Login
-                            </button>
-                            <button
-                                onClick={() => { openRegister(); setIsOpen(false); }}
-                                className="flex-1 text-center text-sm font-medium text-white bg-gray-800 px-4 py-2.5 rounded-lg"
-                            >
-                                Register
-                            </button>
+                            {user ? (
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex-1 text-center text-sm font-medium text-red-600 px-4 py-2.5 rounded-lg border border-red-200 hover:bg-red-50"
+                                >
+                                    Logout ({user.name})
+                                </button>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() => { openLogin(); setIsOpen(false); }}
+                                        className="flex-1 text-center text-sm font-medium text-gray-700 px-4 py-2.5 rounded-lg border border-gray-200"
+                                    >
+                                        Login
+                                    </button>
+                                    <button
+                                        onClick={() => { openRegister(); setIsOpen(false); }}
+                                        className="flex-1 text-center text-sm font-medium text-white bg-gray-800 px-4 py-2.5 rounded-lg"
+                                    >
+                                        Register
+                                    </button>
+                                </>
+                            )}
                         </div>
 
                         {/* Employer CTA */}
-                        <Link
-                            href="#"
+                        <button
+                            onClick={() => { openEmployerModal(); setIsOpen(false); }}
                             className="block w-full text-center bg-[#0f766d]/10 text-[#0f766d] font-semibold text-sm px-5 py-3 rounded-lg"
                         >
                             For Employers
-                        </Link>
+                        </button>
                     </div>
                 )}
             </header>
@@ -171,7 +229,7 @@ export function Navbar() {
                 title="Welcome Back"
                 subtitle="Sign in to continue your journey"
             >
-                <LoginForm onSwitchToRegister={switchToRegister} />
+                <LoginForm onSwitchToRegister={switchToRegister} onClose={closeModal} />
             </AuthModal>
 
             <AuthModal
@@ -182,6 +240,12 @@ export function Navbar() {
             >
                 <RegisterForm onSwitchToLogin={switchToLogin} />
             </AuthModal>
+
+            {/* Employer Auth Modal */}
+            <EmployerAuthModal
+                isOpen={isEmployerModalOpen}
+                onClose={closeEmployerModal}
+            />
         </>
     );
 }

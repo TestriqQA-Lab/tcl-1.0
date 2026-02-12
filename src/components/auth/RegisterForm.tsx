@@ -2,14 +2,16 @@
 
 import React, { useState } from "react";
 import { registerSchema, type RegisterFormData } from "@/lib/validation/auth";
+import { registerAction } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/Button";
 import { Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 
 interface RegisterFormProps {
     onSwitchToLogin?: () => void;
+    role?: "SEEKER" | "EMPLOYER";
 }
 
-export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
+export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormProps) => {
     const [formData, setFormData] = useState<RegisterFormData>({
         name: "",
         email: "",
@@ -45,12 +47,41 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (validateForm()) {
-            setIsSubmitting(true);
-            console.log("Register form data:", formData);
-            setTimeout(() => setIsSubmitting(false), 1000);
+
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        setErrors({});
+
+        try {
+            const result = await registerAction(formData.name, formData.email, formData.password, role);
+
+            if (result.error) {
+                // If specific field error, set it. Otherwise general error.
+                if (result.error.toLowerCase().includes("email")) {
+                    setErrors({ email: result.error });
+                } else {
+                    setErrors({ email: result.error }); // General error shown under email or separate alert
+                }
+            } else {
+                // Success
+                // Switch to login or show success message
+                if (onSwitchToLogin) {
+                    onSwitchToLogin();
+                } else {
+                    // Fallback if no switch handler
+                    setFormData({ name: "", email: "", password: "" });
+                    alert("Account created successfully! Please sign in.");
+                }
+            }
+        } catch (error) {
+            setErrors({ email: "An unexpected error occurred" });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -184,7 +215,20 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
             {/* Google Sign Up */}
             <button
                 type="button"
-                onClick={() => console.log("Google sign up clicked")}
+                onClick={async () => {
+                    try {
+                        // Set role cookie before OAuth redirect
+                        document.cookie = `oauth_role=${role}; path=/; max-age=300`; // 5 minutes
+
+                        const { signIn } = await import("next-auth/react");
+                        await signIn("google", {
+                            callbackUrl: "/",
+                            redirect: true
+                        });
+                    } catch (error) {
+                        console.error("Google sign-up error:", error);
+                    }
+                }}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer"
             >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">

@@ -29,9 +29,15 @@ export const users = pgTable("users", {
     username: text("username").notNull().unique(),
     userRole: userRole("user_role").default("SEEKER").notNull(),
     email: text("email").notNull().unique(),
-    password: text("password").notNull(),
+    password: text("password"), // Nullable for OAuth users
     profilePicture: text("profile_picture").default(""),
-    phoneNumber: text('phone_number').notNull(),
+    phoneNumber: text('phone_number'), // Nullable for OAuth users
+
+    // OAuth fields
+    provider: text("provider").default("credentials").notNull(), // "credentials" | "google"
+    providerAccountId: text("provider_account_id"), // Google sub ID
+    emailVerified: timestamp("email_verified"), // OAuth email verification
+
     isVerified: boolean("is_verified").default(false).notNull(),
     isPhoneVerified: boolean("is_phone_verified").default(false).notNull(),
     accountStatus: userAccountStatus("account_status").default("ACTIVE").notNull(),
