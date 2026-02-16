@@ -1,6 +1,7 @@
 import React from "react";
 import { OnboardingSidebar } from "@/components/onboarding/OnboardingSidebar";
 import { OnboardingStepper } from "@/components/onboarding/OnboardingStepper";
+import { RegistrationJourneyIllustration } from "@/components/auth/RegistrationJourneyIllustration";
 
 export default function OnboardingLayout({
     children,
@@ -17,13 +18,16 @@ export default function OnboardingLayout({
                 </div>
 
                 {/* Center Column - Form (7 cols) */}
-                <div className="lg:col-span-7 space-y-6">
+                <div className="lg:col-span-7 xl:col-span-6 space-y-6">
                     {children}
                 </div>
 
                 {/* Right Column - Sidebar Widgets (2 cols) */}
-                <div className="hidden lg:block lg:col-span-2 space-y-6">
+                <div className="hidden lg:block lg:col-span-2 xl:col-span-3 space-y-6">
                     <div className="sticky top-24">
+                        <div className="mb-24">
+                            <RegistrationJourneyIllustration />
+                        </div>
                         <OnboardingSidebar progress={50} />
                     </div>
                 </div>

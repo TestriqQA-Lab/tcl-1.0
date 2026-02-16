@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { registerSchema, type RegisterFormData } from "@/lib/validation/auth";
 import { registerAction } from "@/actions/auth.actions";
@@ -11,9 +11,11 @@ import Image from "next/image";
 
 interface SeekerRegisterFormProps {
     onSwitchToLogin?: () => void;
+    initialName?: string;
+    initialEmail?: string;
 }
 
-export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps) => {
+export const SeekerRegisterForm = ({ onSwitchToLogin, initialName, initialEmail }: SeekerRegisterFormProps) => {
     const router = useRouter();
     const [formData, setFormData] = useState<RegisterFormData>({
         name: "",
@@ -40,6 +42,22 @@ export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps)
             return false;
         }
     };
+
+    // Pre-fill form fields from Google OAuth data
+    useEffect(() => {
+        if (initialName || initialEmail) {
+            setFormData(prev => ({
+                ...prev,
+                ...(initialName ? { name: initialName } : {}),
+                ...(initialEmail ? { email: initialEmail } : {}),
+            }));
+            setTouched(prev => ({
+                ...prev,
+                ...(initialName ? { name: true } : {}),
+                ...(initialEmail ? { email: true } : {}),
+            }));
+        }
+    }, [initialName, initialEmail]);
 
     const isValid = (name: keyof RegisterFormData) => touched[name] && validateField(name, formData[name]);
 
@@ -127,7 +145,7 @@ export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps)
     };
 
     return (
-        <div className="w-full p-4 md:p-8 rounded-2xl bg-white mt-1">
+        <div className="w-full p-4 md:p-8 rounded-2xl shadow-xl bg-white mt-1">
             {/* Header */}
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-2">
