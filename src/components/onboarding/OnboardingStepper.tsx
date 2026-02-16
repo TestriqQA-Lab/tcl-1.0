@@ -4,7 +4,11 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { Check, Briefcase, GraduationCap, Settings } from "lucide-react";
 
-export const OnboardingStepper = () => {
+interface OnboardingStepperProps {
+    activeStepOverride?: string; // e.g. "account" to highlight Account Creation as active
+}
+
+export const OnboardingStepper = ({ activeStepOverride }: OnboardingStepperProps = {}) => {
     const pathname = usePathname();
 
     // Helper to determine step status
@@ -22,34 +26,55 @@ export const OnboardingStepper = () => {
         return "pending";
     };
 
+    // If override provided, use it to determine statuses
+    const getOverrideStatus = (stepId: string) => {
+        if (!activeStepOverride) return null;
+        const stepOrder = ["account", "employment", "education", "preferences"];
+        const activeIndex = stepOrder.indexOf(activeStepOverride);
+        const targetIndex = stepOrder.indexOf(stepId);
+        if (targetIndex < activeIndex) return "completed";
+        if (targetIndex === activeIndex) return "active";
+        return "pending";
+    };
+
+    const resolveStatus = (stepId: string, fallbackStatus: string) => {
+        return getOverrideStatus(stepId) ?? fallbackStatus;
+    };
+
+    const resolveSubLabel = (status: string) => {
+        if (status === "completed") return "COMPLETED";
+        if (status === "active") return "ACTIVE STEP";
+        return "";
+    };
+
     const steps = [
         {
-            id: "basic",
-            label: "Basic Details",
+            id: "account",
+            label: "Account Creation",
             icon: Check,
-            status: "completed", // Always completed coming from registration
-            subLabel: "COMPLETED"
+            status: resolveStatus("account", "completed"),
+            subLabel: resolveSubLabel(resolveStatus("account", "completed"))
         },
         {
             id: "employment",
             label: "Employment",
             icon: Briefcase,
-            status: getStepStatus("employment"),
-            subLabel: getStepStatus("employment") === "active" ? "ACTIVE STEP" : (getStepStatus("employment") === "completed" ? "COMPLETED" : "")
+            status: resolveStatus("employment", getStepStatus("employment")),
+            subLabel: resolveSubLabel(resolveStatus("employment", getStepStatus("employment")))
         },
         {
             id: "education",
             label: "Education",
             icon: GraduationCap,
-            status: getStepStatus("education"),
-            subLabel: getStepStatus("education") === "active" ? "ACTIVE STEP" : (getStepStatus("education") === "completed" ? "COMPLETED" : "")
+            status: resolveStatus("education", getStepStatus("education")),
+            subLabel: resolveSubLabel(resolveStatus("education", getStepStatus("education")))
         },
         {
             id: "preferences",
             label: "Preferences",
             icon: Settings,
-            status: getStepStatus("preferences"),
-            subLabel: getStepStatus("preferences") === "active" ? "ACTIVE STEP" : ""
+            status: resolveStatus("preferences", getStepStatus("preferences")),
+            subLabel: resolveSubLabel(resolveStatus("preferences", getStepStatus("preferences")))
         }
     ];
 
