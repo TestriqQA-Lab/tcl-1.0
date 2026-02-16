@@ -25,48 +25,6 @@ export const OnboardingSidebar = ({ progress = 50 }: OnboardingSidebarProps) => 
 
     return (
         <div className="space-y-6">
-            {/* Profile Strength Card */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
-                <h3 className="text-gray-900 font-bold mb-6">Profile Strength</h3>
-
-                <div className="relative w-32 h-32 mx-auto mb-4">
-                    {/* SVG Progress Circle */}
-                    <svg className="w-full h-full transform -rotate-90">
-                        <circle
-                            cx="64"
-                            cy="64"
-                            r={radius}
-                            stroke="currentColor"
-                            strokeWidth="8"
-                            fill="transparent"
-                            className="text-gray-100"
-                        />
-                        <circle
-                            cx="64"
-                            cy="64"
-                            r={radius}
-                            stroke="currentColor"
-                            strokeWidth="8"
-                            fill="transparent"
-                            strokeDasharray={circumference}
-                            strokeDashoffset={strokeDashoffset}
-                            strokeLinecap="round"
-                            className={strengthColor}
-                        />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className={`text-2xl font-bold leading-none mb-1 ${strengthColor}`}>{progress}%</span>
-                        <span className="text-[10px] uppercase font-bold text-gray-400 tracking-normal">
-                            {strengthLabel}
-                        </span>
-                    </div>
-                </div>
-
-                <p className="text-xs text-gray-500 leading-relaxed">
-                    You&apos;re doing great! Complete your details to reach <span className="font-bold text-gray-900">100%</span>.
-                </p>
-            </div>
-
             {/* Quick Tip Card */}
             <div className="bg-[#FFFBF0] rounded-2xl p-6 border border-orange-100 relative overflow-hidden">
                 <div className="flex gap-3">
