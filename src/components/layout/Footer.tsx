@@ -1,8 +1,15 @@
 import Link from "next/link";
+import { Session } from "next-auth";
 
-export function Footer() {
+interface FooterProps {
+    session?: Session | null;
+}
+
+export function Footer({ session }: FooterProps) {
+    const isLoggedIn = !!session?.user;
+
     return (
-        <footer className="bg-[#1a1f2e] text-gray-300 mt-20">
+        <footer className={`hidden lg:block bg-[#1a1f2e] text-gray-300 mt-20 ${isLoggedIn ? "pb-16 lg:pb-0" : ""}`}>
             {/* Main Footer Content */}
             <div className="max-w-7xl mx-auto px-6 lg:px-10 py-16">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 lg:gap-12">

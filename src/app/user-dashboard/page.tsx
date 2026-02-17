@@ -14,7 +14,7 @@ import { Home, Briefcase, Building2, FileText, Bell, Search } from "lucide-react
 export default function UserDashboardPage() {
     return (
         <div className="min-h-screen bg-[#f8fafc] pb-24 lg:pb-10">
-            <div className="max-w-[1440px] mx-auto px-4 lg:px-10 py-6">
+            <div className="max-w-[1440px] mx-auto py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                     {/* Left Sidebar (Desktop: 3 cols) */}

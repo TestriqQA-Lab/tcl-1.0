@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, X } from "lucide-react";
 import { Session } from "next-auth";
 import { MobileBottomNav } from "./MobileBottomNav";
+import { NotificationPopup } from "./NotificationPopup";
 
 interface LoggedInNavbarProps {
     session: Session;
@@ -15,6 +16,8 @@ interface LoggedInNavbarProps {
 export const LoggedInNavbar = ({ session, onLogout }: LoggedInNavbarProps) => {
     const user = session.user;
     const userInitial = user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U";
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
     return (
         <>
@@ -38,7 +41,7 @@ export const LoggedInNavbar = ({ session, onLogout }: LoggedInNavbarProps) => {
                     {/* Right: Nav Links & Profile */}
                     <div className="flex items-center gap-8 flex-1 justify-end">
                         {/* Search Bar */}
-                        <div className="relative w-full max-w-xl">
+                        <div className="relative w-full max-w-xl lg:ml-10">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <Search className="h-5 w-5 text-gray-400" />
                             </div>
@@ -57,10 +60,16 @@ export const LoggedInNavbar = ({ session, onLogout }: LoggedInNavbarProps) => {
                         <div className="h-6 w-px bg-gray-200"></div>
 
                         <div className="flex items-center gap-4">
-                            <button className="text-gray-500 hover:text-[#0f766d] relative">
-                                <Bell className="w-5 h-5" />
-                                <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white transform translate-x-1/2 -translate-y-1/2"></span>
-                            </button>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                                    className="text-gray-500 hover:text-[#0f766d] relative p-1"
+                                >
+                                    <Bell className="w-5 h-5" />
+                                    <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white transform translate-x-1/2 -translate-y-1/2"></span>
+                                </button>
+                                <NotificationPopup isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
+                            </div>
 
                             {/* User Avatar */}
                             <Link href="/user-dashboard" className="w-10 h-10 rounded-full bg-[#0e3f3a] text-white flex items-center justify-center font-bold border border-gray-200 overflow-hidden cursor-pointer">
@@ -79,19 +88,46 @@ export const LoggedInNavbar = ({ session, onLogout }: LoggedInNavbarProps) => {
                 MOBILE VIEW (lg:hidden) 
                 Matches Screenshot 2: TopCareer Logo | Need help? | Search Icon
             */}
-            <header className="lg:hidden bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100 sticky top-0 z-40">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-[#0f766d] rounded-full flex items-center justify-center text-white">
-                        <RocketIcon />
+            <header className="lg:hidden bg-white px-4 py-3 border-b border-gray-100 sticky top-0 z-40 transition-all">
+                {!isSearchOpen ? (
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-[#0f766d] rounded-full flex items-center justify-center text-white">
+                                <RocketIcon />
+                            </div>
+                            <span className="font-bold text-lg text-[#0e1b1a] tracking-tight">TopCareer</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm font-medium text-[#0f766d]">Need help?</span>
+                            <button
+                                onClick={() => setIsSearchOpen(true)}
+                                className="w-9 h-9 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors"
+                            >
+                                <Search className="w-5 h-5" />
+                            </button>
+                        </div>
                     </div>
-                    <span className="font-bold text-lg text-[#0e1b1a] tracking-tight">TopCareer</span>
-                </div>
-                <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-[#0f766d]">Need help?</span>
-                    <div className="w-9 h-9 bg-gray-50 rounded-full flex items-center justify-center text-gray-600">
-                        <Search className="w-5 h-5" />
+                ) : (
+                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="relative flex-1">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search className="h-4 w-4 text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                autoFocus
+                                className="block w-full pl-9 pr-3 py-2 border-none rounded-full leading-5 bg-[#F0F2F5] placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#0f766d] text-sm"
+                                placeholder="Search jobs, companies..."
+                            />
+                        </div>
+                        <button
+                            onClick={() => setIsSearchOpen(false)}
+                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-full"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
-                </div>
+                )}
             </header>
 
             {/* Mobile Bottom Navigation */}

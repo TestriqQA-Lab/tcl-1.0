@@ -17,8 +17,8 @@ export const ProfileSidebar = ({ user, completionPercentage = 63 }: ProfileSideb
     return (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center text-center">
             {/* Avatar */}
-            <div className="relative w-24 h-24 mb-4">
-                <div className="w-full h-full rounded-full overflow-hidden border-4 border-[#E8F3F2]">
+            <div className="relative w-30 h-30 mb-4 rounded-full overflow-hidden">
+                <div className="w-full h-full overflow-hidden border-4 border-[#E8F3F2]">
                     <Image
                         src={user?.image || "https://ui-avatars.com/api/?name=Rohan+Bhatia&background=0D8ABC&color=fff"}
                         alt={user?.name || "User"}
