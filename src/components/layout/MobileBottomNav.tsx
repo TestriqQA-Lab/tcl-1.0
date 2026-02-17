@@ -17,7 +17,7 @@ export const MobileBottomNav = () => {
     ];
 
     return (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 h-16 flex items-center justify-around z-50 text-[10px] font-bold">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 h-16 flex items-center justify-around z-50 text-[10px] font-bold shadow-md">
             {navItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (

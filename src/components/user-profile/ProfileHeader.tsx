@@ -3,9 +3,9 @@ import { Mail, Phone, MapPin, CheckCircle, ShieldCheck, User } from 'lucide-reac
 
 const ProfileHeader = () => {
     return (
-        <div className="flex flex-col xl:flex-row gap-6 mb-6">
-            {/* User Info Card */}
-            <div className="flex-1 bg-white rounded-2xl p-6 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-6">
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col xl:flex-row gap-6 mb-6">
+            {/* User Info Section */}
+            <div className="flex-1 relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-6">
                 <div className="relative shrink-0">
                     <div className="w-28 h-28 relative">
                         <svg className="w-full h-full transform -rotate-90">
@@ -68,17 +68,42 @@ const ProfileHeader = () => {
                             Male
                         </div>
                     </div>
-
-                    {/* Visibility Note Section embedded in card if needed, or separate. 
-                   Design shows it as a strip below nav. 
-                   Actually in the image 'desktop.png', the "View & Edit | Activity insights" tab is below this.
-                   And "Your profile is visible..." is a green strip below that. 
-               */}
                 </div>
             </div>
 
-            {/* Missing Details Card - Styled as 'Fix Now' */}
-            <div className="w-full xl:w-[320px] shrink-0 bg-[#f0f9f9] rounded-2xl p-5 border border-[#cce3e3] flex items-center justify-between gap-4">
+            {/* Desktop: Missing Details Section (No longer a separate card, but a section within the header) */}
+            <div className="hidden xl:block w-[320px] shrink-0 bg-[#eaf4f4]/50 rounded-xl p-5 border border-[#cce3e3]/50">
+                <div className="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 className="text-sm font-bold text-[#1e293b]">Missing details</h3>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#117a7a]">
+                        Target: 100%
+                    </span>
+                </div>
+
+                <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center text-xs">
+                        <span className="text-gray-600">Education details</span>
+                        <span className="text-[#117a7a] font-bold">+10%</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                        <span className="text-gray-600">Email verification</span>
+                        <span className="text-[#117a7a] font-bold">+2%</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                        <span className="text-gray-600">Personal details</span>
+                        <span className="text-[#117a7a] font-bold">+8%</span>
+                    </div>
+                </div>
+
+                <button className="w-full bg-[#117a7a] hover:bg-[#0e6666] text-white text-xs font-bold py-2.5 rounded-lg transition-colors shadow-sm">
+                    Add 13 missing details
+                </button>
+            </div>
+
+            {/* Mobile/Tablet: Fix Now Card */}
+            <div className="xl:hidden w-full shrink-0 bg-[#f0f9f9] rounded-2xl p-5 border border-[#cce3e3] flex items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
                     <div className="text-[#117a7a] mt-0.5">
                         <ShieldCheck className="w-5 h-5" />

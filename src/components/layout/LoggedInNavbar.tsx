@@ -129,9 +129,6 @@ export const LoggedInNavbar = ({ session, onLogout }: LoggedInNavbarProps) => {
                     </div>
                 )}
             </header>
-
-            {/* Mobile Bottom Navigation */}
-            <MobileBottomNav />
         </>
     );
 };

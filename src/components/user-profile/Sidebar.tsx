@@ -75,7 +75,7 @@ const Sidebar = () => {
                         <button
                             key={section.id}
                             onClick={() => scrollToSection(section.id)}
-                            className={`flex items-center justify-center gap-2 lg:gap-3 px-5 py-2 lg:px-3 lg:py-2.5 text-sm lg:text-sm font-medium rounded-full lg:rounded-lg transition-all duration-200 whitespace-nowrap shadow-sm lg:shadow-none
+                            className={`flex items-center gap-2 lg:gap-3 px-5 py-2 lg:px-3 lg:py-2.5 text-sm lg:text-sm font-medium rounded-full lg:rounded-lg transition-all duration-200 whitespace-nowrap shadow-sm lg:shadow-none
                                 ${isActive
                                     ? 'bg-[#0f766d] text-white lg:bg-emerald-50 lg:text-emerald-700 lg:ring-0'
                                     : 'bg-white text-gray-600 border border-gray-200 lg:border-0 lg:bg-transparent lg:hover:bg-gray-50 lg:hover:text-gray-900'
