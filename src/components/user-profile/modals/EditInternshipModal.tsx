@@ -23,14 +23,15 @@ interface EditInternshipModalProps {
     onSave: (data: InternshipData) => void;
 }
 
+import { useFormPersistence } from '@/hooks/useFormPersistence';
+
 const EditInternshipModal: React.FC<EditInternshipModalProps> = ({
     isOpen,
     onClose,
     initialData,
     onSave
 }) => {
-    const [animateIn, setAnimateIn] = useState(false);
-    const [formData, setFormData] = useState<InternshipData>({
+    const defaultState: InternshipData = {
         companyName: '',
         role: '',
         startMonth: '',
@@ -41,33 +42,29 @@ const EditInternshipModal: React.FC<EditInternshipModalProps> = ({
         keySkills: '',
         projectUrl: '',
         isCurrent: false
-    });
+    };
+
+    const persistenceKey = initialData
+        ? `internship_edit_${initialData.companyName || 'general'}`
+        : 'internship_add_draft';
+
+    const { data: formData, setData: setFormData, clearDraft } = useFormPersistence<InternshipData>(
+        persistenceKey,
+        isOpen,
+        initialData || defaultState
+    );
+
+    const [animateIn, setAnimateIn] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
         if (isOpen) {
             setAnimateIn(true);
-            if (initialData) {
-                setFormData(initialData);
-            } else {
-                setFormData({
-                    companyName: '',
-                    role: '',
-                    startMonth: '',
-                    startYear: '',
-                    endMonth: '',
-                    endYear: '',
-                    description: '',
-                    keySkills: '',
-                    projectUrl: '',
-                    isCurrent: false
-                });
-            }
             setErrors({});
         } else {
             setAnimateIn(false);
         }
-    }, [isOpen, initialData]);
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -92,6 +89,7 @@ const EditInternshipModal: React.FC<EditInternshipModalProps> = ({
     const handleSave = () => {
         if (validate()) {
             onSave(formData);
+            clearDraft();
             onClose();
         }
     };
@@ -103,7 +101,7 @@ const EditInternshipModal: React.FC<EditInternshipModalProps> = ({
     const years = Array.from({ length: 50 }, (_, i) => (new Date().getFullYear() + 1 - i).toString());
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
             <div className={`bg-white rounded-2xl w-full max-w-[500px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
                 <div className="p-8 pb-4 relative">

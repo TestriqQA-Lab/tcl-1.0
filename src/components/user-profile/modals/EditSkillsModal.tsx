@@ -10,24 +10,29 @@ interface EditSkillsModalProps {
     onSave?: (skills: string[]) => void;
 }
 
+import { useFormPersistence } from '@/hooks/useFormPersistence';
+
 const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
     isOpen,
     onClose,
     initialSkills = ["Fullstack Development", "React.js", "Next.js"],
     onSave
 }) => {
-    const [skills, setSkills] = useState<string[]>(initialSkills);
+    const { data: skills, setData: setSkills, clearDraft } = useFormPersistence<string[]>(
+        'skills_draft',
+        isOpen,
+        initialSkills
+    );
     const [inputValue, setInputValue] = useState('');
     const [animateIn, setAnimateIn] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             setAnimateIn(true);
-            setSkills(initialSkills);
         } else {
             setAnimateIn(false);
         }
-    }, [isOpen, initialSkills]);
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -55,13 +60,14 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
 
     const handleSave = () => {
         if (onSave) onSave(skills);
+        clearDraft();
         onClose();
     };
 
     const suggestions = ["Nextjs", "Nextgen", "Next Education India", "Nexthink", "NextGen Healthcare"];
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
             <div
                 className={`bg-white rounded-2xl w-full max-w-lg shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
             >

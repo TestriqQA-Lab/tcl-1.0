@@ -23,15 +23,15 @@ export interface EducationData {
     stream?: string;
 }
 
+import { useFormPersistence } from '@/hooks/useFormPersistence';
+
 const EditEducationModal: React.FC<EditEducationModalProps> = ({
     isOpen,
     onClose,
     initialData,
     onSave
 }) => {
-    const [animateIn, setAnimateIn] = useState(false);
-    const [educationType, setEducationType] = useState<EducationData['type']>('Class X');
-    const [formData, setFormData] = useState<EducationData>({
+    const defaultState: EducationData = {
         type: 'Class X',
         board: '',
         medium: '',
@@ -41,33 +41,34 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
         institute: '',
         degree: '',
         stream: ''
-    });
+    };
+
+    // Generate a unique key based on whether we are adding or editing
+    // If initialData exists, we try to use its type to uniqueness, otherwise fallback to generic edit
+    const persistenceKey = initialData
+        ? `education_edit_draft_${initialData.type || 'general'}`
+        : 'education_add_draft';
+
+    const { data: formData, setData: setFormData, clearDraft } = useFormPersistence<EducationData>(
+        persistenceKey,
+        isOpen,
+        initialData || defaultState
+    );
+
+    const [animateIn, setAnimateIn] = useState(false);
+    const [educationType, setEducationType] = useState<EducationData['type']>('Class X');
 
     useEffect(() => {
         if (isOpen) {
             setAnimateIn(true);
-            if (initialData) {
-                setFormData(initialData);
-                setEducationType(initialData.type || 'Class X');
-            } else {
-                // Reset for Add mode
-                setFormData({
-                    type: 'Class X',
-                    board: '',
-                    medium: '',
-                    percentage: '',
-                    endingYear: '',
-                    isPursuing: false,
-                    institute: '',
-                    degree: '',
-                    stream: ''
-                });
-                setEducationType('Class X');
+            // Sync educationType with the loaded formData data
+            if (formData.type) {
+                setEducationType(formData.type);
             }
         } else {
             setAnimateIn(false);
         }
-    }, [isOpen, initialData]);
+    }, [isOpen, formData.type]);
 
     if (!isOpen) return null;
 
@@ -83,7 +84,7 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
     const years = Array.from({ length: 50 }, (_, i) => (new Date().getFullYear() + 5 - i).toString());
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
             <div className={`bg-white rounded-2xl w-full max-w-[500px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
                 <div className="p-8 pb-4 relative">
@@ -282,6 +283,7 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
                                         type: educationType,
                                         endingYear: formData.isPursuing ? 'Present' : formData.endingYear
                                     });
+                                    clearDraft();
                                     onClose();
                                 }}
                                 className="bg-[#117a7a] hover:bg-[#0e6666] text-white text-sm font-bold py-2.5 px-8 rounded-lg transition-all shadow-lg shadow-emerald-900/10"

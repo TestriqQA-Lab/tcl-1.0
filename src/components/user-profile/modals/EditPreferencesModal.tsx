@@ -12,6 +12,8 @@ interface EditPreferencesModalProps {
     onSave?: (data: { jobTypes: string[]; availability: string; locations: string[] }) => void;
 }
 
+import { useFormPersistence } from '@/hooks/useFormPersistence';
+
 const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({
     isOpen,
     onClose,
@@ -22,56 +24,72 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({
     },
     onSave
 }) => {
-    const [jobTypes, setJobTypes] = React.useState<string[]>(initialData.jobTypes);
-    const [availability, setAvailability] = React.useState<string>(initialData.availability);
-    const [locations, setLocations] = React.useState<string[]>(initialData.locations);
+    const { data: preferences, setData: setPreferences, clearDraft } = useFormPersistence(
+        'career_preferences_draft',
+        isOpen,
+        initialData
+    );
+
+    // Destructure for easier usage, but keep them reactive to the persistence hook
+    const { jobTypes, availability, locations } = preferences;
+
     const [locationInput, setLocationInput] = React.useState('');
     const [animateIn, setAnimateIn] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             setAnimateIn(true);
-            // Reset to initial data on open if needed, or keep previous state? 
-            // Better to sync with initialData when it changes or when modal opens
-            setJobTypes(initialData.jobTypes);
-            setAvailability(initialData.availability);
-            setLocations(initialData.locations);
         } else {
             setAnimateIn(false);
         }
-    }, [isOpen, initialData]);
+    }, [isOpen]);
 
     const handleSave = () => {
         if (onSave) {
-            onSave({ jobTypes, availability, locations });
+            onSave(preferences);
         }
+        clearDraft();
         onClose();
     };
 
     if (!isOpen) return null;
 
     const toggleJobType = (type: string) => {
-        setJobTypes(prev =>
-            prev.includes(type)
-                ? prev.filter(t => t !== type)
-                : [...prev, type]
-        );
+        setPreferences(prev => ({
+            ...prev,
+            jobTypes: prev.jobTypes.includes(type)
+                ? prev.jobTypes.filter(t => t !== type)
+                : [...prev.jobTypes, type]
+        }));
     };
 
     const handleAddLocation = (loc: string) => {
         const trimmedLoc = loc.trim();
         if (trimmedLoc && !locations.includes(trimmedLoc) && locations.length < 10) {
-            setLocations([...locations, trimmedLoc]);
+            setPreferences(prev => ({
+                ...prev,
+                locations: [...prev.locations, trimmedLoc]
+            }));
             setLocationInput('');
         }
     };
 
     const removeLocation = (loc: string) => {
-        setLocations(locations.filter(l => l !== loc));
+        setPreferences(prev => ({
+            ...prev,
+            locations: prev.locations.filter(l => l !== loc)
+        }));
+    };
+
+    const handleSetAvailability = (option: string) => {
+        setPreferences(prev => ({
+            ...prev,
+            availability: option
+        }));
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
             <div className={`bg-white rounded-2xl w-full max-w-[520px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
                 <div className="pt-8 px-8 pb-4 relative">
@@ -118,7 +136,7 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({
                             {['15 Days or less', '1 Month', '2 Months', '3 Months', 'More than 3 Months', 'Serving Notice Period'].map(option => (
                                 <button
                                     key={option}
-                                    onClick={() => setAvailability(option)}
+                                    onClick={() => handleSetAvailability(option)}
                                     className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${availability === option
                                         ? 'bg-[#117a7a] text-white border-[#117a7a] shadow-md'
                                         : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'

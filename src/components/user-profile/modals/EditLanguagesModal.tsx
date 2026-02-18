@@ -10,6 +10,8 @@ interface EditLanguagesModalProps {
     onSave?: (data: LanguageData[]) => void;
 }
 
+import { useFormPersistence } from '@/hooks/useFormPersistence';
+
 export interface LanguageData {
     name: string;
     proficiency: 'Speak' | 'Read/Write' | 'Both';
@@ -21,20 +23,24 @@ const EditLanguagesModal: React.FC<EditLanguagesModalProps> = ({
     initialData = [{ name: 'English', proficiency: 'Read/Write' }],
     onSave
 }) => {
+    const { data: languages, setData: setLanguages, clearDraft } = useFormPersistence<LanguageData[]>(
+        'languages_draft',
+        isOpen,
+        initialData.length > 0 ? initialData : [{ name: 'English', proficiency: 'Read/Write' }]
+    );
+
     const [animateIn, setAnimateIn] = useState(false);
-    const [languages, setLanguages] = useState<LanguageData[]>(initialData);
     const [inputValue, setInputValue] = useState('');
     const [activeLangIndex, setActiveLangIndex] = useState<number>(0);
 
     useEffect(() => {
         if (isOpen) {
             setAnimateIn(true);
-            setLanguages(initialData.length > 0 ? initialData : [{ name: 'English', proficiency: 'Read/Write' }]);
             setActiveLangIndex(0);
         } else {
             setAnimateIn(false);
         }
-    }, [isOpen, initialData]);
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -136,7 +142,7 @@ const EditLanguagesModal: React.FC<EditLanguagesModalProps> = ({
     const isRWActive = currentLang && (currentLang.proficiency === 'Read/Write' || currentLang.proficiency === 'Both');
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
             <div className={`bg-white rounded-2xl w-full max-w-[500px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
                 <div className="p-8 pb-4 relative">
@@ -168,8 +174,8 @@ const EditLanguagesModal: React.FC<EditLanguagesModalProps> = ({
                                     key={idx}
                                     onClick={() => setActiveLangIndex(idx)}
                                     className={`pl-3 pr-2 py-1.5 rounded-full text-sm font-medium flex items-center gap-1.5 transition-colors border ${activeLangIndex === idx
-                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                            : 'bg-gray-50 text-gray-600 border-transparent hover:bg-gray-100'
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                        : 'bg-gray-50 text-gray-600 border-transparent hover:bg-gray-100'
                                         }`}
                                 >
                                     {lang.name}
@@ -204,8 +210,8 @@ const EditLanguagesModal: React.FC<EditLanguagesModalProps> = ({
                                 <button
                                     onClick={() => toggleProficiency(activeLangIndex, 'Speak')}
                                     className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${isSpeakActive
-                                            ? 'bg-[#117a7a] text-white shadow-md'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        ? 'bg-[#117a7a] text-white shadow-md'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                         }`}
                                 >
                                     Speak
@@ -213,8 +219,8 @@ const EditLanguagesModal: React.FC<EditLanguagesModalProps> = ({
                                 <button
                                     onClick={() => toggleProficiency(activeLangIndex, 'Read/Write')}
                                     className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${isRWActive
-                                            ? 'bg-[#117a7a] text-white shadow-md'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        ? 'bg-[#117a7a] text-white shadow-md'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                         }`}
                                 >
                                     Read/Write
@@ -234,6 +240,7 @@ const EditLanguagesModal: React.FC<EditLanguagesModalProps> = ({
                         <button
                             onClick={() => {
                                 if (onSave) onSave(languages);
+                                clearDraft();
                                 onClose();
                             }}
                             className="bg-[#117a7a] hover:bg-[#0e6666] text-white text-sm font-bold py-2.5 px-8 rounded-lg transition-all shadow-lg shadow-emerald-900/10"

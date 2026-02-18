@@ -29,14 +29,15 @@ const MONTHS = [
 
 const YEARS = Array.from({ length: 50 }, (_, i) => (new Date().getFullYear() - i).toString());
 
+import { useFormPersistence } from '@/hooks/useFormPersistence';
+
 const EditEmploymentModal: React.FC<EditEmploymentModalProps> = ({
     isOpen,
     onClose,
     initialData,
     onSave
 }) => {
-    const [animateIn, setAnimateIn] = useState(false);
-    const [formData, setFormData] = useState<EmploymentData>({
+    const defaultState: EmploymentData = {
         id: '',
         companyName: '',
         designation: '',
@@ -46,30 +47,35 @@ const EditEmploymentModal: React.FC<EditEmploymentModalProps> = ({
         endYear: '',
         isCurrent: false,
         description: ''
-    });
+    };
+
+    const persistenceKey = initialData
+        ? `employment_edit_${initialData.companyName || 'general'}`
+        : 'employment_add_draft';
+
+    const { data: formData, setData: setFormData, clearDraft } = useFormPersistence<EmploymentData>(
+        persistenceKey,
+        isOpen,
+        initialData || defaultState
+    );
+
+    const [animateIn, setAnimateIn] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             setAnimateIn(true);
-            if (initialData) {
-                setFormData(initialData);
-            } else {
-                setFormData({
-                    id: Math.random().toString(36).substr(2, 9),
-                    companyName: '',
-                    designation: '',
-                    startMonth: '',
-                    startYear: '',
-                    endMonth: '',
-                    endYear: '',
-                    isCurrent: false,
-                    description: ''
-                });
+            if (!initialData && !formData.id) {
+                // Generate ID if new and not yet in draft (though hook might have loaded draft with ID)
+                // Actually, hook loads initialData (defaultState) which has empty ID.
+                // If draft exists, it has ID.
+                // If no draft, it has empty ID.
+                // So if empty ID, and no initialData, generate one.
+                setFormData(prev => ({ ...prev, id: Math.random().toString(36).substr(2, 9) }));
             }
         } else {
             setAnimateIn(false);
         }
-    }, [isOpen, initialData]);
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -94,11 +100,12 @@ const EditEmploymentModal: React.FC<EditEmploymentModalProps> = ({
 
     const handleSave = () => {
         onSave(formData);
+        clearDraft();
         onClose();
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
             <div className={`bg-white rounded-2xl w-full max-w-[500px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
                 <div className="p-8 pb-4 relative">
