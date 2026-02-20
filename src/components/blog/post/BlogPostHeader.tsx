@@ -31,7 +31,7 @@ export function BlogPostHeader({ title, description, author, publishedAt, readTi
             </nav>
 
             {/* Title — large, bold, no-frills */}
-            <h1 className="text-[2rem] sm:text-[2.5rem] lg:text-[3.25rem] font-extrabold text-[#1a1a2e] leading-[1.12] tracking-[-0.015em] mb-4 max-w-7xl">
+            <h1 className="text-[2rem] sm:text-[2.5rem] lg:text-[3.25rem] font-bold text-[#1a1a2e] leading-[1.12] tracking-[-0.015em] mb-4 max-w-7xl">
                 {title}
             </h1>
 

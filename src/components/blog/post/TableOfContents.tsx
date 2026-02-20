@@ -49,21 +49,21 @@ export function TableOfContents({ sections = [] }: TOCProps) {
     // Shared TOC item list
     const renderItems = () => (
         <ul className="space-y-1">
-            {sections.map(({ id, label, numbered, num }) => {
+            {sections.map(({ id, label }) => {
                 const isActive = activeId === id;
                 return (
                     <li key={id}>
                         <button
                             onClick={() => scrollTo(id)}
                             className={`
-                                w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all duration-200
+                                w-full text-left px-4 py-3 rounded-lg text-[13px] font-medium transition-all duration-200
                                 ${isActive
-                                    ? "bg-primary/8 text-primary font-semibold border-l-[3px] border-primary"
-                                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-l-[3px] border-transparent"
+                                    ? "bg-primary/10 text-primary font-bold border-l-[3px] border-primary"
+                                    : "text-gray-700 hover:text-gray-900 hover:bg-gray-50/80 border-l-[3px] border-transparent"
                                 }
                             `}
                         >
-                            {numbered ? `${num}. ${label}` : label}
+                            {label}
                         </button>
                     </li>
                 );
@@ -75,11 +75,16 @@ export function TableOfContents({ sections = [] }: TOCProps) {
         <>
             {/* ── Desktop: TOC Card ── */}
             <div className="hidden lg:block">
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-4 px-4">
-                        Table of Contents
-                    </p>
-                    {renderItems()}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-primary/5 to-transparent px-5 py-4 border-b border-gray-100">
+                        <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[16px]">toc</span>
+                            Table of Contents
+                        </p>
+                    </div>
+                    <div className="p-4">
+                        {renderItems()}
+                    </div>
                 </div>
             </div>
 

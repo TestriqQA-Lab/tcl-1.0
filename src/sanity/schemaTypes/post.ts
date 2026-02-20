@@ -74,6 +74,7 @@ export default defineType({
             type: 'array',
             of: [
                 { type: 'block' },
+                { type: 'table' },
                 {
                     type: 'image',
                     options: { hotspot: true },
@@ -110,19 +111,6 @@ export default defineType({
                 }
             ],
         }),
-        defineField({
-            name: 'sections',
-            title: 'Table of Contents Sections',
-            type: 'array',
-            of: [{
-                type: 'object',
-                fields: [
-                    { name: 'id', title: 'ID', type: 'string' },
-                    { name: 'label', title: 'Label', type: 'string' },
-                    { name: 'numbered', title: 'Numbered?', type: 'boolean' },
-                    { name: 'num', title: 'Number', type: 'number', hidden: ({ parent }) => !parent?.numbered }
-                ]
-            }]
-        }),
+
     ],
 })

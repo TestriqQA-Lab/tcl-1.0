@@ -6,6 +6,8 @@ import { BlogPostHeader } from "@/components/blog/post/BlogPostHeader";
 import { BlogPostContent } from "@/components/blog/post/BlogPostContent";
 import { TableOfContents } from "@/components/blog/post/TableOfContents";
 import { RelatedPosts } from "@/components/blog/post/RelatedPosts";
+import { extractTableOfContents } from "@/lib/toc";
+import { ShareArticle } from "@/components/blog/post/ShareArticle";
 
 // Enable static generation for all posts
 export async function generateStaticParams() {
@@ -46,8 +48,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         notFound();
     }
 
+    // Automatically generate TOC from content
+    const sections = extractTableOfContents(post.body);
+
     return (
-        <article className="py-8 lg:py-12">
+        <article className="py-8 lg:py-12 max-w-7xl mx-auto">
             <BlogPostHeader
                 title={post.title}
                 description={post.description}
@@ -61,12 +66,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
                 {/* Main content */}
                 <div className="flex-1 min-w-0">
+                    <ShareArticle title={post.title} slug={slug} />
                     <BlogPostContent body={post.body} />
                 </div>
 
                 {/* Right sidebar: TOC + Related Posts — sticky together */}
                 <div className="hidden lg:flex flex-col gap-8 w-full max-w-[260px] shrink-0 sticky top-24 self-start">
-                    <TableOfContents sections={post.sections} />
+                    <TableOfContents sections={sections} />
                     <RelatedPosts posts={relatedPosts} />
                 </div>
             </div>
