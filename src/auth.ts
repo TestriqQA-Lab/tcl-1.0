@@ -94,7 +94,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                                 .where(eq(users.id, existingUser.id));
                         }
 
-                        return true;
+                        // Determine the correct dashboard route based on user role
+                        const dashboardRoute = existingUser.userRole === "EMPLOYER"
+                            ? "/employer-dashboard"
+                            : "/user-dashboard";
+
+                        // Returning a URL triggers NextAuth to immediately redirect there
+                        return dashboardRoute;
                     }
 
                     // New user - create account

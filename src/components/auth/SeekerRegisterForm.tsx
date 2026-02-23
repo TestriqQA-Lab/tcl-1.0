@@ -43,13 +43,16 @@ export const SeekerRegisterForm = ({ onSwitchToLogin, initialName, initialEmail 
         }
     };
 
-    // Pre-fill form fields from Google OAuth data
+    // Pre-fill form fields from Google OAuth data and define if isGoogleAuth
+    const isGoogleAuth = !!(initialName || initialEmail);
+
     useEffect(() => {
         if (initialName || initialEmail) {
             setFormData(prev => ({
                 ...prev,
                 ...(initialName ? { name: initialName } : {}),
                 ...(initialEmail ? { email: initialEmail } : {}),
+                password: "", // ensure it's empty
             }));
             setTouched(prev => ({
                 ...prev,
@@ -112,7 +115,7 @@ export const SeekerRegisterForm = ({ onSwitchToLogin, initialName, initialEmail 
             const result = await registerAction(
                 formData.name,
                 formData.email,
-                formData.password,
+                formData.password || "",
                 "SEEKER",
                 formData.mobileNumber,
                 formData.workStatus,
@@ -123,6 +126,15 @@ export const SeekerRegisterForm = ({ onSwitchToLogin, initialName, initialEmail 
                 setErrors({ email: result.error }); // Generic error
             } else {
                 // Success
+
+                // If it's a Google registration flow, user is already signed in via Google session!
+                // So skip credentials signIn and redirect right away
+                if (isGoogleAuth) {
+                    router.refresh();
+                    router.push("/onboarding/employment");
+                    return;
+                }
+
                 const loginResult = await signIn("credentials", {
                     email: formData.email,
                     password: formData.password,
@@ -204,29 +216,31 @@ export const SeekerRegisterForm = ({ onSwitchToLogin, initialName, initialEmail 
                     {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
                 </div>
 
-                {/* Password */}
-                <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-gray-900">Password</label>
-                    <div className="relative">
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className={`w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-0 transition-all ${isValid("password") ? "border-[#0f766d]/50 bg-white" : "border-gray-200 focus:border-[#0f766d]"
-                                }`}
-                            placeholder="Type your password"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
+                {/* Password - Hidden if logging in via Google */}
+                {!isGoogleAuth && (
+                    <div className="space-y-1.5">
+                        <label className="block text-sm font-semibold text-gray-900">Password</label>
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                className={`w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-0 transition-all ${isValid("password") ? "border-[#0f766d]/50 bg-white" : "border-gray-200 focus:border-[#0f766d]"
+                                    }`}
+                                placeholder="Type your password"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
+                        {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
                     </div>
-                    {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
-                </div>
+                )}
 
                 {/* Mobile Number */}
                 <div className="space-y-1.5">
