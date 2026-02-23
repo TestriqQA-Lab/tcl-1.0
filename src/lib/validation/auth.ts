@@ -24,8 +24,9 @@ export const registerSchema = z.object({
         .email("Invalid email format"),
     password: z
         .string()
-        .min(1, "Password is required")
-        .min(6, "Password must be at least 6 characters"),
+        .min(6, "Password must be at least 6 characters")
+        .optional()
+        .or(z.literal("")),
     mobileNumber: z
         .string()
         .min(10, "Mobile number must be 10 digits")
