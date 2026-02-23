@@ -1,8 +1,20 @@
-import Link from "next/link";
+"use client";
 
-export function Footer() {
+import Link from "next/link";
+import { Session } from "next-auth";
+import { usePathname } from "next/navigation";
+import { MobileBottomNav } from "./MobileBottomNav";
+
+interface FooterProps {
+    session?: Session | null;
+}
+
+export function Footer({ session }: FooterProps) {
+    const pathname = usePathname();
+    const isLoggedIn = !!session?.user;
+
     return (
-        <footer className="bg-[#1a1f2e] text-gray-300 mt-20">
+        <footer className={`bg-[#1a1f2e] text-gray-300 mt-20 ${isLoggedIn ? "pb-0 lg:pb-0" : ""} ${pathname === '/user-profile' ? 'pb-16' : ''}`}>
             {/* Main Footer Content */}
             <div className="max-w-7xl mx-auto px-6 lg:px-10 py-16">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 lg:gap-12">
@@ -95,6 +107,9 @@ export function Footer() {
                     </div>
                 </div>
             </div>
+
+            {/* Mobile Bottom Navigation - Only on User Profile, at the very end */}
+            {pathname === '/user-profile' && <MobileBottomNav />}
         </footer>
     );
 }
