@@ -1,119 +1,143 @@
 'use client';
 
-import React, { useState } from 'react';
-import { GraduationCap, Trophy, Plus, Pencil, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { GraduationCap, Plus, Pencil, Trash2 } from 'lucide-react';
 import SectionContainer from '../SectionContainer';
 import EditAcademicAchievementsModal, { AcademicAchievementData } from '../modals/EditAcademicAchievementsModal';
 
+interface EducationOption { id: string; institution: string; degree: string; }
+
+function dbToUi(row: any): AcademicAchievementData & { dbId: string } {
+    return {
+        dbId: row.id,
+        id: row.id,
+        educationId: row.organization || '',
+        achievements: row.description ? row.description.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
+    };
+}
+
 const AcademicAchievements = () => {
-    const [achievements, setAchievements] = useState<AcademicAchievementData[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [achievementsList, setAchievementsList] = useState<(AcademicAchievementData & { dbId?: string })[]>([]);
+    const [educationList, setEducationList] = useState<EducationOption[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Mock education list - in a real app, this would come from a global store or context
-    const educationList = [
-        { id: '1', institution: 'IIT Bombay', degree: 'B.Tech' },
-        { id: '2', institution: 'St. Xavier\'s', degree: 'Class XII' }
-    ];
+    useEffect(() => {
+        Promise.all([
+            fetch('/api/profile/achievements?type=ACADEMIC').then(r => r.json()),
+            fetch('/api/profile/education').then(r => r.json()),
+        ]).then(([achJson, eduJson]) => {
+            if (Array.isArray(achJson)) setAchievementsList(achJson.map(dbToUi));
+            if (Array.isArray(eduJson)) {
+                setEducationList(eduJson.map((e: any) => ({
+                    id: e.id,
+                    institution: e.schoolName || '',
+                    degree: e.degree || '',
+                })));
+            }
+        }).catch(console.error).finally(() => setLoading(false));
+    }, []);
 
-    const handleSave = (data: AcademicAchievementData) => {
-        if (editingIndex !== null) {
-            const newAchievements = [...achievements];
-            newAchievements[editingIndex] = data;
-            setAchievements(newAchievements);
+    const handleSave = async (data: AcademicAchievementData) => {
+        const editingItem = editingIndex !== null ? achievementsList[editingIndex] : null;
+        const dbId = (editingItem as any)?.dbId;
+
+        const payload = {
+            type: 'ACADEMIC',
+            title: 'Academic Achievement',
+            organization: data.educationId,
+            description: data.achievements.join(', '),
+        };
+
+        if (dbId) {
+            const res = await fetch('/api/profile/achievements', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: dbId, ...payload }),
+            });
+            const updated = await res.json();
+            const newList = [...achievementsList];
+            newList[editingIndex!] = dbToUi(updated);
+            setAchievementsList(newList);
         } else {
-            setAchievements([...achievements, data]);
+            const res = await fetch('/api/profile/achievements', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            const inserted = await res.json();
+            setAchievementsList(prev => [...prev, dbToUi(inserted)]);
         }
-        closeModal();
-    };
-
-    const handleDelete = (index: number) => {
-        const newAchievements = achievements.filter((_, i) => i !== index);
-        setAchievements(newAchievements);
-    };
-
-    const openModal = (index: number | null = null) => {
-        setEditingIndex(index);
-        setIsModalOpen(true);
-    };
-
-    const closeModal = () => {
         setIsModalOpen(false);
         setEditingIndex(null);
     };
 
-    const getEducationLabel = (id: string) => {
-        const edu = educationList.find(e => e.id === id);
-        return edu ? `${edu.degree} from ${edu.institution}` : 'Unknown Education';
+    const handleDelete = async (index: number) => {
+        const item = achievementsList[index] as any;
+        if (item?.dbId) {
+            await fetch(`/api/profile/achievements?id=${item.dbId}`, { method: 'DELETE' });
+        }
+        setAchievementsList(achievementsList.filter((_, i) => i !== index));
     };
 
+    const openAddModal = () => { setEditingIndex(null); setIsModalOpen(true); };
+    const openEditModal = (index: number) => { setEditingIndex(index); setIsModalOpen(true); };
+
+    function getEducationLabel(eduId: string): string {
+        const edu = educationList.find(e => e.id === eduId);
+        return edu ? `${edu.degree} at ${edu.institution}` : 'Education';
+    }
+
     return (
-        <SectionContainer id="academic-achievements" title="Academic Achievements" icon={<GraduationCap />}>
-            {achievements.length === 0 ? (
-                <div
-                    onClick={() => openModal()}
-                    className="border border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group animate-in fade-in"
-                >
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3 group-hover:scale-110 transition-transform">
-                        <Trophy className="text-[#117a7a]" size={24} />
-                    </div>
-                    <p className="text-sm font-bold text-gray-900 mb-1">Add Academic Achievements</p>
-                    <p className="text-xs text-gray-500 text-center max-w-xs">
-                        Highlight your academic success and recognition.
+        <SectionContainer id="academic-achievements" title="Academic Achievements" icon={<GraduationCap />} onAdd={achievementsList.length > 0 ? openAddModal : undefined}>
+            {loading ? (
+                <div className="animate-pulse h-16 bg-gray-100 rounded-xl" />
+            ) : achievementsList.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center animate-in fade-in">
+                    <p className="text-sm text-gray-400 mb-4">
+                        {educationList.length === 0
+                            ? 'Add education first to link academic achievements.'
+                            : 'Add academic achievements to highlight your academic excellence.'}
                     </p>
+                    {educationList.length > 0 && (
+                        <button
+                            onClick={openAddModal}
+                            className="text-[#117a7a] font-bold text-sm flex items-center gap-1 hover:underline"
+                        >
+                            <Plus size={16} /> Add Achievement
+                        </button>
+                    )}
                 </div>
             ) : (
                 <div className="space-y-4 animate-in fade-in">
-                    <div className="flex justify-end">
-                        <button
-                            onClick={() => openModal()}
-                            className="text-xs font-bold text-[#117a7a] flex items-center gap-1 hover:underline"
-                        >
-                            <Plus size={14} /> Add Achievement
-                        </button>
-                    </div>
-
-                    <div className="grid gap-4">
-                        {achievements.map((achievement, index) => (
-                            <div key={achievement.id} className="border border-gray-100 rounded-xl p-4 bg-white hover:shadow-md transition-all group relative">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h4 className="font-bold text-gray-900 text-sm">
-                                        {getEducationLabel(achievement.educationId)}
-                                    </h4>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); openModal(index); }}
-                                            className="p-1.5 text-gray-400 hover:text-[#117a7a] hover:bg-emerald-50 rounded-lg transition-colors"
-                                        >
-                                            <Pencil size={16} />
-                                        </button>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleDelete(index); }}
-                                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
+                    {achievementsList.map((ach, index) => (
+                        <div key={(ach as any).dbId || index} className="border border-gray-100 rounded-xl p-4 bg-white hover:border-emerald-100 transition-colors group">
+                            <div className="flex justify-between items-start mb-2">
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-bold text-[#117a7a]">{getEducationLabel(ach.educationId)}</p>
                                 </div>
-
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                    {achievement.achievements.map((item, i) => (
-                                        <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-[#117a7a] border border-emerald-100">
-                                            <Trophy size={10} />
-                                            {item}
-                                        </span>
-                                    ))}
+                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={() => openEditModal(index)} className="text-gray-400 hover:text-emerald-600"><Pencil size={14} /></button>
+                                    <button onClick={() => handleDelete(index)} className="text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                            <div className="flex flex-wrap gap-2">
+                                {ach.achievements.map((tag, i) => (
+                                    <span key={i} className="px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-xs font-medium text-emerald-700">
+                                        🏆 {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
 
             <EditAcademicAchievementsModal
                 isOpen={isModalOpen}
-                onClose={closeModal}
-                initialData={editingIndex !== null ? achievements[editingIndex] : undefined}
+                onClose={() => { setIsModalOpen(false); setEditingIndex(null); }}
+                initialData={editingIndex !== null ? achievementsList[editingIndex] : undefined}
                 onSave={handleSave}
                 educationList={educationList}
             />

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Plus } from 'lucide-react';
 import SectionContainer from '../SectionContainer';
 import EditProfileSummaryModal from '../modals/EditProfileSummaryModal';
@@ -8,10 +8,28 @@ import EditProfileSummaryModal from '../modals/EditProfileSummaryModal';
 const ProfileSummary = () => {
     const [summary, setSummary] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-    const handleSave = (newSummary: string) => {
+    useEffect(() => {
+        fetch('/api/profile')
+            .then(res => res.json())
+            .then(json => {
+                if (!json.error && json.profile?.bio) {
+                    setSummary(json.profile.bio);
+                }
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, []);
+
+    const handleSave = async (newSummary: string) => {
         setSummary(newSummary);
         setIsModalOpen(false);
+        await fetch('/api/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bio: newSummary }),
+        });
     };
 
     return (
@@ -21,7 +39,13 @@ const ProfileSummary = () => {
             icon={<FileText />}
             onEdit={summary ? () => setIsModalOpen(true) : undefined}
         >
-            {!summary ? (
+            {loading ? (
+                <div className="animate-pulse space-y-2">
+                    <div className="h-3 bg-gray-200 rounded w-full" />
+                    <div className="h-3 bg-gray-200 rounded w-4/5" />
+                    <div className="h-3 bg-gray-200 rounded w-3/5" />
+                </div>
+            ) : !summary ? (
                 <div className="bg-[#f8fcfc] rounded-xl p-8 text-center animate-in fade-in">
                     <p className="text-sm text-gray-500 italic mb-6">"A short summary makes it 70% more likely for recruiters to view your full profile."</p>
                     <button

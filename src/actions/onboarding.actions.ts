@@ -68,14 +68,17 @@ export async function updateEmploymentAction(
 
         // 2. Insert/Update Experience (if Employed/Experienced)
         if (data.workStatus === "EXPERIENCED" && data.companyName && data.designation) {
+            const jDate = data.joiningDate ? new Date(data.joiningDate) : new Date();
+            const eDate = data.endDate ? new Date(data.endDate) : null;
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             await db.insert(experience).values({
                 userId: userId,
                 companyName: data.companyName,
                 designation: data.designation,
-                startMonth: data.joiningDate ? (new Date(data.joiningDate).getMonth() + 1).toString() : "1",
-                startYear: data.joiningDate ? new Date(data.joiningDate).getFullYear().toString() : new Date().getFullYear().toString(),
-                endMonth: data.endDate ? (new Date(data.endDate).getMonth() + 1).toString() : null,
-                endYear: data.endDate ? new Date(data.endDate).getFullYear().toString() : null,
+                startMonth: months[jDate.getMonth()],
+                startYear: jDate.getFullYear().toString(),
+                endMonth: eDate ? months[eDate.getMonth()] : null,
+                endYear: eDate ? eDate.getFullYear().toString() : null,
                 isCurrent: !data.endDate,
                 employmentType: "FULL_TIME",
             });
@@ -170,22 +173,22 @@ export async function updateEducationAction(
             institute: data.degree.collegeName,
             degree: data.degree.degreeName,
             stream: data.degree.specialization,
-            passingYear: data.degree.startDate.getFullYear().toString(),
-            endingYear: data.degree.endDate ? data.degree.endDate.getFullYear().toString() : null,
             isPursuing: data.degree.isPursuing,
             percentage: data.degree.cgpa,
+            passingYear: data.degree.endDate ? data.degree.endDate.getFullYear().toString() : null,
+            endingYear: data.degree.endDate ? data.degree.endDate.getFullYear().toString() : null,
         });
 
         // 2. Insert Class 12
         await db.insert(education).values({
             userId: userId,
-            type: "Class 12",
+            type: "Class XII",
             institute: data.class12.schoolName,
-            degree: "Class 12",
-            stream: data.class12.specialization, // Stream
-            passingYear: data.class12.startDate.getFullYear().toString(),
-            endingYear: data.class12.endDate ? data.class12.endDate.getFullYear().toString() : null,
+            degree: "Class XII",
+            stream: data.class12.specialization,
             isPursuing: data.class12.isPursuing,
+            passingYear: data.class12.endDate ? data.class12.endDate.getFullYear().toString() : null,
+            endingYear: data.class12.endDate ? data.class12.endDate.getFullYear().toString() : null,
         });
 
         return { success: true };
@@ -270,7 +273,6 @@ export async function getEmploymentAction(userId: string) {
         // 5. Fetch Latest Experience
         const latestExperience = await db.query.experience.findFirst({
             where: eq(experience.userId, userId),
-            orderBy: [desc(experience.startYear), desc(experience.startMonth)],
         });
 
         return {
@@ -305,9 +307,9 @@ export async function getEducationAction(userId: string) {
             where: eq(education.userId, userId),
         });
 
-        // Separate Degree and Class 12
-        const degreeData = userEducation.find(e => e.type === "Degree");
-        const class12Data = userEducation.find(e => e.type === "Class 12");
+        // Separate Degree and Class 12 based on the 'type' field
+        const degreeData = userEducation.find(e => e.type === "Degree" || e.degree !== "Class XII");
+        const class12Data = userEducation.find(e => e.type === "Class XII" || e.degree === "Class XII");
 
         return {
             success: true,

@@ -45,8 +45,8 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
 
     // Generate a unique key based on whether we are adding or editing
     // If initialData exists, we try to use its type to uniqueness, otherwise fallback to generic edit
-    const persistenceKey = initialData
-        ? `education_edit_draft_${initialData.type || 'general'}`
+    const persistenceKey = initialData && (initialData as any).dbId
+        ? `education_edit_draft_${(initialData as any).dbId}`
         : 'education_add_draft';
 
     const { data: formData, setData: setFormData, clearDraft } = useFormPersistence<EducationData>(
@@ -64,11 +64,15 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
             // Sync educationType with the loaded formData data
             if (formData.type) {
                 setEducationType(formData.type);
+            } else if (initialData?.type) {
+                setEducationType(initialData.type);
+            } else {
+                setEducationType('Class X');
             }
         } else {
             setAnimateIn(false);
         }
-    }, [isOpen, formData.type]);
+    }, [isOpen, formData.type, initialData?.type]);
 
     if (!isOpen) return null;
 
@@ -78,7 +82,7 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
 
     const handleTypeChange = (type: EducationData['type']) => {
         setEducationType(type);
-        setFormData(prev => ({ ...prev, type }));
+        setFormData({ ...defaultState, type });
     };
 
     const years = Array.from({ length: 50 }, (_, i) => (new Date().getFullYear() + 5 - i).toString());
@@ -110,11 +114,13 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
                             {(['Class X', 'Class XII', 'Degree'] as const).map(type => (
                                 <button
                                     key={type}
+                                    type="button"
+                                    disabled={!!initialData && educationType !== type}
                                     onClick={() => handleTypeChange(type)}
                                     className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${educationType === type
                                         ? 'bg-white text-emerald-700 shadow-sm'
                                         : 'text-gray-500 hover:text-gray-700'
-                                        }`}
+                                        } ${!!initialData && educationType !== type ? 'opacity-40 cursor-not-allowed' : ''}`}
                                 >
                                     {type}
                                 </button>
@@ -181,6 +187,21 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
                                     className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:font-normal placeholder:text-gray-400"
                                 />
                             </div>
+
+                            {educationType === 'Class XII' && (
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                        Stream / Specialization
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.stream}
+                                        onChange={(e) => handleChange('stream', e.target.value)}
+                                        placeholder="Ex: Science (PCM), Commerce"
+                                        className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:font-normal placeholder:text-gray-400"
+                                    />
+                                </div>
+                            )}
 
                             {/* Examination Board */}
                             <div>
@@ -281,7 +302,8 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
                                     if (onSave) onSave({
                                         ...formData,
                                         type: educationType,
-                                        endingYear: formData.isPursuing ? 'Present' : formData.endingYear
+                                        endingYear: formData.isPursuing ? 'Present' : formData.endingYear,
+                                        passingYear: formData.isPursuing ? 'Present' : formData.endingYear
                                     });
                                     clearDraft();
                                     onClose();

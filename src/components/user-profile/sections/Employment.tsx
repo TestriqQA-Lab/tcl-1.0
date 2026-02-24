@@ -1,44 +1,96 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Briefcase, Plus, Pencil, Trash2 } from 'lucide-react';
 import SectionContainer from '../SectionContainer';
 import EditEmploymentModal, { EmploymentData } from '../modals/EditEmploymentModal';
 
+const MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+function dbToUi(row: any): EmploymentData & { dbId: string } {
+    return {
+        dbId: row.id,
+        id: row.id,
+        companyName: row.companyName || '',
+        designation: row.designation || '',
+        startMonth: row.startMonth || '',
+        startYear: row.startYear || '',
+        endMonth: row.endMonth || '',
+        endYear: row.endYear || '',
+        isCurrent: row.isCurrent || false,
+        description: row.description || '',
+    };
+}
+
 const Employment = () => {
-    const [employments, setEmployments] = useState<EmploymentData[]>([]);
+    const [employments, setEmployments] = useState<(EmploymentData & { dbId?: string })[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const handleSave = (data: EmploymentData) => {
-        if (editingIndex !== null) {
-            const newEmployments = [...employments];
-            newEmployments[editingIndex] = data;
-            setEmployments(newEmployments);
+    useEffect(() => {
+        fetch('/api/profile/experience')
+            .then(res => res.json())
+            .then(json => {
+                if (Array.isArray(json)) {
+                    // Employment = FULL_TIME or CONTRACT types
+                    const filtered = json.filter((e: any) =>
+                        e.employmentType === 'FULL_TIME' || e.employmentType === 'CONTRACT'
+                    );
+                    setEmployments(filtered.map(dbToUi));
+                }
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, []);
+
+    const handleSave = async (data: EmploymentData) => {
+        const editingItem = editingIndex !== null ? employments[editingIndex] : null;
+        const dbId = (editingItem as any)?.dbId;
+
+        if (dbId) {
+            const res = await fetch('/api/profile/experience', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...data, id: dbId, employmentType: 'FULL_TIME' }),
+            });
+            const updated = await res.json();
+            const newList = [...employments];
+            newList[editingIndex!] = dbToUi(updated);
+            setEmployments(newList);
         } else {
-            setEmployments([...employments, data]);
+            const res = await fetch('/api/profile/experience', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...data, employmentType: 'FULL_TIME' }),
+            });
+            const inserted = await res.json();
+            setEmployments(prev => [...prev, dbToUi(inserted)]);
         }
         closeModal();
     };
 
-    const handleDelete = (index: number) => {
-        const newEmployments = employments.filter((_, i) => i !== index);
-        setEmployments(newEmployments);
+    const handleDelete = async (index: number) => {
+        const item = employments[index] as any;
+        if (item?.dbId) {
+            await fetch(`/api/profile/experience?id=${item.dbId}`, { method: 'DELETE' });
+        }
+        setEmployments(employments.filter((_, i) => i !== index));
     };
 
-    const openModal = (index: number | null = null) => {
-        setEditingIndex(index);
-        setIsModalOpen(true);
-    };
-
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setEditingIndex(null);
-    };
+    const openModal = (index: number | null = null) => { setEditingIndex(index); setIsModalOpen(true); };
+    const closeModal = () => { setIsModalOpen(false); setEditingIndex(null); };
 
     return (
         <SectionContainer id="employment" title="Employment" icon={<Briefcase />}>
-            {employments.length === 0 ? (
+            {loading ? (
+                <div className="space-y-4 animate-pulse">
+                    <div className="h-20 bg-gray-100 rounded-xl" />
+                </div>
+            ) : employments.length === 0 ? (
                 <div
                     onClick={() => openModal()}
                     className="border border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group animate-in fade-in"
@@ -97,9 +149,7 @@ const Employment = () => {
                                 </div>
 
                                 {job.description && (
-                                    <p className="text-sm text-gray-600 line-clamp-3">
-                                        {job.description}
-                                    </p>
+                                    <p className="text-sm text-gray-600 line-clamp-3">{job.description}</p>
                                 )}
                             </div>
                         ))}
