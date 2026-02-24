@@ -18,19 +18,19 @@ export default function EducationPage() {
 
     // Degree State
     const [degree, setDegree] = useState({
-        degreeName: "B.Tech",
-        specialization: "Computer Science",
-        collegeName: "IIT Bombay",
+        degreeName: "",
+        specialization: "",
+        collegeName: "",
         startYear: currentYear - 4,
         endYear: currentYear,
         isPursuing: false,
-        cgpa: "8.5",
+        cgpa: "",
     });
 
     // Class 12 State
     const [class12, setClass12] = useState({
-        schoolName: "Delhi Public School",
-        specialization: "Science (PCM)",
+        schoolName: "",
+        specialization: "",
         startYear: currentYear - 6,
         endYear: currentYear - 4,
         isPursuing: false,

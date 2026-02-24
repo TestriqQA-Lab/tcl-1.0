@@ -203,8 +203,9 @@ export const SeekerRegisterForm = ({ onSwitchToLogin, initialName, initialEmail 
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
+                            readOnly={isGoogleAuth}
                             className={`w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-0 transition-all ${isValid("email") ? "border-[#0f766d]/50 bg-white" : "border-gray-200 focus:border-[#0f766d]"
-                                }`}
+                                } ${isGoogleAuth ? "bg-gray-100 text-gray-500 cursor-not-allowed opacity-90" : ""}`}
                             placeholder="Type your email"
                         />
                         {isValid("email") && (
