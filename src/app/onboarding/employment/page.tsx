@@ -66,9 +66,9 @@ export default function EmploymentPage() {
                         setExperience({
                             totalExpYears: profile.totalExperienceYears || 0,
                             totalExpMonths: profile.totalExperienceMonths || 0,
-                            companyName: latestExp?.company || "",
-                            designation: latestExp?.title || "",
-                            currentCity: latestExp?.location || profile.currentLocation || "",
+                            companyName: latestExp?.companyName || "",
+                            designation: latestExp?.designation || "",
+                            currentCity: profile.currentLocation || "",
                             salary: profile.currentSalary || 0,
                             noticePeriod: profile.noticePeriod || "IMMEDIATE",
                             industry: profile.currentIndustry || "",

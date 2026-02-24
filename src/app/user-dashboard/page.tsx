@@ -1,6 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { ProfileSidebar } from "@/components/dashboard/ProfileSidebar";
 import { SidebarNav } from "@/components/dashboard/SidebarNav";
 import { StatsWidget } from "@/components/dashboard/StatsWidget";
@@ -12,6 +14,19 @@ import Link from "next/link";
 import { Home, Briefcase, Building2, FileText, Bell, Search } from "lucide-react";
 
 export default function UserDashboardPage() {
+    const { data: session, status } = useSession();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (status === "unauthenticated") {
+            router.push("/");
+        }
+    }, [status, router]);
+
+    if (status === "loading" || status === "unauthenticated") {
+        return <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">Loading...</div>;
+    }
+
     return (
         <div className="min-h-screen bg-[#f8fafc] pb-24 lg:pb-10">
             <div className="max-w-[1440px] mx-auto py-6">
@@ -44,7 +59,50 @@ export default function UserDashboardPage() {
 
                         {/* Job List (Desktop) vs Empty State (Mobile) Logic */}
                         <div className="hidden lg:flex flex-col gap-4">
-                            <DashboardJobCard />
+                            {[
+                                {
+                                    title: "Fullstack Developer",
+                                    company: "GlobalStream Systems",
+                                    location: "Hybrid, Mumbai",
+                                    salary: "₹12L - ₹18L",
+                                    timeAgo: "2 days ago",
+                                    logoUrl: undefined
+                                },
+                                {
+                                    title: "Frontend Engineer",
+                                    company: "TechNova Solutions",
+                                    location: "Remote",
+                                    salary: "₹10L - ₹15L",
+                                    timeAgo: "1 day ago",
+                                    logoUrl: undefined
+                                },
+                                {
+                                    title: "Backend Developer (Node.js)",
+                                    company: "Apex Innovations",
+                                    location: "On-site, Bengaluru",
+                                    salary: "₹14L - ₹20L",
+                                    timeAgo: "5 hours ago",
+                                    logoUrl: undefined
+                                },
+                                {
+                                    title: "React Native Developer",
+                                    company: "MobileFirst Platforms",
+                                    location: "Hybrid, Pune",
+                                    salary: "₹8L - ₹14L",
+                                    timeAgo: "3 days ago",
+                                    logoUrl: undefined
+                                }
+                            ].map((job, index) => (
+                                <DashboardJobCard
+                                    key={index}
+                                    title={job.title}
+                                    company={job.company}
+                                    location={job.location}
+                                    salary={job.salary}
+                                    timeAgo={job.timeAgo}
+                                    logoUrl={job.logoUrl}
+                                />
+                            ))}
                             {/* Loading Skeleton Item to match screenshot */}
                             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 opacity-50">
                                 <div className="flex gap-4 mb-4">
