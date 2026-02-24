@@ -1,56 +1,91 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Folder, Pencil, Trash2 } from 'lucide-react';
 import SectionContainer from '../SectionContainer';
 import EmptyState from '../EmptyState';
 import EditProjectModal, { ProjectData } from '../modals/EditProjectModal';
 
+const MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+function dbToUi(row: any): ProjectData & { dbId: string } {
+    return {
+        dbId: row.id,
+        title: row.title || '',
+        startMonth: row.startMonth || '',
+        startYear: row.startYear || '',
+        endMonth: row.endMonth || '',
+        endYear: row.endYear || '',
+        description: row.description || '',
+        keySkills: Array.isArray(row.technologies) ? row.technologies.join(', ') : '',
+        projectUrl: row.url || '',
+    };
+}
+
 const Projects = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [projects, setProjects] = useState<ProjectData[]>([
-        {
-            title: 'E-commerce Platform',
-            startMonth: 'Jan',
-            startYear: '2023',
-            endMonth: 'Mar',
-            endYear: '2023',
-            description: 'Built a full-stack e-commerce application using MERN stack with payment gateway integration.',
-            keySkills: 'React, Node.js',
-            projectUrl: ''
-        }
-    ]);
+    const [projects, setProjects] = useState<(ProjectData & { dbId?: string })[]>([]);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const handleSave = (data: ProjectData) => {
-        if (editingIndex !== null) {
+    useEffect(() => {
+        fetch('/api/profile/projects')
+            .then(res => res.json())
+            .then(json => {
+                if (Array.isArray(json)) setProjects(json.map(dbToUi));
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, []);
+
+    const handleSave = async (data: ProjectData) => {
+        const editingItem = editingIndex !== null ? projects[editingIndex] : null;
+        const dbId = (editingItem as any)?.dbId;
+
+        if (dbId) {
+            const res = await fetch('/api/profile/projects', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: dbId, ...data }),
+            });
+            const updated = await res.json();
             const newList = [...projects];
-            newList[editingIndex] = data;
+            newList[editingIndex!] = dbToUi(updated);
             setProjects(newList);
         } else {
-            setProjects([...projects, data]);
+            const res = await fetch('/api/profile/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+            const inserted = await res.json();
+            setProjects(prev => [...prev, dbToUi(inserted)]);
         }
         setIsModalOpen(false);
         setEditingIndex(null);
     };
 
-    const handleDelete = (index: number) => {
+    const handleDelete = async (index: number) => {
+        const item = projects[index] as any;
+        if (item?.dbId) {
+            await fetch(`/api/profile/projects?id=${item.dbId}`, { method: 'DELETE' });
+        }
         setProjects(projects.filter((_, i) => i !== index));
     };
 
-    const openAddModal = () => {
-        setEditingIndex(null);
-        setIsModalOpen(true);
-    };
-
-    const openEditModal = (index: number) => {
-        setEditingIndex(index);
-        setIsModalOpen(true);
-    };
+    const openAddModal = () => { setEditingIndex(null); setIsModalOpen(true); };
+    const openEditModal = (index: number) => { setEditingIndex(index); setIsModalOpen(true); };
 
     return (
         <SectionContainer id="projects" title="Projects" icon={<Folder />} onAdd={projects.length > 0 ? openAddModal : undefined}>
-            {projects.length === 0 ? (
+            {loading ? (
+                <div className="animate-pulse space-y-4">
+                    <div className="h-24 bg-gray-100 rounded-xl" />
+                </div>
+            ) : projects.length === 0 ? (
                 <EmptyState
                     icon={<div className="text-3xl">🚀</div>}
                     title=""
@@ -84,9 +119,7 @@ const Projects = () => {
                                     </button>
                                 </div>
                             </div>
-                            <p className="text-xs text-gray-500 mb-3 line-clamp-2">
-                                {project.description}
-                            </p>
+                            <p className="text-xs text-gray-500 mb-3 line-clamp-2">{project.description}</p>
                             {project.keySkills && (
                                 <div className="flex flex-wrap gap-2">
                                     {project.keySkills.split(',').map((skill, i) => (
@@ -103,7 +136,7 @@ const Projects = () => {
 
             <EditProjectModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => { setIsModalOpen(false); setEditingIndex(null); }}
                 initialData={editingIndex !== null ? projects[editingIndex] : undefined}
                 onSave={handleSave}
             />

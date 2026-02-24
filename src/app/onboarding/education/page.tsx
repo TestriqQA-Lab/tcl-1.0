@@ -14,7 +14,7 @@ export default function EducationPage() {
     // Initial Date setup
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 40 }, (_, i) => currentYear - i); // Past 40 years
-    const futureYears = Array.from({ length: 10 }, (_, i) => currentYear + i); // Next 10 years (for passing)
+    const futureYears = Array.from({ length: 10 }, (_, i) => currentYear + i + 1); // Next 10 years (for passing)
 
     // Degree State
     const [degree, setDegree] = useState({
@@ -49,23 +49,23 @@ export default function EducationPage() {
 
                         if (degreeData) {
                             setDegree({
-                                degreeName: degreeData.degree || "",
-                                specialization: degreeData.fieldOfStudy || "",
-                                collegeName: degreeData.schoolName || "",
-                                startYear: degreeData.startDate ? new Date(degreeData.startDate).getFullYear() : currentYear - 4,
-                                endYear: degreeData.endDate ? new Date(degreeData.endDate).getFullYear() : currentYear,
-                                isPursuing: !degreeData.endDate,
-                                cgpa: degreeData.grade || "",
+                                degreeName: degreeData.degree || degreeData.type || "",
+                                specialization: degreeData.stream || "",
+                                collegeName: degreeData.institute || "",
+                                startYear: degreeData.passingYear ? parseInt(degreeData.passingYear) - 4 : currentYear - 4,
+                                endYear: degreeData.passingYear ? parseInt(degreeData.passingYear) : currentYear,
+                                isPursuing: degreeData.isPursuing || false,
+                                cgpa: degreeData.percentage || "",
                             });
                         }
 
                         if (class12Data) {
                             setClass12({
-                                schoolName: class12Data.schoolName || "",
-                                specialization: class12Data.fieldOfStudy || "",
-                                startYear: class12Data.startDate ? new Date(class12Data.startDate).getFullYear() : currentYear - 6,
-                                endYear: class12Data.endDate ? new Date(class12Data.endDate).getFullYear() : currentYear - 4,
-                                isPursuing: !class12Data.endDate,
+                                schoolName: class12Data.institute || "",
+                                specialization: class12Data.stream || "",
+                                startYear: class12Data.passingYear ? parseInt(class12Data.passingYear) - 2 : currentYear - 6,
+                                endYear: class12Data.passingYear ? parseInt(class12Data.passingYear) : currentYear - 4,
+                                isPursuing: class12Data.isPursuing || false,
                             });
                         }
                     }

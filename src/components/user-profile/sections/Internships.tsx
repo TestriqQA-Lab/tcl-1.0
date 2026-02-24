@@ -1,58 +1,96 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Briefcase, GraduationCap, Pencil, Plus, Trash2 } from 'lucide-react';
 import SectionContainer from '../SectionContainer';
 import EmptyState from '../EmptyState';
 import EditInternshipModal, { InternshipData } from '../modals/EditInternshipModal';
 
+const MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+function dbToUi(row: any): InternshipData & { dbId: string } {
+    return {
+        dbId: row.id,
+        companyName: row.companyName || '',
+        role: row.designation || '',
+        startMonth: row.startMonth || '',
+        startYear: row.startYear || '',
+        endMonth: row.endMonth || '',
+        endYear: row.endYear || '',
+        isCurrent: row.isCurrent || false,
+        description: row.description || '',
+        keySkills: row.keySkills || '',
+        projectUrl: row.projectUrl || '',
+    };
+}
+
 const Internships = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [internships, setInternships] = useState<InternshipData[]>([
-        {
-            companyName: 'StartupHub Inc.',
-            role: 'Web Development Intern',
-            startMonth: 'May',
-            startYear: '2023',
-            endMonth: 'Aug',
-            endYear: '2023',
-            description: 'Assisted in building the frontend using React.js and Tailwind CSS.',
-            keySkills: 'React, Tailwind CSS',
-            projectUrl: '',
-            isCurrent: false
-        }
-    ]);
+    const [internships, setInternships] = useState<(InternshipData & { dbId?: string })[]>([]);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const handleSave = (data: InternshipData) => {
-        if (editingIndex !== null) {
+    useEffect(() => {
+        fetch('/api/profile/experience')
+            .then(res => res.json())
+            .then(json => {
+                if (Array.isArray(json)) {
+                    const filtered = json.filter((e: any) => e.employmentType === 'INTERNSHIP');
+                    setInternships(filtered.map(dbToUi));
+                }
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, []);
+
+    const handleSave = async (data: InternshipData) => {
+        const editingItem = editingIndex !== null ? internships[editingIndex] : null;
+        const dbId = (editingItem as any)?.dbId;
+
+        if (dbId) {
+            const res = await fetch('/api/profile/experience', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: dbId, ...data, employmentType: 'INTERNSHIP' }),
+            });
+            const updated = await res.json();
             const newList = [...internships];
-            newList[editingIndex] = data;
+            newList[editingIndex!] = dbToUi(updated);
             setInternships(newList);
         } else {
-            setInternships([...internships, data]);
+            const res = await fetch('/api/profile/experience', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...data, employmentType: 'INTERNSHIP' }),
+            });
+            const inserted = await res.json();
+            setInternships(prev => [...prev, dbToUi(inserted)]);
         }
         setIsModalOpen(false);
         setEditingIndex(null);
     };
 
-    const handleDelete = (index: number) => {
+    const handleDelete = async (index: number) => {
+        const item = internships[index] as any;
+        if (item?.dbId) {
+            await fetch(`/api/profile/experience?id=${item.dbId}`, { method: 'DELETE' });
+        }
         setInternships(internships.filter((_, i) => i !== index));
     };
 
-    const openAddModal = () => {
-        setEditingIndex(null);
-        setIsModalOpen(true);
-    };
-
-    const openEditModal = (index: number) => {
-        setEditingIndex(index);
-        setIsModalOpen(true);
-    };
+    const openAddModal = () => { setEditingIndex(null); setIsModalOpen(true); };
+    const openEditModal = (index: number) => { setEditingIndex(index); setIsModalOpen(true); };
 
     return (
         <SectionContainer id="internships" title="Internships" icon={<Briefcase />} onAdd={internships.length > 0 ? openAddModal : undefined}>
-            {internships.length === 0 ? (
+            {loading ? (
+                <div className="animate-pulse space-y-4">
+                    <div className="h-16 bg-gray-100 rounded-xl" />
+                </div>
+            ) : internships.length === 0 ? (
                 <EmptyState
                     icon={<GraduationCap size={32} />}
                     title=""
@@ -64,7 +102,7 @@ const Internships = () => {
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
                     {internships.map((internship, index) => (
                         <div key={index} className="relative pl-4 border-l-2 border-emerald-500 pb-4">
-                            <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                            <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500" />
                             <div className="flex justify-between items-start group">
                                 <div className="min-w-0 flex-1 pr-2">
                                     <h3 className="text-sm font-bold text-gray-900 truncate">{internship.role}</h3>
@@ -88,9 +126,7 @@ const Internships = () => {
                                     </button>
                                 </div>
                             </div>
-                            <p className="text-xs text-gray-500 mt-2 line-clamp-2">
-                                {internship.description}
-                            </p>
+                            <p className="text-xs text-gray-500 mt-2 line-clamp-2">{internship.description}</p>
                             {internship.keySkills && (
                                 <div className="mt-2 flex flex-wrap gap-1">
                                     {internship.keySkills.split(',').map((skill, i) => (
@@ -107,7 +143,7 @@ const Internships = () => {
 
             <EditInternshipModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => { setIsModalOpen(false); setEditingIndex(null); }}
                 initialData={editingIndex !== null ? internships[editingIndex] : undefined}
                 onSave={handleSave}
             />

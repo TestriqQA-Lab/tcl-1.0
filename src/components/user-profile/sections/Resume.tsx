@@ -1,22 +1,61 @@
 'use client';
 
-import React, { useState } from 'react';
-import { FileText, Plus, Pencil, Download, Trash2, Upload } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Pencil, Download, Trash2, Upload } from 'lucide-react';
 import EditResumeModal, { ResumeData } from '../modals/EditResumeModal';
 
 const Resume = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [resume, setResume] = useState<ResumeData | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const handleSave = (data: ResumeData | null) => {
+    useEffect(() => {
+        fetch('/api/profile')
+            .then(res => res.json())
+            .then(json => {
+                if (!json.error && json.profile?.resumeUrl) {
+                    const url: string = json.profile.resumeUrl;
+                    if (url) {
+                        // Extract filename from URL
+                        const parts = url.split('/');
+                        const fileName = parts[parts.length - 1] || 'resume.pdf';
+                        setResume({
+                            id: 'existing',
+                            fileUrl: url,
+                            fileName,
+                            uploadDate: 'Previously uploaded',
+                            size: '',
+                        });
+                    }
+                }
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, []);
+
+    const handleSave = async (data: ResumeData | null) => {
         setResume(data);
+        await fetch('/api/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ resumeUrl: data?.fileUrl || '' }),
+        });
+    };
+
+    const handleDelete = async () => {
+        setResume(null);
+        await fetch('/api/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ resumeUrl: '' }),
+        });
     };
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold text-gray-900">Resume</h2>
-                {!resume && (
+                {!resume && !loading && (
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="text-[#117a7a] font-bold text-sm hover:underline"
@@ -27,7 +66,9 @@ const Resume = () => {
             </div>
 
             <div className="space-y-4">
-                {resume ? (
+                {loading ? (
+                    <div className="animate-pulse h-16 bg-gray-100 rounded-xl" />
+                ) : resume ? (
                     <div className="border border-gray-200 rounded-xl p-4 flex items-center justify-between">
                         <div className="flex items-center gap-4 min-w-0 flex-1">
                             <div className="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center text-red-500 shrink-0">
@@ -36,7 +77,7 @@ const Resume = () => {
                             <div className="min-w-0">
                                 <h3 className="text-sm font-bold text-gray-900 truncate">{resume.fileName}</h3>
                                 <p className="text-xs text-gray-500 truncate">
-                                    Uploaded on {resume.uploadDate} • {resume.size}
+                                    {resume.uploadDate}{resume.size ? ` • ${resume.size}` : ''}
                                 </p>
                             </div>
                         </div>
@@ -56,7 +97,7 @@ const Resume = () => {
                                 <Pencil size={18} />
                             </button>
                             <button
-                                onClick={() => setResume(null)}
+                                onClick={handleDelete}
                                 className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                             >
                                 <Trash2 size={18} />

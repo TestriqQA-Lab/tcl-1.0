@@ -5,6 +5,10 @@ import { X, Trophy } from 'lucide-react';
 
 export interface AwardData {
     id: string;
+    title: string;
+    issuer: string;
+    issueMonth: string;
+    issueYear: string;
     description: string;
 }
 
@@ -24,6 +28,10 @@ const EditAwardModal: React.FC<EditAwardModalProps> = ({
     const [animateIn, setAnimateIn] = useState(false);
     const [formData, setFormData] = useState<AwardData>({
         id: '',
+        title: '',
+        issuer: '',
+        issueMonth: '',
+        issueYear: '',
         description: ''
     });
 
@@ -35,6 +43,10 @@ const EditAwardModal: React.FC<EditAwardModalProps> = ({
             } else {
                 setFormData({
                     id: Math.random().toString(36).substr(2, 9),
+                    title: '',
+                    issuer: '',
+                    issueMonth: '',
+                    issueYear: '',
                     description: ''
                 });
             }
@@ -45,11 +57,15 @@ const EditAwardModal: React.FC<EditAwardModalProps> = ({
 
     if (!isOpen) return null;
 
-    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        if (e.target.value.length <= 1000) {
-            setFormData(prev => ({ ...prev, description: e.target.value }));
-        }
+    const handleChange = (field: keyof AwardData, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
     };
+
+    const MONTHS = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const YEARS = Array.from({ length: 50 }, (_, i) => (new Date().getFullYear() - i).toString());
 
     const handleSave = () => {
         onSave(formData);
@@ -74,15 +90,72 @@ const EditAwardModal: React.FC<EditAwardModalProps> = ({
                 </div>
 
                 <div className="px-8 pb-8 space-y-6">
+                    <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-2">
+                            Award Title <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.title}
+                            onChange={(e) => handleChange('title', e.target.value)}
+                            placeholder="Ex: Employee of the Year"
+                            className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:font-normal placeholder:text-gray-400"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-2">
+                            Issuer / Organization
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.issuer}
+                            onChange={(e) => handleChange('issuer', e.target.value)}
+                            placeholder="Ex: Google"
+                            className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:font-normal placeholder:text-gray-400"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-2">
+                                Issue Month
+                            </label>
+                            <select
+                                value={formData.issueMonth}
+                                onChange={(e) => handleChange('issueMonth', e.target.value)}
+                                className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
+                            >
+                                <option value="">Month</option>
+                                {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-2">
+                                Issue Year
+                            </label>
+                            <select
+                                value={formData.issueYear}
+                                onChange={(e) => handleChange('issueYear', e.target.value)}
+                                className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
+                            >
+                                <option value="">Year</option>
+                                {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
                     {/* Description */}
                     <div>
                         <label className="block text-xs font-bold text-gray-700 mb-2">
-                            Awards & Achievements
+                            Description
                         </label>
                         <div className="relative">
                             <textarea
                                 value={formData.description}
-                                onChange={handleChange}
+                                onChange={(e) => {
+                                    if (e.target.value.length <= 1000) handleChange('description', e.target.value)
+                                }}
                                 placeholder="Mention your academic or extra-curricular achievements where you were recognised for your performance"
                                 className="w-full p-4 h-32 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-900 placeholder:font-normal placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none"
                             />
