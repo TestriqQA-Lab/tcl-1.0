@@ -70,14 +70,13 @@ export async function updateEmploymentAction(
         if (data.workStatus === "EXPERIENCED" && data.companyName && data.designation) {
             await db.insert(experience).values({
                 userId: userId,
-                company: data.companyName,
-                title: data.designation,
-                location: data.currentCity,
-                startDate: data.joiningDate ? new Date(data.joiningDate).toISOString() : new Date().toISOString(),
-                endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
-                currentlyWorking: !data.endDate,
-                salary: data.currentSalary,
-                noticePeriod: data.noticePeriod,
+                companyName: data.companyName,
+                designation: data.designation,
+                startMonth: data.joiningDate ? (new Date(data.joiningDate).getMonth() + 1).toString() : "1",
+                startYear: data.joiningDate ? new Date(data.joiningDate).getFullYear().toString() : new Date().getFullYear().toString(),
+                endMonth: data.endDate ? (new Date(data.endDate).getMonth() + 1).toString() : null,
+                endYear: data.endDate ? new Date(data.endDate).getFullYear().toString() : null,
+                isCurrent: !data.endDate,
                 employmentType: "FULL_TIME",
             });
         }
@@ -167,32 +166,26 @@ export async function updateEducationAction(
         // 1. Insert Degree
         await db.insert(education).values({
             userId: userId,
-            schoolName: data.degree.collegeName,
+            type: "Degree",
+            institute: data.degree.collegeName,
             degree: data.degree.degreeName,
-            fieldOfStudy: data.degree.specialization,
-            startDate: data.degree.startDate.toISOString(),
-            endDate: data.degree.endDate ? data.degree.endDate.toISOString() : null,
-            grade: data.degree.cgpa,
-            description: "First Degree Information",
-
-            // Onboarding Specifics mapping
-            university: data.degree.collegeName,
-            specialization: data.degree.specialization,
-            passingYear: data.degree.endDate ? data.degree.endDate.getFullYear() : undefined,
+            stream: data.degree.specialization,
+            passingYear: data.degree.startDate.getFullYear().toString(),
+            endingYear: data.degree.endDate ? data.degree.endDate.getFullYear().toString() : null,
+            isPursuing: data.degree.isPursuing,
+            percentage: data.degree.cgpa,
         });
 
         // 2. Insert Class 12
         await db.insert(education).values({
             userId: userId,
-            schoolName: data.class12.schoolName,
+            type: "Class 12",
+            institute: data.class12.schoolName,
             degree: "Class 12",
-            fieldOfStudy: data.class12.specialization, // Stream
-            startDate: data.class12.startDate.toISOString(),
-            endDate: data.class12.endDate ? data.class12.endDate.toISOString() : null,
-            description: "Second Class 12 Information",
-
-            // Onboarding Specifics mapping
-            passingYear: data.class12.endDate ? data.class12.endDate.getFullYear() : undefined,
+            stream: data.class12.specialization, // Stream
+            passingYear: data.class12.startDate.getFullYear().toString(),
+            endingYear: data.class12.endDate ? data.class12.endDate.getFullYear().toString() : null,
+            isPursuing: data.class12.isPursuing,
         });
 
         return { success: true };
@@ -277,7 +270,7 @@ export async function getEmploymentAction(userId: string) {
         // 5. Fetch Latest Experience
         const latestExperience = await db.query.experience.findFirst({
             where: eq(experience.userId, userId),
-            orderBy: [desc(experience.startDate)],
+            orderBy: [desc(experience.startYear), desc(experience.startMonth)],
         });
 
         return {
@@ -312,13 +305,9 @@ export async function getEducationAction(userId: string) {
             where: eq(education.userId, userId),
         });
 
-        // Separate Degree and Class 12 based on description or degree name
-        // In updateEducationAction we set:
-        // Degree -> description: "First Degree Information"
-        // Class 12 -> degree: "Class 12", description: "Second Class 12 Information"
-
-        const degreeData = userEducation.find(e => e.description === "First Degree Information" || e.degree !== "Class 12");
-        const class12Data = userEducation.find(e => e.description === "Second Class 12 Information" || e.degree === "Class 12");
+        // Separate Degree and Class 12
+        const degreeData = userEducation.find(e => e.type === "Degree");
+        const class12Data = userEducation.find(e => e.type === "Class 12");
 
         return {
             success: true,

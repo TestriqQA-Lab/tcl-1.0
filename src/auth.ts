@@ -94,13 +94,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                                 .where(eq(users.id, existingUser.id));
                         }
 
-                        // Determine the correct dashboard route based on user role
-                        const dashboardRoute = existingUser.userRole === "EMPLOYER"
-                            ? "/employer-dashboard"
-                            : "/user-dashboard";
-
-                        // Returning a URL triggers NextAuth to immediately redirect there
-                        return dashboardRoute;
+                        // Return true to allow sign in to complete
+                        return true;
                     }
 
                     // New user - create account
@@ -185,7 +180,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const dbUser = dbUsers[0];
                     token.id = dbUser.id;
                     token.role = dbUser.userRole;
-                    token.name = dbUser.username;
+                    // Keep the original Google name if available, otherwise fallback to username
+                    token.name = user?.name || dbUser.username;
                     token.image = dbUser.profilePicture || null;
                 }
             }
