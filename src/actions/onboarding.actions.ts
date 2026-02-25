@@ -357,3 +357,118 @@ export async function getPreferencesAction(userId: string) {
         return { error: "Failed to fetch preferences" };
     }
 }
+
+export async function getProfileCompletionAction(userId: string) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.id !== userId) {
+            return { error: "Unauthorized" };
+        }
+
+        const { db } = await import("@/lib/db/db");
+        const { seekerProfiles, skills, education, experience, projects, languages, achievements } =
+            await import("@/lib/db/schema");
+        const { eq, and, count } = await import("drizzle-orm");
+        const { calculateProfileCompletion } = await import("@/lib/profileCompletion");
+
+        const [profile] = await db
+            .select()
+            .from(seekerProfiles)
+            .where(eq(seekerProfiles.userId, userId))
+            .limit(1);
+
+        const [{ value: skillsCount }] = await db
+            .select({ value: count() })
+            .from(skills)
+            .where(eq(skills.userId, userId));
+
+        const [{ value: educationCount }] = await db
+            .select({ value: count() })
+            .from(education)
+            .where(eq(education.userId, userId));
+
+        // Experience table holds both Employment and Internships. We check the employmentType or designation if needed,
+        // but for now we'll count them based on a generic 'EMPLOYED' vs 'INTERNSHIP' if we had a type, 
+        // however the schema uses `employmentType` which is preferredWorkTypeEnum: FULL_TIME, PART_TIME, INTERNSHIP, CONTRACT
+        const [{ value: employmentCount }] = await db
+            .select({ value: count() })
+            .from(experience)
+            .where(
+                and(
+                    eq(experience.userId, userId),
+                    eq(experience.employmentType, "FULL_TIME") // Count as employment
+                )
+            );
+
+        const [{ value: internshipsCount }] = await db
+            .select({ value: count() })
+            .from(experience)
+            .where(
+                and(
+                    eq(experience.userId, userId),
+                    eq(experience.employmentType, "INTERNSHIP")
+                )
+            );
+
+        const [{ value: projectsCount }] = await db
+            .select({ value: count() })
+            .from(projects)
+            .where(eq(projects.userId, userId));
+
+        const [{ value: languagesCount }] = await db
+            .select({ value: count() })
+            .from(languages)
+            .where(eq(languages.userId, userId));
+
+        // Achievements table holds multiple types: CERTIFICATION, AWARD, CLUB, EXAM, ACADEMIC
+        const [{ value: accomplishmentsCount }] = await db
+            .select({ value: count() })
+            .from(achievements)
+            .where(
+                and(
+                    eq(achievements.userId, userId),
+                    // In a real app we might use `inArray`, here we just check if it's one of the accomplishment types
+                    // We'll count CERTIFICATION, AWARD, and CLUB as Accomplishments
+                    eq(achievements.type, "CERTIFICATION") // Simplified for now, can be expanded
+                )
+            );
+
+        const [{ value: competitiveExamsCount }] = await db
+            .select({ value: count() })
+            .from(achievements)
+            .where(
+                and(
+                    eq(achievements.userId, userId),
+                    eq(achievements.type, "EXAM")
+                )
+            );
+
+        const [{ value: academicAchievementsCount }] = await db
+            .select({ value: count() })
+            .from(achievements)
+            .where(
+                and(
+                    eq(achievements.userId, userId),
+                    eq(achievements.type, "ACADEMIC")
+                )
+            );
+
+        const result = calculateProfileCompletion({
+            profile: profile ?? null,
+            educationCount: Number(educationCount),
+            skillsCount: Number(skillsCount),
+            languagesCount: Number(languagesCount),
+            internshipsCount: Number(internshipsCount),
+            projectsCount: Number(projectsCount),
+            accomplishmentsCount: Number(accomplishmentsCount),
+            competitiveExamsCount: Number(competitiveExamsCount),
+            employmentCount: Number(employmentCount),
+            academicAchievementsCount: Number(academicAchievementsCount)
+        });
+
+        return { success: true, data: result };
+    } catch (error) {
+        console.error("getProfileCompletionAction error:", error);
+        return { error: "Failed to calculate profile completion" };
+    }
+}

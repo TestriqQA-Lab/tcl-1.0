@@ -18,15 +18,34 @@ interface ProfileData {
     } | null;
 }
 
+const CIRCUMFERENCE = 2 * Math.PI * 48; // 301.6
+
 const ProfileHeader = () => {
     const [data, setData] = useState<ProfileData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [completionPct, setCompletionPct] = useState(0);
+    const [nextTip, setNextTip] = useState("");
 
     useEffect(() => {
         fetch('/api/profile')
             .then(res => res.json())
-            .then(json => {
-                if (!json.error) setData(json);
+            .then(async json => {
+                if (!json.error) {
+                    setData(json);
+                    // Fetch real completion from server action
+                    try {
+                        const { getProfileCompletionAction } = await import("@/actions/onboarding.actions");
+                        const sessionRes = await fetch('/api/auth/session');
+                        const session = await sessionRes.json();
+                        if (session?.user?.id) {
+                            const result = await getProfileCompletionAction(session.user.id);
+                            if (result.success && result.data) {
+                                setCompletionPct(result.data.percentage);
+                                setNextTip(result.data.nextTip);
+                            }
+                        }
+                    } catch { /* fail silently */ }
+                }
             })
             .catch(console.error)
             .finally(() => setLoading(false));
@@ -64,39 +83,23 @@ const ProfileHeader = () => {
                 <div className="relative shrink-0">
                     <div className="w-28 h-28 relative">
                         <svg className="w-full h-full transform -rotate-90">
+                            <circle cx="56" cy="56" r="48" stroke="#e5e7eb" strokeWidth="6" fill="transparent" />
                             <circle
-                                cx="56"
-                                cy="56"
-                                r="48"
-                                stroke="#e5e7eb"
-                                strokeWidth="6"
-                                fill="transparent"
-                            />
-                            <circle
-                                cx="56"
-                                cy="56"
-                                r="48"
-                                stroke="#0f766e"
-                                strokeWidth="6"
-                                fill="transparent"
-                                strokeDasharray="301.6"
-                                strokeDashoffset="205"
+                                cx="56" cy="56" r="48"
+                                stroke="#0f766e" strokeWidth="6" fill="transparent"
+                                strokeDasharray={CIRCUMFERENCE}
+                                strokeDashoffset={CIRCUMFERENCE * (1 - completionPct / 100)}
                                 strokeLinecap="round"
+                                style={{ transition: "stroke-dashoffset 0.6s ease" }}
                             />
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                             {data?.user?.profilePicture ? (
-                                <img
-                                    src={data.user.profilePicture}
-                                    alt={name}
-                                    className="w-20 h-20 rounded-full object-cover"
-                                />
+                                <img src={data.user.profilePicture} alt={name} className="w-20 h-20 rounded-full object-cover" />
                             ) : (
                                 <>
-                                    <span className="text-2xl font-bold text-gray-900">
-                                        {name.charAt(0).toUpperCase()}
-                                    </span>
-                                    <span className="text-[10px] text-gray-500 uppercase font-medium">PROFILE</span>
+                                    <span className="text-xl font-bold text-gray-900">{name.charAt(0).toUpperCase()}</span>
+                                    <span className="text-[10px] text-[#0f766e] font-bold">{completionPct}%</span>
                                 </>
                             )}
                         </div>
