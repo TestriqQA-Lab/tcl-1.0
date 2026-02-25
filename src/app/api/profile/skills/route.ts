@@ -27,13 +27,25 @@ export async function POST(req: NextRequest) {
         }
 
         const userId = session.user.id;
-        const { skills: skillNames } = await req.json() as { skills: string[] };
+        const body = await req.json();
+        const { skills: skillNames } = body as { skills: unknown };
+
+        // Validate input
+        if (!Array.isArray(skillNames)) {
+            return NextResponse.json({ error: "skills must be an array" }, { status: 400 });
+        }
+        if (skillNames.length > 50) {
+            return NextResponse.json({ error: "Maximum 50 skills allowed" }, { status: 400 });
+        }
+        const sanitized = skillNames
+            .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+            .map((s) => s.trim().slice(0, 100)); // max 100 chars per skill
 
         await db.transaction(async (tx) => {
             await tx.delete(skills).where(eq(skills.userId, userId));
-            if (skillNames && skillNames.length > 0) {
+            if (sanitized.length > 0) {
                 await tx.insert(skills).values(
-                    skillNames.map((name: string) => ({ userId, skillName: name }))
+                    sanitized.map((name: string) => ({ userId, skillName: name }))
                 );
             }
         });

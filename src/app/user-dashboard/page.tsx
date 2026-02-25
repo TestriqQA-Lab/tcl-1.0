@@ -24,6 +24,9 @@ export default function UserDashboardPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
     const [userProfile, setUserProfile] = useState<UserProfile>({ name: null, image: null, location: null });
+    const [completionPercentage, setCompletionPercentage] = useState(0);
+    const [nextTip, setNextTip] = useState("Loading profile...");
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -51,12 +54,22 @@ export default function UserDashboardPage() {
                         location: null,
                     });
                 }
+
+                // Fetch real completion percentage
+                const { getProfileCompletionAction } = await import("@/actions/onboarding.actions");
+                const completion = await getProfileCompletionAction(session.user.id);
+                if (completion.success && completion.data) {
+                    setCompletionPercentage(completion.data.percentage);
+                    setNextTip(completion.data.nextTip);
+                }
             } catch {
                 setUserProfile({
                     name: session.user.name || null,
                     image: session.user.image || null,
                     location: null,
                 });
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchProfile();
@@ -72,19 +85,27 @@ export default function UserDashboardPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                     {/* Left Sidebar (Desktop: 3 cols) */}
-                    <div className="hidden lg:block lg:col-span-3">
-                        <div className="sticky top-24 space-y-6">
-                            <ProfileSidebar user={{ name: userProfile.name, image: userProfile.image, location: userProfile.location ?? undefined }} />
-                            <SidebarNav />
-                            <StatsWidget />
-                        </div>
+                    <div className="hidden lg:block lg:col-span-3 space-y-6">
+                        <ProfileSidebar
+                            user={{ name: userProfile.name, image: userProfile.image, location: userProfile.location ?? undefined }}
+                            completionPercentage={completionPercentage}
+                            nextTip={nextTip}
+                            isLoading={isLoading}
+                        />
+                        <SidebarNav />
+                        <StatsWidget />
                     </div>
 
                     {/* Center Column (Desktop: 6 cols) */}
                     <div className="col-span-1 lg:col-span-6 space-y-6">
                         {/* Mobile User Info (Mobile Only) */}
                         <div className="lg:hidden">
-                            <MobileProfileCard userName={userProfile.name} userImage={userProfile.image} />
+                            <MobileProfileCard
+                                userName={userProfile.name}
+                                userImage={userProfile.image}
+                                completionPercentage={completionPercentage}
+                                isLoading={isLoading}
+                            />
                         </div>
 
                         {/* Upgrade Banner (Desktop Only) */}
