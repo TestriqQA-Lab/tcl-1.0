@@ -50,11 +50,11 @@ export default async function RootLayout({
       >
         <AuthProvider>
           <Navbar session={session} />
-          <main className="flex-grow max-w-7xl mx-auto px-6 lg:px-10 w-full">
+          <main className="flex-grow max-w-[1440px] mx-auto px-6 lg:px-10 w-full">
             {children}
           </main>
         </AuthProvider>
-        <Footer />
+        <Footer session={session} />
       </body>
     </html>
   );

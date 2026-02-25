@@ -162,25 +162,16 @@ export const education = pgTable("education", {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: uuid("user_id").notNull().references(() => users.id),
 
-    schoolName: text("school_name").notNull(),
-    degree: text("degree").notNull(), // Class X, Class XII, B.Tech, etc.
-    fieldOfStudy: text("field_of_study").notNull(), // Stream, Specialization
-
-    // Additions for detailed education
-    board: text("board"), // CBSE, ICSE, State Board
-
-    startDate: date("start_date").notNull(),
-    endDate: date("end_date"), // Null if currently studying
-
-    grade: text("grade"), // Score, CGPA, Percentage
-    activities: text("activities"), // Clubs/Societies
-    description: text("description"), // Additional details
-
-    // Onboarding - Education Details
-    courseType: text("course_type"), // Full Time, Part Time, Correspondence
-    specialization: text("specialization"), // e.g. Artificial Intelligence
-    university: text("university"), // Stanford University
-    passingYear: integer("passing_year"),
+    type: text("type").notNull(), // Class X, Class XII, Degree
+    board: text("board"),
+    medium: text("medium"),
+    percentage: text("percentage"),
+    passingYear: text("passing_year"),
+    endingYear: text("ending_year"),
+    isPursuing: boolean("is_pursuing").default(false),
+    institute: text("institute"),
+    degree: text("degree"),
+    stream: text("stream"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -190,18 +181,20 @@ export const education = pgTable("education", {
 export const experience = pgTable("experience", {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: uuid("user_id").notNull().references(() => users.id),
-    company: text("company").notNull(),
-    title: text("title").notNull(),
-    employmentType: preferredWorkTypeEnum("employment_type").notNull(), // Reuse enum or text
-    location: text("location"),
-    startDate: date("start_date").notNull(),
-    endDate: date("end_date"), // Null if currently working
-    currentlyWorking: boolean("currently_working").default(false),
-    description: text("description"), // Responsibilities (bullet points)
+    companyName: text("company_name").notNull(),
+    designation: text("designation").notNull(), // Also used for 'role' in internships
+    employmentType: preferredWorkTypeEnum("employment_type").notNull(),
+    startMonth: text("start_month").notNull(),
+    startYear: text("start_year").notNull(),
+    endMonth: text("end_month"),
+    endYear: text("end_year"),
+    isCurrent: boolean("is_current").default(false),
+    description: text("description"),
 
-    // Onboarding - Employment Details
-    salary: integer("salary"), // Annual Salary at this job
-    noticePeriod: text("notice_period"), // e.g. "15 Days or less"
+    // Internship specific
+    keySkills: text("key_skills"),
+    projectUrl: text("project_url"),
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -261,28 +254,51 @@ export const projects = pgTable("projects", {
     userId: uuid("user_id").notNull().references(() => users.id),
     title: text("title").notNull(),
     description: text("description").notNull(),
-
-    // Added Tech Stack
-    technologies: text("technologies").array().default([]), // Array of strings (e.g. ["React", "Node"])
-
+    technologies: text("technologies").array().default([]), // Maps to keySkills string
     url: text("url"), // Live link
-    repoUrl: text("repo_url"), // Github link
-    startDate: date("start_date"),
-    endDate: date("end_date"),
+    startMonth: text("start_month"),
+    startYear: text("start_year"),
+    endMonth: text("end_month"),
+    endYear: text("end_year"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// 13. Achievements Table (New for granular achievements)
+// 13. Achievements Table (Generic for all granular achievements)
 export const achievements = pgTable("achievements", {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: uuid("user_id").notNull().references(() => users.id),
-    title: text("title").notNull(), // Award Name, Exam Name
-    type: text("type").notNull(), // AWARD, EXAM, HACKATHON, CLUB
-    organization: text("organization"), // Issuing org, Club name
-    date: date("date"),
-    score: text("score"), // Rank, Score
+    type: text("type").notNull(), // CERTIFICATION, AWARD, CLUB, EXAM, ACADEMIC
+
+    // Title/Name fields (certification name, exam name, club name, etc.)
+    title: text("title"),
+
+    // Subtitle/Organization
+    organization: text("organization"), // position, educationId mapped here
+
+    // Description/URL
     description: text("description"),
+    url: text("url"),
+
+    // Scoring & IDs
+    completionId: text("completion_id"),
+    score: text("score"),
+    totalScore: text("total_score"),
+
+    // Dates
+    startMonth: text("start_month"),
+    startYear: text("start_year"),
+    endMonth: text("end_month"),
+    endYear: text("end_year"),
+    date: text("date"), // generic year 
+
+    // Flags
+    isCurrent: boolean("is_current").default(false),
+    doesNotExpire: boolean("does_not_expire").default(false),
+
+    // Arrays
+    achievementsList: text("achievements_list").array().default([]), // For academic list
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

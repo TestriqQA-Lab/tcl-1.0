@@ -94,6 +94,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                                 .where(eq(users.id, existingUser.id));
                         }
 
+                        // Return true to allow sign in to complete
                         return true;
                     }
 
@@ -179,7 +180,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const dbUser = dbUsers[0];
                     token.id = dbUser.id;
                     token.role = dbUser.userRole;
-                    token.name = dbUser.username;
+                    // Keep the original Google name if available, otherwise fallback to username
+                    token.name = user?.name || dbUser.username;
                     token.image = dbUser.profilePicture || null;
                 }
             }

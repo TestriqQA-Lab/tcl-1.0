@@ -12,11 +12,11 @@ export default function PreferencesPage() {
     const [isLoading, setIsLoading] = useState(false);
 
     // Form State
-    const [headline, setHeadline] = useState("Full Stack Developer with 2.5 years of experience building scalable web applications with React and Node.js.");
-    const [locations, setLocations] = useState<string[]>(["Mumbai"]);
+    const [headline, setHeadline] = useState("");
+    const [locations, setLocations] = useState<string[]>([]);
     const [locationInput, setLocationInput] = useState("");
-    const [salary, setSalary] = useState<string>("1000000");
-    const [gender, setGender] = useState<"MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | "">("MALE");
+    const [salary, setSalary] = useState<string>("");
+    const [gender, setGender] = useState<"MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | "">("");
 
     // Fetch Data on Mount
     React.useEffect(() => {
@@ -83,7 +83,7 @@ export default function PreferencesPage() {
 
             if (result.success) {
                 console.log("Preferences saved successfully.");
-                router.push("/dashboard"); // Or wherever the next step is
+                router.push("/user-dashboard"); // Redirect to the correct dashboard path
             } else {
                 console.error("Server Action Error:", result.error);
                 alert(`Error saving preferences: ${result.error}`);
@@ -97,7 +97,7 @@ export default function PreferencesPage() {
     };
 
     return (
-        <div className="max-w-2xl mx-auto">
+        <div className="w-full">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">Add headline & preferences</h1>
@@ -120,7 +120,7 @@ export default function PreferencesPage() {
                         value={headline}
                         onChange={(e) => setHeadline(e.target.value)}
                         className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#0f766d] focus:border-transparent outline-none resize-none text-sm text-gray-700 min-h-[100px]"
-                        placeholder="Enter your resume headline..."
+                        placeholder="e.g. Full Stack Developer with 2.5 years of experience building scalable web applications with React and Node.js."
                         maxLength={250}
                     />
 
