@@ -22,7 +22,7 @@ const ProfileHeader = () => {
     const [data, setData] = useState<ProfileData | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const fetchProfile = () => {
         fetch('/api/profile')
             .then(res => res.json())
             .then(json => {
@@ -30,6 +30,17 @@ const ProfileHeader = () => {
             })
             .catch(console.error)
             .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        fetchProfile();
+    }, []);
+
+    // Re-fetch when basic details are updated
+    useEffect(() => {
+        const handleProfileUpdate = () => fetchProfile();
+        window.addEventListener('profile-updated', handleProfileUpdate);
+        return () => window.removeEventListener('profile-updated', handleProfileUpdate);
     }, []);
 
     const name = data?.profile?.fullName || data?.user?.email?.split('@')[0] || 'Your Name';
