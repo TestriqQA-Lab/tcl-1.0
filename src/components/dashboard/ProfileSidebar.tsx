@@ -20,7 +20,7 @@ export const ProfileSidebar = ({ user, completionPercentage = 63 }: ProfileSideb
             <div className="relative w-30 h-30 mb-4 rounded-full overflow-hidden">
                 <div className="w-full h-full overflow-hidden border-4 border-[#E8F3F2]">
                     <Image
-                        src={user?.image || "https://ui-avatars.com/api/?name=Rohan+Bhatia&background=0D8ABC&color=fff"}
+                        src={user?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}&background=0D8ABC&color=fff`}
                         alt={user?.name || "User"}
                         fill
                         className="object-cover"

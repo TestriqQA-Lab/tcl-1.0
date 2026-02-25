@@ -4,7 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { Check, Edit3, Briefcase } from "lucide-react";
 
-export const MobileProfileCard = () => {
+export const MobileProfileCard = ({ userName, userImage }: { userName?: string | null; userImage?: string | null }) => {
     const completionPercentage = 63;
 
     return (
@@ -14,8 +14,8 @@ export const MobileProfileCard = () => {
                 <div className="relative w-16 h-16 flex-shrink-0">
                     <div className="w-full h-full rounded-full overflow-hidden border-2 border-[#f0f9f8]">
                         <Image
-                            src="https://ui-avatars.com/api/?name=Rohan+Bhatia&background=0D8ABC&color=fff"
-                            alt="Rohan"
+                            src={userImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName || "User")}&background=0D8ABC&color=fff`}
+                            alt={userName || "User"}
                             fill
                             className="object-cover"
                         />
@@ -25,7 +25,7 @@ export const MobileProfileCard = () => {
                 {/* Info */}
                 <div className="flex-1">
                     <div className="flex items-center gap-1.5 mb-1">
-                        <h2 className="text-lg font-bold text-gray-900">Rohan Bhatia</h2>
+                        <h2 className="text-lg font-bold text-gray-900">{userName || "User"}</h2>
                         <div className="bg-[#0f766d] rounded-full p-0.5">
                             <Check className="w-2 h-2 text-white stroke-[3]" />
                         </div>
