@@ -13,8 +13,25 @@ export async function GET() {
 
         const userId = session.user.id;
 
-        // Fetch user + seeker profile
-        const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        // Fetch user — explicitly omit sensitive fields (password, providerAccountId)
+        const [user] = await db
+            .select({
+                id: users.id,
+                email: users.email,
+                username: users.username,
+                phoneNumber: users.phoneNumber,
+                profilePicture: users.profilePicture,
+                userRole: users.userRole,
+                provider: users.provider,
+                emailVerified: users.emailVerified,
+                isVerified: users.isVerified,
+                accountStatus: users.accountStatus,
+                createdAt: users.createdAt,
+                updatedAt: users.updatedAt,
+            })
+            .from(users)
+            .where(eq(users.id, userId))
+            .limit(1);
         const [profile] = await db.select().from(seekerProfiles).where(eq(seekerProfiles.userId, userId)).limit(1);
 
         if (!user) {

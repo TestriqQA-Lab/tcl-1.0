@@ -50,6 +50,12 @@ export async function loginAction(email: string, password: string) {
 export async function logoutAction() {
     try {
         await signOut({ redirect: false });
+
+        // Clear the oauth_role cookie set during Google sign-in flow
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        cookieStore.set("oauth_role", "", { maxAge: 0, path: "/" });
+
         return { success: true };
     } catch (error) {
         console.error("Logout error:", error);

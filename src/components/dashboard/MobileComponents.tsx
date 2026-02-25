@@ -4,8 +4,28 @@ import React from "react";
 import Image from "next/image";
 import { Check, Edit3, Briefcase } from "lucide-react";
 
-export const MobileProfileCard = ({ userName, userImage }: { userName?: string | null; userImage?: string | null }) => {
-    const completionPercentage = 63;
+export const MobileProfileCard = ({ userName, userImage, completionPercentage = 0, isLoading = false }: { userName?: string | null; userImage?: string | null; completionPercentage?: number; isLoading?: boolean }) => {
+
+    if (isLoading) {
+        return (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6 animate-pulse">
+                <div className="flex items-center gap-4 mb-4">
+                    <div className="w-14 h-14 bg-gray-200 rounded-full"></div>
+                    <div className="flex-1">
+                        <div className="h-5 bg-gray-200 rounded w-1/2 mb-2"></div>
+                        <div className="h-4 bg-gray-100 rounded w-3/4"></div>
+                    </div>
+                </div>
+                <div className="mb-2">
+                    <div className="flex justify-between mb-2">
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        <div className="h-4 bg-gray-200 rounded w-8"></div>
+                    </div>
+                    <div className="h-2 w-full bg-gray-100 rounded-full"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
@@ -32,7 +52,7 @@ export const MobileProfileCard = ({ userName, userImage }: { userName?: string |
                     </div>
                     <p className="text-[#0f766d] text-sm font-semibold flex items-center gap-1.5">
                         <Check className="w-3.5 h-3.5" />
-                        63% profile complete
+                        {completionPercentage}% profile complete
                     </p>
                 </div>
             </div>
@@ -41,10 +61,10 @@ export const MobileProfileCard = ({ userName, userImage }: { userName?: string |
             <div className="mb-2">
                 <div className="flex justify-between text-sm font-semibold text-[#0f766d] mb-2">
                     <span>Profile Strength</span>
-                    <span>63%</span>
+                    <span>{completionPercentage}%</span>
                 </div>
                 <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#0f766d] rounded-full w-[63%]"></div>
+                    <div className="h-full bg-[#0f766d] rounded-full" style={{ width: `${completionPercentage}%` }}></div>
                 </div>
             </div>
 
