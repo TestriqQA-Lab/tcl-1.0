@@ -33,6 +33,7 @@ export function Navbar({ session }: NavbarProps) {
 
     const handleLogout = async () => {
         await logoutAction();
+        router.push("/");
         router.refresh();
     };
 

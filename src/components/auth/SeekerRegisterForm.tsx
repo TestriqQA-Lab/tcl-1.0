@@ -6,7 +6,7 @@ import { registerSchema, type RegisterFormData } from "@/lib/validation/auth";
 import { registerAction } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/Button";
 import { signIn } from "next-auth/react";
-import { CheckCircle2, Eye, EyeOff, Briefcase, GraduationCap, X, FileText, Trash2 } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Briefcase, X, FileText, Trash2, MapPin } from "lucide-react";
 import Image from "next/image";
 
 interface SeekerRegisterFormProps {
@@ -22,7 +22,7 @@ export const SeekerRegisterForm = ({ onSwitchToLogin, initialName, initialEmail 
         email: "",
         password: "",
         mobileNumber: "",
-        workStatus: "EXPERIENCED",
+        currentLocation: "",
         whatsappUpdates: true,
         resumeUrl: "",
     });
@@ -76,9 +76,6 @@ export const SeekerRegisterForm = ({ onSwitchToLogin, initialName, initialEmail 
         }
     };
 
-    const handleWorkStatusChange = (status: "EXPERIENCED" | "FRESHER") => {
-        setFormData((prev) => ({ ...prev, workStatus: status }));
-    };
 
     const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -118,7 +115,7 @@ export const SeekerRegisterForm = ({ onSwitchToLogin, initialName, initialEmail 
                 formData.password || "",
                 "SEEKER",
                 formData.mobileNumber,
-                formData.workStatus,
+                formData.currentLocation,
                 formData.resumeUrl
             );
 
@@ -269,54 +266,26 @@ export const SeekerRegisterForm = ({ onSwitchToLogin, initialName, initialEmail 
                     {errors.mobileNumber && <p className="text-xs text-red-500">{errors.mobileNumber}</p>}
                 </div>
 
-                {/* Work Status */}
+                {/* Current Location */}
                 <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-gray-900">Work Status</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label className={`relative flex items-center p-4 border rounded-2xl cursor-pointer transition-all ${formData.workStatus === "EXPERIENCED"
-                            ? "border-[#0f766d] border-2 bg-[#F0FDFA]"
-                            : "border-gray-200 bg-white hover:border-gray-300"
-                            }`}>
-                            <input
-                                type="radio"
-                                name="workStatus"
-                                value="EXPERIENCED"
-                                checked={formData.workStatus === "EXPERIENCED"}
-                                onChange={() => handleWorkStatusChange("EXPERIENCED")}
-                                className="peer sr-only"
-                            />
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-4 flex-shrink-0 transition-colors ${formData.workStatus === "EXPERIENCED" ? "bg-[#0f766d] text-white" : "bg-gray-100 text-gray-600"
-                                }`}>
-                                <Briefcase className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <span className="block font-bold text-gray-900 text-base">I&apos;m experienced</span>
-                                <span className="block text-xs text-gray-500 mt-0.5 font-medium leading-tight">I have work experience</span>
-                            </div>
-                        </label>
-
-                        <label className={`relative flex items-center p-4 border rounded-2xl cursor-pointer transition-all ${formData.workStatus === "FRESHER"
-                            ? "border-[#0f766d] border-2 bg-[#F0FDFA]"
-                            : "border-gray-200 bg-white hover:border-gray-300"
-                            }`}>
-                            <input
-                                type="radio"
-                                name="workStatus"
-                                value="FRESHER"
-                                checked={formData.workStatus === "FRESHER"}
-                                onChange={() => handleWorkStatusChange("FRESHER")}
-                                className="peer sr-only"
-                            />
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-4 flex-shrink-0 transition-colors ${formData.workStatus === "FRESHER" ? "bg-[#0f766d] text-white" : "bg-gray-100 text-gray-600"
-                                }`}>
-                                <GraduationCap className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <span className="block font-bold text-gray-900 text-base">I&apos;m a fresher</span>
-                                <span className="block text-xs text-gray-500 mt-0.5 font-medium leading-tight">I am a student/graduated</span>
-                            </div>
-                        </label>
+                    <label className="block text-sm font-semibold text-gray-900">Current Location</label>
+                    <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            name="currentLocation"
+                            value={formData.currentLocation}
+                            onChange={handleChange}
+                            className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-0 transition-all ${isValid("currentLocation") ? "border-[#0f766d]/50 bg-white" : "border-gray-200 focus:border-[#0f766d]"
+                                }`}
+                            placeholder="e.g. Mumbai, Maharashtra"
+                        />
+                        {isValid("currentLocation") && (
+                            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#0f766d] fill-green-50" />
+                        )}
                     </div>
+                    <p className="text-[10px] text-gray-500">Enter your current city or region</p>
+                    {errors.currentLocation && <p className="text-xs text-red-500">{errors.currentLocation}</p>}
                 </div>
 
                 {/* Resume Upload */}

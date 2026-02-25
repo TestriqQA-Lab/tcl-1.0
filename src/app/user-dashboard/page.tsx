@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ProfileSidebar } from "@/components/dashboard/ProfileSidebar";
@@ -13,15 +13,53 @@ import { MobileProfileCard, MobileEmptyState, MobileSafetyCard } from "@/compone
 import Link from "next/link";
 import { Home, Briefcase, Building2, FileText, Bell, Search } from "lucide-react";
 
+interface UserProfile {
+    name: string | null;
+    image: string | null;
+    location: string | null;
+}
+
 export default function UserDashboardPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
+    const [userProfile, setUserProfile] = useState<UserProfile>({ name: null, image: null, location: null });
 
     useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/");
         }
     }, [status, router]);
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            if (!session?.user?.id) return;
+            try {
+                const { getEmploymentAction } = await import("@/actions/onboarding.actions");
+                const result = await getEmploymentAction(session.user.id);
+                if (result.success && result.data) {
+                    const { profile } = result.data;
+                    setUserProfile({
+                        name: profile.fullName || session.user.name || null,
+                        image: session.user.image || null,
+                        location: profile.currentLocation || null,
+                    });
+                } else {
+                    setUserProfile({
+                        name: session.user.name || null,
+                        image: session.user.image || null,
+                        location: null,
+                    });
+                }
+            } catch {
+                setUserProfile({
+                    name: session.user.name || null,
+                    image: session.user.image || null,
+                    location: null,
+                });
+            }
+        };
+        fetchProfile();
+    }, [session?.user?.id]);
 
     if (status === "loading" || status === "unauthenticated") {
         return <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">Loading...</div>;
@@ -34,7 +72,7 @@ export default function UserDashboardPage() {
 
                     {/* Left Sidebar (Desktop: 3 cols) */}
                     <div className="hidden lg:block lg:col-span-3 space-y-6">
-                        <ProfileSidebar />
+                        <ProfileSidebar user={{ name: userProfile.name, image: userProfile.image, location: userProfile.location ?? undefined }} />
                         <SidebarNav />
                         <StatsWidget />
                     </div>
@@ -43,12 +81,12 @@ export default function UserDashboardPage() {
                     <div className="col-span-1 lg:col-span-6 space-y-6">
                         {/* Mobile User Info (Mobile Only) */}
                         <div className="lg:hidden">
-                            <MobileProfileCard />
+                            <MobileProfileCard userName={userProfile.name} userImage={userProfile.image} />
                         </div>
 
                         {/* Upgrade Banner (Desktop Only) */}
                         <div className="hidden lg:block">
-                            <UpgradeBanner />
+                            <UpgradeBanner userName={userProfile.name} />
                         </div>
 
                         {/* Recommended Jobs Header */}

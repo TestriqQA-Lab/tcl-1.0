@@ -70,7 +70,7 @@ export async function registerAction(
     password: string,
     role: string = "SEEKER",
     mobileNumber?: string,
-    workStatus?: "EXPERIENCED" | "FRESHER",
+    currentLocation?: string,
     resumeUrl?: string
 ) {
     try {
@@ -130,7 +130,8 @@ export async function registerAction(
                     if (existingProfiles.length > 0) {
                         await tx.update(seekerProfiles)
                             .set({
-                                workStatus: workStatus || existingProfiles[0].workStatus,
+                                fullName: name, // Allow user to override Google name
+                                currentLocation: currentLocation || existingProfiles[0].currentLocation,
                                 resumeUrl: resumeUrl || existingProfiles[0].resumeUrl,
                             })
                             .where(eq(seekerProfiles.userId, existingUser.id));
@@ -141,7 +142,8 @@ export async function registerAction(
                             experienceLevel: 0,
                             resumeUrl: resumeUrl || "",
                             coverLetter: "",
-                            workStatus: workStatus || "FRESHER",
+                            workStatus: "FRESHER",
+                            currentLocation: currentLocation || null,
                         });
                     }
                 }
@@ -189,7 +191,8 @@ export async function registerAction(
                     experienceLevel: 0,
                     resumeUrl: resumeUrl || "",
                     coverLetter: "",
-                    workStatus: workStatus || "FRESHER", // Mapping to new field in schema
+                    workStatus: "FRESHER", // Step 2 onboarding manages this
+                    currentLocation: currentLocation || null,
                 });
             } else if (validRole === "EMPLOYER") {
                 await tx.insert(employerProfiles).values({

@@ -17,7 +17,7 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
         email: "",
         password: "",
         mobileNumber: "",
-        workStatus: "FRESHER",
+        currentLocation: "",
         whatsappUpdates: true,
     });
     const [errors, setErrors] = useState<Partial<Record<keyof RegisterFormData, string>>>({});
@@ -82,7 +82,7 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
                         email: "",
                         password: "",
                         mobileNumber: "",
-                        workStatus: "FRESHER",
+                        currentLocation: "",
                         whatsappUpdates: true,
                     });
                     alert("Account created successfully! Please sign in.");
