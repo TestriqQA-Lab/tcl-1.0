@@ -1,4 +1,6 @@
 import React from 'react';
+import Link from 'next/link';
+import { LayoutDashboard, FileText, Search, Building2, BookOpen } from 'lucide-react';
 import UserProfileLayout from '@/components/user-profile/UserProfileLayout';
 import Sidebar from '@/components/user-profile/Sidebar';
 
@@ -23,10 +25,33 @@ const ProfileHeaderSection = () => (
     <>
         <ProfileHeader />
 
-        {/* View & Edit Tab Strip - Sticky on Mobile if needed, but here part of header flow */}
-        <div className="flex border-b border-gray-200 mb-4 bg-white/50 backdrop-blur-sm -mx-4 px-4 sm:mx-0 sm:px-0 lg:bg-transparent lg:backdrop-blur-none">
-            <button className="text-[#117a7a] border-b-2 border-[#117a7a] pb-2 text-sm font-bold px-4">View & Edit</button>
-            <button className="text-gray-500 hover:text-gray-700 pb-2 text-sm font-medium px-4">Activity insights</button>
+        {/* View & Edit Tab Strip + Navigation Links */}
+        <div className="flex items-center border-b border-gray-200 mb-4 bg-white/50 backdrop-blur-sm -mx-4 px-4 sm:mx-0 sm:px-0 lg:bg-transparent lg:backdrop-blur-none">
+            {/* Left: Tabs */}
+            <div className="flex">
+                <button className="text-[#117a7a] border-b-2 border-[#117a7a] pb-2 text-sm font-bold px-4">View & Edit</button>
+                <button className="text-gray-500 hover:text-gray-700 pb-2 text-sm font-medium px-4">Activity insights</button>
+            </div>
+
+            {/* Right: Quick Navigation */}
+            <div className="hidden lg:flex items-center gap-1.5 ml-auto">
+                {[
+                    { label: "Dashboard", href: "/user-dashboard", icon: LayoutDashboard },
+                    { label: "Applications", href: "/user-applications", icon: FileText },
+                    { label: "Jobs", href: "/search", icon: Search },
+                    { label: "Companies", href: "/companies", icon: Building2 },
+                    { label: "Blogs", href: "/blogs", icon: BookOpen },
+                ].map((link) => (
+                    <Link
+                        key={link.label}
+                        href={link.href}
+                        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-gray-600 bg-white border border-gray-200 px-3.5 py-2 rounded-lg hover:border-[#0f766d] hover:text-[#0f766d] hover:bg-[#f0fdf9] shadow-sm hover:shadow-md transition-all duration-200"
+                    >
+                        <link.icon className="w-3.5 h-3.5" strokeWidth={2} />
+                        {link.label}
+                    </Link>
+                ))}
+            </div>
         </div>
 
         {/* Visibility Note */}

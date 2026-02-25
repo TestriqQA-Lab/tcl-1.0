@@ -181,12 +181,13 @@ export function Navbar({ session }: NavbarProps) {
                                     >
                                         Login
                                     </button>
-                                    <button
-                                        onClick={() => { openRegister(); setIsOpen(false); }}
+                                    <Link
+                                        href="/register"
+                                        onClick={() => setIsOpen(false)}
                                         className="flex-1 text-center text-sm font-medium text-white bg-gray-800 px-4 py-2.5 rounded-lg"
                                     >
                                         Register
-                                    </button>
+                                    </Link>
                                 </>
                             )}
                         </div>
