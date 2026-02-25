@@ -7,6 +7,7 @@ import Sidebar from '@/components/user-profile/Sidebar';
 import ProfileHeader from '@/components/user-profile/ProfileHeader';
 
 // Placeholder imports for sections - to be created next
+import BasicDetails from '../../components/user-profile/sections/BasicDetails';
 import CareerPreferences from '../../components/user-profile/sections/CareerPreferences';
 import Education from '../../components/user-profile/sections/Education';
 import KeySkills from '../../components/user-profile/sections/KeySkills';
@@ -71,6 +72,7 @@ const ProfileHeaderSection = () => (
 const ProfileMainContent = () => {
     return (
         <>
+            <BasicDetails />
             <CareerPreferences />
             <Education />
             <KeySkills />

@@ -256,9 +256,9 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Center Column - Form (responsive cols) */}
-                <div className="lg:col-span-7 xl:col-span-6 flex flex-col gap-8 lg:block">
-                    {/* Mobile Google Register Card (visible only < lg) */}
-                    <div className="lg:hidden px-4 sm:px-0">
+                <div className="lg:col-span-9 xl:col-span-6 flex flex-col gap-8 lg:block">
+                    {/* Google Register Card (visible below xl) */}
+                    <div className="xl:hidden px-4 sm:px-0">
                         {renderGoogleCard()}
                     </div>
 
@@ -269,8 +269,8 @@ export default function RegisterPage() {
                     />
                 </div>
 
-                {/* Right Column - Google Register + Illustration (desktop only) */}
-                <div className="hidden lg:block lg:col-span-2 xl:col-span-3">
+                {/* Right Column - Google Register + Illustration (xl+ only) */}
+                <div className="hidden xl:block xl:col-span-3">
                     <div className="sticky top-24 space-y-8">
 
                         {/* ====== Google Register Card (TOP) ====== */}

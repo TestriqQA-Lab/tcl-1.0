@@ -10,6 +10,7 @@ import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
 import { DashboardJobCard } from "@/components/dashboard/DashboardJobCard";
 import { SafetyAdvisoryCard, ResourcesCard, DashboardFooter } from "@/components/dashboard/RightSidebar";
 import { MobileProfileCard, MobileEmptyState, MobileSafetyCard } from "@/components/dashboard/MobileComponents";
+import { DashboardBlogSection } from "@/components/dashboard/DashboardBlogSection";
 import Link from "next/link";
 import { Home, Briefcase, Building2, FileText, Bell, Search } from "lucide-react";
 
@@ -164,20 +165,6 @@ export default function UserDashboardPage() {
                                     logoUrl={job.logoUrl}
                                 />
                             ))}
-                            {/* Loading Skeleton Item to match screenshot */}
-                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 opacity-50">
-                                <div className="flex gap-4 mb-4">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg"></div>
-                                    <div className="space-y-2">
-                                        <div className="w-32 h-4 bg-gray-100 rounded"></div>
-                                        <div className="w-24 h-3 bg-gray-100 rounded"></div>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3">
-                                    <div className="w-20 h-6 bg-gray-100 rounded-full"></div>
-                                    <div className="w-20 h-6 bg-gray-100 rounded-full"></div>
-                                </div>
-                            </div>
                         </div>
 
                         {/* Mobile Empty State */}
@@ -189,13 +176,18 @@ export default function UserDashboardPage() {
                         <div className="lg:hidden mt-6">
                             <MobileSafetyCard />
                         </div>
+
+                        {/* Blog Section */}
+                        <DashboardBlogSection />
                     </div>
 
                     {/* Right Sidebar (Desktop: 3 cols) */}
-                    <div className="hidden lg:block lg:col-span-3 space-y-6">
-                        <SafetyAdvisoryCard />
-                        <ResourcesCard />
-                        <DashboardFooter />
+                    <div className="hidden lg:block lg:col-span-3">
+                        <div className="sticky top-24 space-y-6">
+                            <SafetyAdvisoryCard />
+                            <ResourcesCard />
+                            <DashboardFooter />
+                        </div>
                     </div>
 
                 </div>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 
 const sections = [
+    { id: 'basic-details', label: 'Basic details', icon: 'user' },
     { id: 'preferences', label: 'Preference', icon: 'sliders-horizontal' },
     { id: 'education', label: 'Education', icon: 'graduation-cap' },
     { id: 'key-skills', label: 'Key skills', icon: 'lightbulb' },
@@ -20,11 +21,12 @@ const sections = [
 // Map for icons to Lucide components later. For now using text/simple SVG if needed or just labels
 // I will import lucide-react icons in the next refinement step for better visual fidelity.
 import {
-    SlidersHorizontal, GraduationCap, Lightbulb, Languages, Briefcase,
+    User, SlidersHorizontal, GraduationCap, Lightbulb, Languages, Briefcase,
     Folder, FileText, Trophy, ClipboardList, Building2, Medal, FileUser
 } from 'lucide-react';
 
 const iconMap: any = {
+    'user': User,
     'sliders-horizontal': SlidersHorizontal,
     'graduation-cap': GraduationCap,
     'lightbulb': Lightbulb,
@@ -41,7 +43,7 @@ const iconMap: any = {
 
 
 const Sidebar = () => {
-    const [activeSection, setActiveSection] = useState('preferences');
+    const [activeSection, setActiveSection] = useState('basic-details');
 
     const scrollToSection = (id: string) => {
         setActiveSection(id);
