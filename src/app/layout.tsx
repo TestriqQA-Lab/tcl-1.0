@@ -53,8 +53,8 @@ export default async function RootLayout({
           <main className="flex-grow max-w-[1440px] mx-auto px-6 lg:px-10 w-full">
             {children}
           </main>
+          <Footer session={session} />
         </AuthProvider>
-        <Footer session={session} />
       </body>
     </html>
   );
