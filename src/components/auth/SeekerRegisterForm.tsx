@@ -1,26 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { registerSchema, type RegisterFormData } from "@/lib/validation/auth";
 import { registerAction } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/Button";
 import { signIn } from "next-auth/react";
-import { CheckCircle2, Eye, EyeOff, Briefcase, GraduationCap, X, FileText, Trash2 } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Briefcase, X, FileText, Trash2, MapPin } from "lucide-react";
 import Image from "next/image";
 
 interface SeekerRegisterFormProps {
     onSwitchToLogin?: () => void;
+    initialName?: string;
+    initialEmail?: string;
 }
 
-export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps) => {
+export const SeekerRegisterForm = ({ onSwitchToLogin, initialName, initialEmail }: SeekerRegisterFormProps) => {
     const router = useRouter();
     const [formData, setFormData] = useState<RegisterFormData>({
         name: "",
         email: "",
         password: "",
         mobileNumber: "",
-        workStatus: "EXPERIENCED",
+        currentLocation: "",
         whatsappUpdates: true,
         resumeUrl: "",
     });
@@ -41,6 +43,25 @@ export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps)
         }
     };
 
+    // Pre-fill form fields from Google OAuth data and define if isGoogleAuth
+    const isGoogleAuth = !!(initialName || initialEmail);
+
+    useEffect(() => {
+        if (initialName || initialEmail) {
+            setFormData(prev => ({
+                ...prev,
+                ...(initialName ? { name: initialName } : {}),
+                ...(initialEmail ? { email: initialEmail } : {}),
+                password: "", // ensure it's empty
+            }));
+            setTouched(prev => ({
+                ...prev,
+                ...(initialName ? { name: true } : {}),
+                ...(initialEmail ? { email: true } : {}),
+            }));
+        }
+    }, [initialName, initialEmail]);
+
     const isValid = (name: keyof RegisterFormData) => touched[name] && validateField(name, formData[name]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,9 +76,6 @@ export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps)
         }
     };
 
-    const handleWorkStatusChange = (status: "EXPERIENCED" | "FRESHER") => {
-        setFormData((prev) => ({ ...prev, workStatus: status }));
-    };
 
     const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -94,10 +112,10 @@ export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps)
             const result = await registerAction(
                 formData.name,
                 formData.email,
-                formData.password,
+                formData.password || "",
                 "SEEKER",
                 formData.mobileNumber,
-                formData.workStatus,
+                formData.currentLocation,
                 formData.resumeUrl
             );
 
@@ -105,6 +123,15 @@ export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps)
                 setErrors({ email: result.error }); // Generic error
             } else {
                 // Success
+
+                // If it's a Google registration flow, user is already signed in via Google session!
+                // So skip credentials signIn and redirect right away
+                if (isGoogleAuth) {
+                    router.refresh();
+                    router.push("/onboarding/employment");
+                    return;
+                }
+
                 const loginResult = await signIn("credentials", {
                     email: formData.email,
                     password: formData.password,
@@ -127,7 +154,7 @@ export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps)
     };
 
     return (
-        <div className="w-full p-4 md:p-8 rounded-2xl bg-white mt-1">
+        <div className="w-full p-4 md:p-8 rounded-2xl shadow-xl bg-white mt-1">
             {/* Header */}
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-2">
@@ -173,8 +200,9 @@ export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps)
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
+                            readOnly={isGoogleAuth}
                             className={`w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-0 transition-all ${isValid("email") ? "border-[#0f766d]/50 bg-white" : "border-gray-200 focus:border-[#0f766d]"
-                                }`}
+                                } ${isGoogleAuth ? "bg-gray-100 text-gray-500 cursor-not-allowed opacity-90" : ""}`}
                             placeholder="Type your email"
                         />
                         {isValid("email") && (
@@ -186,29 +214,31 @@ export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps)
                     {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
                 </div>
 
-                {/* Password */}
-                <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-gray-900">Password</label>
-                    <div className="relative">
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className={`w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-0 transition-all ${isValid("password") ? "border-[#0f766d]/50 bg-white" : "border-gray-200 focus:border-[#0f766d]"
-                                }`}
-                            placeholder="Type your password"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
+                {/* Password - Hidden if logging in via Google */}
+                {!isGoogleAuth && (
+                    <div className="space-y-1.5">
+                        <label className="block text-sm font-semibold text-gray-900">Password</label>
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                className={`w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-0 transition-all ${isValid("password") ? "border-[#0f766d]/50 bg-white" : "border-gray-200 focus:border-[#0f766d]"
+                                    }`}
+                                placeholder="Type your password"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
+                        {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
                     </div>
-                    {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
-                </div>
+                )}
 
                 {/* Mobile Number */}
                 <div className="space-y-1.5">
@@ -236,54 +266,26 @@ export const SeekerRegisterForm = ({ onSwitchToLogin }: SeekerRegisterFormProps)
                     {errors.mobileNumber && <p className="text-xs text-red-500">{errors.mobileNumber}</p>}
                 </div>
 
-                {/* Work Status */}
+                {/* Current Location */}
                 <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-gray-900">Work Status</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label className={`relative flex items-center p-4 border rounded-2xl cursor-pointer transition-all ${formData.workStatus === "EXPERIENCED"
-                            ? "border-[#0f766d] border-2 bg-[#F0FDFA]"
-                            : "border-gray-200 bg-white hover:border-gray-300"
-                            }`}>
-                            <input
-                                type="radio"
-                                name="workStatus"
-                                value="EXPERIENCED"
-                                checked={formData.workStatus === "EXPERIENCED"}
-                                onChange={() => handleWorkStatusChange("EXPERIENCED")}
-                                className="peer sr-only"
-                            />
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-4 flex-shrink-0 transition-colors ${formData.workStatus === "EXPERIENCED" ? "bg-[#0f766d] text-white" : "bg-gray-100 text-gray-600"
-                                }`}>
-                                <Briefcase className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <span className="block font-bold text-gray-900 text-base">I&apos;m experienced</span>
-                                <span className="block text-xs text-gray-500 mt-0.5 font-medium leading-tight">I have work experience</span>
-                            </div>
-                        </label>
-
-                        <label className={`relative flex items-center p-4 border rounded-2xl cursor-pointer transition-all ${formData.workStatus === "FRESHER"
-                            ? "border-[#0f766d] border-2 bg-[#F0FDFA]"
-                            : "border-gray-200 bg-white hover:border-gray-300"
-                            }`}>
-                            <input
-                                type="radio"
-                                name="workStatus"
-                                value="FRESHER"
-                                checked={formData.workStatus === "FRESHER"}
-                                onChange={() => handleWorkStatusChange("FRESHER")}
-                                className="peer sr-only"
-                            />
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-4 flex-shrink-0 transition-colors ${formData.workStatus === "FRESHER" ? "bg-[#0f766d] text-white" : "bg-gray-100 text-gray-600"
-                                }`}>
-                                <GraduationCap className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <span className="block font-bold text-gray-900 text-base">I&apos;m a fresher</span>
-                                <span className="block text-xs text-gray-500 mt-0.5 font-medium leading-tight">I am a student/graduated</span>
-                            </div>
-                        </label>
+                    <label className="block text-sm font-semibold text-gray-900">Current Location</label>
+                    <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            name="currentLocation"
+                            value={formData.currentLocation}
+                            onChange={handleChange}
+                            className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-0 transition-all ${isValid("currentLocation") ? "border-[#0f766d]/50 bg-white" : "border-gray-200 focus:border-[#0f766d]"
+                                }`}
+                            placeholder="e.g. Mumbai, Maharashtra"
+                        />
+                        {isValid("currentLocation") && (
+                            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#0f766d] fill-green-50" />
+                        )}
                     </div>
+                    <p className="text-[10px] text-gray-500">Enter your current city or region</p>
+                    {errors.currentLocation && <p className="text-xs text-red-500">{errors.currentLocation}</p>}
                 </div>
 
                 {/* Resume Upload */}

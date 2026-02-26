@@ -4,66 +4,92 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { Check, Briefcase, GraduationCap, Settings } from "lucide-react";
 
-export const OnboardingStepper = () => {
+interface OnboardingStepperProps {
+    activeStepOverride?: string; // e.g. "account" to highlight Account Creation as active
+}
+
+export const OnboardingStepper = ({ activeStepOverride }: OnboardingStepperProps = {}) => {
     const pathname = usePathname();
 
     // Helper to determine step status
-    const getStepStatus = (stepPath: string, isFirstStep: boolean = false) => {
-        if (isFirstStep) return "completed"; // Basic details always done
+    // Helper to determine step status
+    const getStepStatus = (stepPath: string) => {
+        const stepOrder = ["employment", "education", "preferences"];
+        const currentStepIndex = stepOrder.findIndex(step => pathname.includes(step));
+        const targetStepIndex = stepOrder.indexOf(stepPath);
 
-        if (pathname.includes(stepPath)) return "active";
+        if (currentStepIndex === -1) return "pending";
 
-        // Logic for completion based on known flow order: employment -> education
-        if (pathname.includes("education") && stepPath === "employment") return "completed";
-        if (pathname.includes("preferences") && stepPath === "education") return "completed";
-        if (pathname.includes("preferences") && stepPath === "preferences") return "active";
+        if (targetStepIndex < currentStepIndex) return "completed";
+        if (targetStepIndex === currentStepIndex) return "active";
 
         return "pending";
     };
 
+    // If override provided, use it to determine statuses
+    const getOverrideStatus = (stepId: string) => {
+        if (!activeStepOverride) return null;
+        const stepOrder = ["account", "employment", "education", "preferences"];
+        const activeIndex = stepOrder.indexOf(activeStepOverride);
+        const targetIndex = stepOrder.indexOf(stepId);
+        if (targetIndex < activeIndex) return "completed";
+        if (targetIndex === activeIndex) return "active";
+        return "pending";
+    };
+
+    const resolveStatus = (stepId: string, fallbackStatus: string) => {
+        return getOverrideStatus(stepId) ?? fallbackStatus;
+    };
+
+    const resolveSubLabel = (status: string) => {
+        if (status === "completed") return "COMPLETED";
+        if (status === "active") return "ACTIVE STEP";
+        return "";
+    };
+
     const steps = [
         {
-            id: "basic",
-            label: "Basic Details",
+            id: "account",
+            label: "Account Creation",
             icon: Check,
-            status: "completed", // Always completed coming from registration
-            subLabel: "COMPLETED"
+            status: resolveStatus("account", "completed"),
+            subLabel: resolveSubLabel(resolveStatus("account", "completed"))
         },
         {
             id: "employment",
             label: "Employment",
             icon: Briefcase,
-            status: getStepStatus("employment"),
-            subLabel: getStepStatus("employment") === "active" ? "ACTIVE STEP" : (getStepStatus("employment") === "completed" ? "COMPLETED" : "")
+            status: resolveStatus("employment", getStepStatus("employment")),
+            subLabel: resolveSubLabel(resolveStatus("employment", getStepStatus("employment")))
         },
         {
             id: "education",
             label: "Education",
             icon: GraduationCap,
-            status: getStepStatus("education"),
-            subLabel: getStepStatus("education") === "active" ? "ACTIVE STEP" : (getStepStatus("education") === "completed" ? "COMPLETED" : "")
+            status: resolveStatus("education", getStepStatus("education")),
+            subLabel: resolveSubLabel(resolveStatus("education", getStepStatus("education")))
         },
         {
             id: "preferences",
             label: "Preferences",
             icon: Settings,
-            status: getStepStatus("preferences"),
-            subLabel: getStepStatus("preferences") === "active" ? "ACTIVE STEP" : ""
+            status: resolveStatus("preferences", getStepStatus("preferences")),
+            subLabel: resolveSubLabel(resolveStatus("preferences", getStepStatus("preferences")))
         }
     ];
 
     return (
-        <div className="space-y-8 sticky top-24">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider pl-4">Onboarding Progress</h3>
+        <div className="space-y-8 sticky top-24 px-4">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Onboarding Progress</h3>
 
             <div className="relative space-y-5">
                 {/* Connecting Line */}
-                <div className="absolute left-[35px] top-6 bottom-10 w-0.5 bg-gray-200 -z-10"></div>
+                <div className="absolute left-[21px] top-6 bottom-10 w-0.5 bg-gray-200 -z-10"></div>
 
                 {steps.map((step, index) => (
                     <div
                         key={step.id}
-                        className={`relative flex items-center gap-4 py-3 px-3 rounded-full transition-all duration-300 ${step.status === 'active' ? 'bg-[#E8F3F2] shadow-sm' : ''}`}
+                        className={`relative flex items-center gap-4 py-3 px-3 -ml-3 rounded-full transition-all duration-300 ${step.status === 'active' ? 'bg-[#E8F3F2] shadow-sm' : ''}`}
                     >
                         {/* Circle Indicator */}
                         <div className={`

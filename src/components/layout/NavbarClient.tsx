@@ -9,6 +9,7 @@ import { EmployerAuthModal } from "@/components/auth/EmployerAuthModal";
 import { Session } from "next-auth";
 import { logoutAction } from "@/actions/auth.actions";
 import { useRouter } from "next/navigation";
+import { LoggedInNavbar } from "./LoggedInNavbar";
 
 interface NavbarProps {
     session: Session | null;
@@ -32,16 +33,21 @@ export function Navbar({ session }: NavbarProps) {
 
     const handleLogout = async () => {
         await logoutAction();
+        router.push("/");
         router.refresh();
     };
 
     const user = session?.user;
     const userInitial = user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U";
 
+    if (session) {
+        return <LoggedInNavbar session={session} onLogout={handleLogout} />;
+    }
+
     return (
         <>
             <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
-                <div className="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
+                <div className="max-w-[1440px] mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
 
                     {/* Left: Logo - Refined & Established */}
                     <Link href="/" className="flex items-center gap-3 shrink-0 group">
@@ -101,44 +107,18 @@ export function Navbar({ session }: NavbarProps) {
 
                     {/* Right: Auth + Employer CTA */}
                     <div className="hidden xl:flex items-center gap-3">
-                        {user ? (
-                            <div className="flex items-center gap-3">
-                                {/* Profile Icon */}
-                                <div className="size-9 rounded-full bg-[#0f766d]/10 text-[#0f766d] flex items-center justify-center font-bold border border-[#0f766d]/20 overflow-hidden">
-                                    {user.image ? (
-                                        <img src={user.image} alt={user.name || "User"} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <span>{userInitial}</span>
-                                    )}
-                                </div>
-                                <div className="flex flex-col mr-2">
-                                    <span className="text-sm font-semibold text-gray-900 leading-tight">{user.name || "User"}</span>
-                                    <span className="text-sm text-gray-500 leading-tight">{user.email}</span>
-                                </div>
-                                {/* Logout Button */}
-                                <button
-                                    onClick={handleLogout}
-                                    className="text-sm font-medium text-red-600 px-4 py-2 rounded-lg border border-red-100 hover:bg-red-50 hover:border-red-200 transition-colors"
-                                >
-                                    Logout
-                                </button>
-                            </div>
-                        ) : (
-                            <>
-                                <button
-                                    onClick={openLogin}
-                                    className="text-sm font-medium text-gray-700 px-4 py-2 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-                                >
-                                    Login
-                                </button>
-                                <Link
-                                    href="/register"
-                                    className="text-sm font-medium text-white bg-gray-800 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-                                >
-                                    Register
-                                </Link>
-                            </>
-                        )}
+                        <button
+                            onClick={openLogin}
+                            className="text-sm font-medium text-gray-700 px-4 py-2 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                        >
+                            Login
+                        </button>
+                        <Link
+                            href="/register"
+                            className="text-sm font-medium text-white bg-gray-800 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                        >
+                            Register
+                        </Link>
 
                         <div className="h-5 w-px bg-gray-200"></div>
 
@@ -201,12 +181,13 @@ export function Navbar({ session }: NavbarProps) {
                                     >
                                         Login
                                     </button>
-                                    <button
-                                        onClick={() => { openRegister(); setIsOpen(false); }}
+                                    <Link
+                                        href="/register"
+                                        onClick={() => setIsOpen(false)}
                                         className="flex-1 text-center text-sm font-medium text-white bg-gray-800 px-4 py-2.5 rounded-lg"
                                     >
                                         Register
-                                    </button>
+                                    </Link>
                                 </>
                             )}
                         </div>
