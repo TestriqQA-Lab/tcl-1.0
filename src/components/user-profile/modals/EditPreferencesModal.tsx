@@ -90,9 +90,9 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
-            <div className={`bg-white rounded-2xl w-full max-w-[520px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+            <div className={`bg-white rounded-2xl w-full max-w-[520px] max-h-[90vh] flex flex-col shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
-                <div className="pt-8 px-8 pb-4 relative">
+                <div className="pt-8 px-8 pb-4 relative shrink-0">
                     <button
                         onClick={onClose}
                         className="absolute right-6 top-6 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
@@ -105,7 +105,7 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({
                     </p>
                 </div>
 
-                <div className="px-8 pb-8 space-y-7">
+                <div className="px-8 pb-6 space-y-7 overflow-y-auto">
                     {/* Looking For */}
                     <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
@@ -193,21 +193,21 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Footer buttons */}
-                    <div className="flex justify-between items-center pt-2">
-                        <button
-                            onClick={onClose}
-                            className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
-                        >
-                            I'll add this later
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            className="bg-[#117a7a] hover:bg-[#0e6666] text-white text-sm font-bold py-3 px-8 rounded-lg transition-all shadow-lg shadow-emerald-900/10 hover:shadow-emerald-900/20 active:translate-y-0.5"
-                        >
-                            Save preferences
-                        </button>
-                    </div>
+                </div>
+                {/* Footer buttons */}
+                <div className="flex justify-between items-center pt-4 pb-6 px-8 border-t border-gray-100 shrink-0">
+                    <button
+                        onClick={onClose}
+                        className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                        I'll add this later
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        className="bg-[#117a7a] hover:bg-[#0e6666] text-white text-sm font-bold py-3 px-8 rounded-lg transition-all shadow-lg shadow-emerald-900/10 hover:shadow-emerald-900/20 active:translate-y-0.5"
+                    >
+                        Save preferences
+                    </button>
                 </div>
             </div>
         </div>
