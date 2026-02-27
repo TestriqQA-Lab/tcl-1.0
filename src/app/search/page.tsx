@@ -1,15 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SearchJobCard } from "@/components/search/SearchJobCard";
-import { SEARCH_JOBS, JOB_TYPE_FILTERS, DATE_POSTED_FILTERS } from "@/data/search-mock-data";
+import { JOB_TYPE_FILTERS, DATE_POSTED_FILTERS } from "@/data/search-mock-data";
+import { getJobs } from "@/actions/job.actions";
 
 export default function SearchPage() {
     const [searchKeyword, setSearchKeyword] = useState("Product Designer");
     const [searchLocation, setSearchLocation] = useState("Bengaluru");
-    const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>(["Full-time"]);
+    const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>(["Onsite"]);
     const [selectedDateFilter, setSelectedDateFilter] = useState("Last 7 days");
     const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+    const [jobs, setJobs] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchJobs = async () => {
+        setLoading(true);
+        try {
+            const data = await getJobs({
+                keyword: searchKeyword,
+                location: searchLocation,
+                jobTypes: selectedJobTypes
+            });
+            setJobs(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchJobs();
+    }, []); // initial load
 
     const toggleJobType = (type: string) => {
         setSelectedJobTypes((prev) =>
@@ -43,7 +67,10 @@ export default function SearchPage() {
                                 onChange={(e) => setSearchLocation(e.target.value)}
                             />
                         </div>
-                        <button className="w-full md:w-auto rounded-xl bg-[#0f766d] px-8 py-3 font-bold text-white shadow-lg shadow-[#0f766d]/20 hover:bg-[#0f766d]/90 active:scale-[0.98] transition-all">
+                        <button
+                            onClick={fetchJobs}
+                            className="w-full md:w-auto rounded-xl bg-[#0f766d] px-8 py-3 font-bold text-white shadow-lg shadow-[#0f766d]/20 hover:bg-[#0f766d]/90 active:scale-[0.98] transition-all"
+                        >
                             Search
                         </button>
                     </div>
@@ -55,7 +82,7 @@ export default function SearchPage() {
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-md md:text-lg font-bold text-slate-900">
-                            238 jobs found for '{searchKeyword}' in {searchLocation}
+                            {jobs.length} jobs found for '{searchKeyword}' in {searchLocation}
                         </p>
                     </div>
                     <div className="hidden md:flex items-center gap-3 text-sm">
@@ -152,16 +179,30 @@ export default function SearchPage() {
 
                     {/* Job Listings */}
                     <main className="flex-1 space-y-4">
-                        {SEARCH_JOBS.map((job) => (
-                            <SearchJobCard key={job.id} job={job} />
-                        ))}
+                        {loading ? (
+                            <div className="flex justify-center items-center h-64">
+                                <span className="material-symbols-outlined text-4xl animate-spin text-[#0f766d]">refresh</span>
+                            </div>
+                        ) : jobs.length > 0 ? (
+                            jobs.map((job) => (
+                                <SearchJobCard key={job.id} job={job} />
+                            ))
+                        ) : (
+                            <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+                                <span className="material-symbols-outlined text-6xl text-slate-300 mb-4 block">search_off</span>
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">No jobs found</h3>
+                                <p className="text-slate-500">We couldn't find any jobs matching your criteria. Try adjusting your filters.</p>
+                            </div>
+                        )}
 
                         {/* Load More Button */}
-                        <div className="pt-6 text-center">
-                            <button className="rounded-full border-2 border-slate-200 bg-white px-8 py-3 text-sm font-bold text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-                                Load more jobs
-                            </button>
-                        </div>
+                        {jobs.length > 0 && (
+                            <div className="pt-6 text-center">
+                                <button className="rounded-full border-2 border-slate-200 bg-white px-8 py-3 text-sm font-bold text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors">
+                                    Load more jobs
+                                </button>
+                            </div>
+                        )}
                     </main>
                 </div>
             </div>
@@ -219,7 +260,10 @@ export default function SearchPage() {
 
                         <button
                             className="w-full rounded-xl bg-[#0f766d] py-4 font-bold text-white"
-                            onClick={() => setShowMobileFilters(false)}
+                            onClick={() => {
+                                setShowMobileFilters(false);
+                                fetchJobs();
+                            }}
                         >
                             Apply Filters
                         </button>
