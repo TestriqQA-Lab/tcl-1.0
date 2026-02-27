@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logoutAction } from "@/actions/auth.actions";
@@ -43,6 +44,8 @@ const moreLinks = [
 export const MobileBottomNav = () => {
     const pathname = usePathname();
     const router = useRouter();
+    const { data: session } = useSession();
+    const user = session?.user;
     const [isMoreOpen, setIsMoreOpen] = useState(false);
 
     // Lock body scroll when drawer is open
@@ -106,7 +109,23 @@ export const MobileBottomNav = () => {
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <h3 className="text-base font-bold text-[#0e1b1a]">More</h3>
+                    <Link
+                        href="/user-profile"
+                        onClick={() => setIsMoreOpen(false)}
+                        className="flex items-center gap-3 transition-opacity hover:opacity-80"
+                    >
+                        {user?.image ? (
+                            <img src={user.image} alt={user.name || "User"} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
+                        ) : (
+                            <div className="w-10 h-10 rounded-full bg-[#0f766d] flex items-center justify-center text-white font-bold text-lg">
+                                {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                            </div>
+                        )}
+                        <div className="flex flex-col">
+                            <h3 className="text-base font-bold text-[#0e1b1a] line-clamp-1">{user?.name || "User"}</h3>
+                            <span className="text-xs text-[#0f766d] font-medium">View profile</span>
+                        </div>
+                    </Link>
                     <button
                         onClick={() => setIsMoreOpen(false)}
                         className="p-1.5 -m-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all"
