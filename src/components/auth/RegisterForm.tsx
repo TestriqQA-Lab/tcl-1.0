@@ -16,6 +16,9 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
         name: "",
         email: "",
         password: "",
+        mobileNumber: "",
+        currentLocation: "",
+        whatsappUpdates: true,
     });
     const [errors, setErrors] = useState<Partial<Record<keyof RegisterFormData, string>>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,7 +61,7 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
         setErrors({});
 
         try {
-            const result = await registerAction(formData.name, formData.email, formData.password, role);
+            const result = await registerAction(formData.name, formData.email, formData.password || "", role);
 
             if (result.error) {
                 // If specific field error, set it. Otherwise general error.
@@ -74,7 +77,14 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
                     onSwitchToLogin();
                 } else {
                     // Fallback if no switch handler
-                    setFormData({ name: "", email: "", password: "" });
+                    setFormData({
+                        name: "",
+                        email: "",
+                        password: "",
+                        mobileNumber: "",
+                        currentLocation: "",
+                        whatsappUpdates: true,
+                    });
                     alert("Account created successfully! Please sign in.");
                 }
             }
@@ -171,7 +181,7 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
                     />
                     <label
                         htmlFor="register-password"
-                        className={`absolute left-12 transition-all duration-200 pointer-events-none ${isFloating("password", formData.password)
+                        className={`absolute left-12 transition-all duration-200 pointer-events-none ${isFloating("password", formData.password || "")
                             ? "top-1.5 text-xs text-[#0f766d] font-medium"
                             : "top-1/2 -translate-y-1/2 text-sm text-gray-500"
                             }`}

@@ -3,8 +3,45 @@ import { TrustedCompanies } from "@/components/home/TrustedCompanies";
 import { CategorySection } from "@/components/home/CategorySection";
 import { JobOpeningsSection } from "@/components/home/JobOpeningsSection";
 import { RecruiterCTA } from "@/components/home/RecruiterCTA";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth();
+
+  // If user is already logged in, redirect them to their respective dashboard
+  if (session?.user) {
+    if (session.user.role === "EMPLOYER") {
+      redirect("/employer-dashboard");
+    }
+
+    // For SEEKERs: check if their profile is incomplete (new Google user who hasn't filled the form)
+    if (session.user.role === "SEEKER") {
+      const { db } = await import("@/lib/db/db");
+      const { users: usersTable } = await import("@/lib/db/schema");
+      const { eq } = await import("drizzle-orm");
+
+      // Fetch the user row to check phoneNumber and provider
+      const dbUser = await db
+        .select({ phoneNumber: usersTable.phoneNumber, provider: usersTable.provider })
+        .from(usersTable)
+        .where(eq(usersTable.id, session.user.id))
+        .limit(1);
+
+      if (dbUser.length > 0) {
+        const { phoneNumber, provider } = dbUser[0];
+
+        // Only intercept Google users who haven't completed the registration form yet
+        // (phoneNumber is the field set during the registration form for Google users)
+        if (provider === "google" && !phoneNumber) {
+          redirect("/register?google=success");
+        }
+      }
+
+      redirect("/user-dashboard");
+    }
+  }
+
   return (
     <>
       <HeroSection />

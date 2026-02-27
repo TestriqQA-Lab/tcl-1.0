@@ -50,6 +50,12 @@ export async function loginAction(email: string, password: string) {
 export async function logoutAction() {
     try {
         await signOut({ redirect: false });
+
+        // Clear the oauth_role cookie set during Google sign-in flow
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        cookieStore.set("oauth_role", "", { maxAge: 0, path: "/" });
+
         return { success: true };
     } catch (error) {
         console.error("Logout error:", error);
@@ -64,12 +70,24 @@ export async function logoutAction() {
  * @param password - User password
  * @returns Success or error object
  */
-export async function registerAction(name: string, email: string, password: string, role: string = "SEEKER") {
+export async function registerAction(
+    name: string,
+    email: string,
+    password: string,
+    role: string = "SEEKER",
+    mobileNumber?: string,
+    currentLocation?: string,
+    resumeUrl?: string
+) {
     try {
         // Validate inputs
-        if (!name || !email || !password) {
-            return { error: "All fields are required" };
+        if (!name || !email) {
+            return { error: "Name and email are required" };
         }
+
+        // Password is required for normal registration, but optional for Google auth
+        // We will check whether the user exists and is a Google user later
+
 
         // Lazy load bcrypt and db dependencies
         const { hash } = await import("bcryptjs");
@@ -78,14 +96,73 @@ export async function registerAction(name: string, email: string, password: stri
         const { eq } = await import("drizzle-orm");
 
         // Check if user already exists
-        const existingUser = await db
+        const existingUsers = await db
             .select()
             .from(users)
             .where(eq(users.email, email))
             .limit(1);
 
-        if (existingUser.length > 0) {
+        const existingUser = existingUsers.length > 0 ? existingUsers[0] : null;
+
+        // If user exists and provider is credentials, they cannot register again
+        if (existingUser && existingUser.provider === "credentials") {
             return { error: "User already exists with this email" };
+        }
+
+        // If user exists and provider is google, this is a Google registration flow
+        // We just need to update their profile with the additional details
+        if (existingUser && existingUser.provider === "google") {
+
+            // Ensure role is valid
+            const validRole = ["SEEKER", "EMPLOYER"].includes(role) ? role : existingUser.userRole;
+
+            await db.transaction(async (tx) => {
+                // Update users table with phone number and ensure role is correct
+                await tx.update(users)
+                    .set({
+                        phoneNumber: mobileNumber || existingUser.phoneNumber,
+                        userRole: validRole as "SEEKER" | "EMPLOYER",
+                    })
+                    .where(eq(users.id, existingUser.id));
+
+                // Update or create seeker profile
+                if (validRole === "SEEKER") {
+                    const existingProfiles = await tx
+                        .select()
+                        .from(seekerProfiles)
+                        .where(eq(seekerProfiles.userId, existingUser.id))
+                        .limit(1);
+
+                    if (existingProfiles.length > 0) {
+                        await tx.update(seekerProfiles)
+                            .set({
+                                fullName: name, // Allow user to override Google name
+                                currentLocation: currentLocation || existingProfiles[0].currentLocation,
+                                resumeUrl: resumeUrl || existingProfiles[0].resumeUrl,
+                            })
+                            .where(eq(seekerProfiles.userId, existingUser.id));
+                    } else {
+                        await tx.insert(seekerProfiles).values({
+                            userId: existingUser.id,
+                            fullName: name,
+                            experienceLevel: 0,
+                            resumeUrl: resumeUrl || "",
+                            coverLetter: "",
+                            workStatus: "FRESHER",
+                            currentLocation: currentLocation || null,
+                        });
+                    }
+                }
+                // (Optional: handle EMPLOYER profile updates here if needed)
+            });
+
+            return { success: true };
+        }
+
+        // --- Standard Registration Flow (New User) ---
+
+        if (!password) {
+            return { error: "Password is required for email registration" };
         }
 
         // Hash password
@@ -107,7 +184,7 @@ export async function registerAction(name: string, email: string, password: stri
                 password: hashedPassword,
                 username,
                 userRole: validRole as "SEEKER" | "EMPLOYER",
-                phoneNumber: "0000000000", // Placeholder
+                phoneNumber: mobileNumber || null,
                 isVerified: false,
                 accountStatus: "ACTIVE",
             }).returning();
@@ -118,8 +195,10 @@ export async function registerAction(name: string, email: string, password: stri
                     userId: newUser.id,
                     fullName: name, // Uses full name from registration
                     experienceLevel: 0,
-                    resumeUrl: "",
+                    resumeUrl: resumeUrl || "",
                     coverLetter: "",
+                    workStatus: "FRESHER", // Step 2 onboarding manages this
+                    currentLocation: currentLocation || null,
                 });
             } else if (validRole === "EMPLOYER") {
                 await tx.insert(employerProfiles).values({
