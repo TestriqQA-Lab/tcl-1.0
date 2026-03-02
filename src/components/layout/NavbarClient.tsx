@@ -8,8 +8,9 @@ import { RegisterForm } from "@/components/auth/RegisterForm";
 import { EmployerAuthModal } from "@/components/auth/EmployerAuthModal";
 import { Session } from "next-auth";
 import { logoutAction } from "@/actions/auth.actions";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { LoggedInNavbar } from "./LoggedInNavbar";
+import { EmployerNavbar } from "./EmployerNavbar";
 
 interface NavbarProps {
     session: Session | null;
@@ -17,6 +18,7 @@ interface NavbarProps {
 
 export function Navbar({ session }: NavbarProps) {
     const router = useRouter();
+    const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 
@@ -39,6 +41,10 @@ export function Navbar({ session }: NavbarProps) {
 
     const user = session?.user;
     const userInitial = user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U";
+
+    if (pathname.startsWith("/employers")) {
+        return <EmployerNavbar />;
+    }
 
     if (session) {
         return <LoggedInNavbar session={session} onLogout={handleLogout} />;

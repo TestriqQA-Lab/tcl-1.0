@@ -106,7 +106,7 @@ export const LoggedInNavbar = ({ session, onLogout }: LoggedInNavbarProps) => {
                                         </div>
                                         <div className="p-2 space-y-1">
                                             <Link
-                                                href="/user-dashboard"
+                                                href="/seeker/dashboard"
                                                 onClick={() => setIsProfileMenuOpen(false)}
                                                 className="w-full text-left px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#0f766d] hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-2"
                                             >

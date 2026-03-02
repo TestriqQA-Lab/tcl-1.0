@@ -37,7 +37,7 @@ export const UpgradeBanner = ({ userName }: { userName?: string | null }) => {
                         <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                     <Link
-                        href="/user-profile"
+                        href="/seeker/profile"
                         className="inline-flex items-center gap-2 text-gray-400 hover:text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
                     >
                         Complete Profile

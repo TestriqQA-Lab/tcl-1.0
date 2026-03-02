@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { ProfileSidebar } from "@/components/dashboard/ProfileSidebar";
 import { SidebarNav } from "@/components/dashboard/SidebarNav";
 import { StatsWidget } from "@/components/dashboard/StatsWidget";
@@ -11,8 +9,6 @@ import { DashboardJobCard } from "@/components/dashboard/DashboardJobCard";
 import { SafetyAdvisoryCard, ResourcesCard, DashboardFooter } from "@/components/dashboard/RightSidebar";
 import { MobileProfileCard, MobileEmptyState, MobileSafetyCard } from "@/components/dashboard/MobileComponents";
 import { DashboardBlogSection } from "@/components/dashboard/DashboardBlogSection";
-import Link from "next/link";
-import { Home, Briefcase, Building2, FileText, Bell, Search } from "lucide-react";
 
 interface UserProfile {
     name: string | null;
@@ -20,52 +16,50 @@ interface UserProfile {
     location: string | null;
 }
 
-export default function UserDashboardPage() {
-    const { data: session, status } = useSession();
-    const router = useRouter();
-    const [userProfile, setUserProfile] = useState<UserProfile>({ name: null, image: null, location: null });
+interface UserDashboardClientProps {
+    userId: string;
+    userName: string | null;
+    userImage: string | null;
+}
+
+export function UserDashboardClient({ userId, userName, userImage }: UserDashboardClientProps) {
+    const [userProfile, setUserProfile] = useState<UserProfile>({ name: userName, image: userImage, location: null });
     const [completionPercentage, setCompletionPercentage] = useState(0);
     const [nextTip, setNextTip] = useState("Loading profile...");
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (status === "unauthenticated") {
-            router.push("/");
-        }
-    }, [status, router]);
-
-    useEffect(() => {
         const fetchProfile = async () => {
-            if (!session?.user?.id) return;
+            if (!userId) return;
             try {
                 const { getEmploymentAction } = await import("@/actions/onboarding.actions");
-                const result = await getEmploymentAction(session.user.id);
+                const result = await getEmploymentAction(userId);
                 if (result.success && result.data) {
                     const { profile } = result.data;
                     setUserProfile({
-                        name: profile.fullName || session.user.name || null,
-                        image: session.user.image || null,
+                        name: profile.fullName || userName || null,
+                        image: userImage || null,
                         location: profile.currentLocation || null,
                     });
                 } else {
                     setUserProfile({
-                        name: session.user.name || null,
-                        image: session.user.image || null,
+                        name: userName || null,
+                        image: userImage || null,
                         location: null,
                     });
                 }
 
                 // Fetch real completion percentage
                 const { getProfileCompletionAction } = await import("@/actions/onboarding.actions");
-                const completion = await getProfileCompletionAction(session.user.id);
+                const completion = await getProfileCompletionAction(userId);
                 if (completion.success && completion.data) {
                     setCompletionPercentage(completion.data.percentage);
                     setNextTip(completion.data.nextTip);
                 }
             } catch {
                 setUserProfile({
-                    name: session.user.name || null,
-                    image: session.user.image || null,
+                    name: userName || null,
+                    image: userImage || null,
                     location: null,
                 });
             } finally {
@@ -73,11 +67,7 @@ export default function UserDashboardPage() {
             }
         };
         fetchProfile();
-    }, [session?.user?.id]);
-
-    if (status === "loading" || status === "unauthenticated") {
-        return <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">Loading...</div>;
-    }
+    }, [userId]);
 
     return (
         <div className="min-h-screen bg-[#f8fafc] pb-24 lg:pb-10">
@@ -119,7 +109,7 @@ export default function UserDashboardPage() {
                             <button className="text-sm font-semibold text-[#0f766d] hover:underline">View all</button>
                         </div>
 
-                        {/* Job List (Desktop) vs Empty State (Mobile) Logic */}
+                        {/* Job List (Desktop) */}
                         <div className="hidden lg:flex flex-col gap-4">
                             {[
                                 {
@@ -194,13 +184,4 @@ export default function UserDashboardPage() {
             </div>
         </div>
     );
-}
-
-function RocketIcon() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-            <path fillRule="evenodd" d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 0 1 .75.75c0 5.056-2.383 9.555-6.084 12.436h.004l-2.222 2.222a.75.75 0 0 1-1.06 0l-2.546-2.546a.75.75 0 0 1 0-1.06l2.222-2.222v-.004ZM8 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" clipRule="evenodd" />
-            <path d="M2.25 10a8.5 8.5 0 0 1 10.607-7.92 9.002 9.002 0 0 0-4.153 2.853l-1.926 1.927A10.457 10.457 0 0 0 4 14.502c-.85-.145-1.72-.257-2.617-.32a.75.75 0 0 1-.689-.868 37.89 37.89 0 0 1 .59-2.315 2.502 2.502 0 0 1 .966-1ZM14 20.25a8.5 8.5 0 0 1-7.92-10.607 9.002 9.002 0 0 0 2.853 4.153l1.927 1.926a10.457 10.457 0 0 0 7.632 2.768c-.145.85-.257 1.72-.32 2.617a.75.75 0 0 1-.868.689 37.89 37.89 0 0 1-2.315-.59 2.502 2.502 0 0 1-1-.966Z" />
-        </svg>
-    )
 }

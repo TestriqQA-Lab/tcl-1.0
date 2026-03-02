@@ -24,15 +24,15 @@ import {
 
 // ── Primary bottom bar items (4 + More) ──────────────────────────────────────
 const primaryNav = [
-    { label: "Home", href: "/user-dashboard", icon: Home },
+    { label: "Home", href: "/seeker/dashboard", icon: Home },
     { label: "Jobs", href: "/search", icon: Briefcase },
     { label: "Inbox", href: "/inbox", icon: MessageSquare },
-    { label: "Profile", href: "/user-profile", icon: User },
+    { label: "Profile", href: "/seeker/profile", icon: User },
 ];
 
 // ── Links inside the "More" drawer ───────────────────────────────────────────
 const moreLinks = [
-    { label: "Dashboard", href: "/user-dashboard", icon: LayoutDashboard },
+    { label: "Dashboard", href: "/seeker/dashboard", icon: LayoutDashboard },
     { label: "My Applications", href: "/user-applications", icon: FileText },
     { label: "Browse Jobs", href: "/search", icon: Search },
     { label: "Companies", href: "/companies", icon: Building2 },
@@ -110,7 +110,7 @@ export const MobileBottomNav = () => {
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                     <Link
-                        href="/user-profile"
+                        href="/seeker/profile"
                         onClick={() => setIsMoreOpen(false)}
                         className="flex items-center gap-3 transition-opacity hover:opacity-80"
                     >
