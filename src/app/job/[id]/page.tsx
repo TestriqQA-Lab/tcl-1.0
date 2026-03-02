@@ -1,10 +1,20 @@
-"use client";
-
 import Link from "next/link";
-import { JOB_DETAIL, SIMILAR_JOBS, SIMILAR_JOBS_FULL } from "@/data/job-detail-mock-data";
+import { getJobById, getSimilarJobs } from "@/actions/job.actions";
+import { notFound } from "next/navigation";
 
-export default function JobDetailPage() {
-    const job = JOB_DETAIL;
+export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const job = await getJobById(id);
+    const similarJobs = await getSimilarJobs(id, 4);
+
+    if (!job) {
+        notFound();
+    }
+
+    const breadcrumbs = [
+        { label: "Jobs", href: "/search" },
+        { label: "Details", href: "" },
+    ];
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -14,7 +24,7 @@ export default function JobDetailPage() {
                     <Link href="/" className="text-gray-400 hover:text-[#0f766d] transition-colors">
                         <span className="material-symbols-outlined text-lg">home</span>
                     </Link>
-                    {job.breadcrumbs.map((crumb, index) => (
+                    {breadcrumbs.map((crumb, index) => (
                         <span key={crumb.label} className="flex items-center gap-2">
                             <span className="material-symbols-outlined text-gray-400 text-lg">chevron_right</span>
                             {crumb.href ? (
@@ -22,7 +32,7 @@ export default function JobDetailPage() {
                                     {crumb.label}
                                 </Link>
                             ) : (
-                                <span className="text-gray-900 font-semibold">{crumb.label}</span>
+                                <span className="text-gray-900 font-semibold">{titleCase(job.title)}</span>
                             )}
                         </span>
                     ))}
@@ -75,53 +85,38 @@ export default function JobDetailPage() {
                         {/* Overview */}
                         <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100">
                             <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 border-b border-gray-50 pb-4">
-                                Overview
+                                Description
                             </h2>
                             <div className="space-y-4">
-                                {job.overview.map((para, index) => (
-                                    <p key={index} className="text-gray-600 leading-relaxed text-sm md:text-base">
-                                        {para}
-                                    </p>
-                                ))}
+                                <p className="text-gray-600 leading-relaxed text-sm md:text-base whitespace-pre-wrap">
+                                    {job.description}
+                                </p>
                             </div>
                         </section>
 
-                        {/* Responsibilities */}
-                        <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100">
-                            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 border-b border-gray-50 pb-4">
-                                Responsibilities
-                            </h2>
-                            <ul className="space-y-4">
-                                {job.responsibilities.map((item, index) => (
-                                    <li key={index} className="flex items-start gap-3">
-                                        <span className="material-symbols-outlined rounded-full bg-[#0f766d] text-white mt-0.5 text-lg md:text-xl">check_circle</span>
-                                        <span className="text-gray-600 text-sm md:text-base">{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-
                         {/* Requirements */}
-                        <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100">
-                            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 border-b border-gray-50 pb-4">
-                                Requirements
-                            </h2>
-                            <ul className="space-y-4">
-                                {job.requirements.map((item, index) => (
-                                    <li key={index} className="flex items-start gap-3">
-                                        <span className="material-symbols-outlined rounded-full bg-[#0f766d] text-white mt-0.5 text-lg md:text-xl">verified</span>
-                                        <span className="text-gray-600 text-sm md:text-base">{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
+                        {job.requiredSkills && job.requiredSkills.length > 0 && (
+                            <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100">
+                                <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 border-b border-gray-50 pb-4">
+                                    Required Skills
+                                </h2>
+                                <ul className="space-y-4">
+                                    {job.requiredSkills.map((item, index) => (
+                                        <li key={index} className="flex items-start gap-3">
+                                            <span className="material-symbols-outlined rounded-full bg-[#0f766d] text-white mt-0.5 text-lg md:text-xl">verified</span>
+                                            <span className="text-gray-600 text-sm md:text-base">{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+                        )}
 
                         {/* How to Apply */}
                         <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100">
                             <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 border-b border-gray-50 pb-4">
-                                How to Apply
+                                Ready to Apply?
                             </h2>
-                            <p className="text-gray-600 leading-relaxed mb-6 text-sm md:text-base">{job.howToApply}</p>
+                            <p className="text-gray-600 leading-relaxed mb-6 text-sm md:text-base">Click below to submit your application for this exciting role directly. Our team reviews applications periodically.</p>
                             <button className="bg-[#0f766d] hover:bg-[#0f766d]/90 text-white px-8 py-3.5 rounded-xl text-sm md:text-base font-bold shadow-lg shadow-[#0f766d]/20 transition-all">
                                 Apply Now
                             </button>
@@ -133,7 +128,7 @@ export default function JobDetailPage() {
                                 Similar Jobs You Might Like
                             </h2>
                             <div className="space-y-4">
-                                {SIMILAR_JOBS_FULL.map((simJob) => (
+                                {similarJobs.map((simJob) => (
                                     <Link
                                         key={simJob.id}
                                         href={`/job/${simJob.id}`}
@@ -169,7 +164,6 @@ export default function JobDetailPage() {
                                             </div>
                                             <button
                                                 className="text-slate-300 hover:text-rose-500 transition-colors"
-                                                onClick={(e) => e.preventDefault()}
                                             >
                                                 <span className="material-symbols-outlined">favorite</span>
                                             </button>
@@ -218,21 +212,23 @@ export default function JobDetailPage() {
                             <div className="mt-8">
                                 <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">Similar Jobs</h3>
                                 <div className="space-y-4">
-                                    {SIMILAR_JOBS.map((simJob) => (
+                                    {similarJobs.slice(0, 3).map((simJob) => (
                                         <div key={simJob.id} className="group cursor-pointer">
-                                            <div className="flex items-center gap-3">
-                                                <div className="size-10 bg-gray-100 rounded-lg flex items-center justify-center p-1">
-                                                    <div className={`${simJob.color} w-full h-full rounded-full`}></div>
+                                            <Link href={`/job/${simJob.id}`} passHref>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="size-10 bg-gray-100 rounded-lg flex items-center justify-center p-1 overflow-hidden">
+                                                        <img src={simJob.companyLogo} alt={simJob.company} className="object-contain w-full h-full" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-gray-900 group-hover:text-[#0f766d] transition-colors">
+                                                            {simJob.title}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {simJob.company} • {simJob.location}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-gray-900 group-hover:text-[#0f766d] transition-colors">
-                                                        {simJob.title}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500">
-                                                        {simJob.company} • {simJob.location}
-                                                    </p>
-                                                </div>
-                                            </div>
+                                            </Link>
                                         </div>
                                     ))}
                                 </div>
@@ -258,4 +254,8 @@ export default function JobDetailPage() {
             </div>
         </div>
     );
+}
+
+function titleCase(str: string) {
+    return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
 }
