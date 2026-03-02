@@ -96,7 +96,7 @@ export function Navbar() {
                         <div className="h-5 w-px bg-gray-200"></div>
 
                         <Link
-                            href="#"
+                            href="/employers"
                             className="bg-[#0f766d]/10 text-[#0f766d] font-semibold text-sm px-5 py-2 rounded-lg hover:bg-[#0f766d]/20 transition-colors"
                         >
                             For Employers
@@ -155,7 +155,7 @@ export function Navbar() {
 
                         {/* Employer CTA */}
                         <Link
-                            href="#"
+                            href="/employers"
                             className="block w-full text-center bg-[#0f766d]/10 text-[#0f766d] font-semibold text-sm px-5 py-3 rounded-lg"
                         >
                             For Employers

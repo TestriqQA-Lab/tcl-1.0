@@ -2,25 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { AuthModal } from "@/components/auth/AuthModal";
-import { LoginForm } from "@/components/auth/LoginForm";
 import { EmployerAuthModal } from "@/components/auth/EmployerAuthModal";
 
 export function EmployerNavbar() {
-    const [authModal, setAuthModal] = useState<"login" | null>(null);
     const [isEmployerModalOpen, setIsEmployerModalOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    const openLogin = () => setAuthModal("login");
-    const closeModal = () => setAuthModal(null);
-
-    const openEmployerRegister = () => setIsEmployerModalOpen(true);
-    const closeEmployerRegister = () => setIsEmployerModalOpen(false);
-
-    const switchToRegister = () => {
-        closeModal();
-        openEmployerRegister();
-    };
+    const openEmployerModal = () => setIsEmployerModalOpen(true);
+    const closeEmployerModal = () => setIsEmployerModalOpen(false);
 
     return (
         <>
@@ -54,7 +43,7 @@ export function EmployerNavbar() {
                     {/* Right: Actions */}
                     <div className="hidden lg:flex items-center gap-3">
                         <button
-                            onClick={openLogin}
+                            onClick={openEmployerModal}
                             className="text-sm font-semibold text-slate-900 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors font-inter"
                         >
                             Log In
@@ -87,7 +76,7 @@ export function EmployerNavbar() {
                         </nav>
                         <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
                             <button
-                                onClick={() => { openLogin(); setIsMobileMenuOpen(false); }}
+                                onClick={() => { openEmployerModal(); setIsMobileMenuOpen(false); }}
                                 className="w-full text-center text-sm font-semibold text-slate-900 py-3 border border-slate-200 rounded-lg"
                             >
                                 Log In
@@ -104,19 +93,9 @@ export function EmployerNavbar() {
                 )}
             </header>
 
-            {/* Modals */}
-            <AuthModal
-                isOpen={authModal === "login"}
-                onClose={closeModal}
-                title="Welcome Back"
-                subtitle="Sign in to continue your journey"
-            >
-                <LoginForm onSwitchToRegister={switchToRegister} onClose={closeModal} />
-            </AuthModal>
-
             <EmployerAuthModal
                 isOpen={isEmployerModalOpen}
-                onClose={closeEmployerRegister}
+                onClose={closeEmployerModal}
             />
         </>
     );

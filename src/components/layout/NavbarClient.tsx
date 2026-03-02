@@ -128,12 +128,12 @@ export function Navbar({ session }: NavbarProps) {
 
                         <div className="h-5 w-px bg-gray-200"></div>
 
-                        <button
-                            onClick={openEmployerModal}
+                        <Link
+                            href="/employers"
                             className="bg-[#0f766d]/10 text-[#0f766d] font-semibold text-sm px-5 py-2 rounded-lg hover:bg-[#0f766d]/20 transition-colors"
                         >
                             For Employers
-                        </button>
+                        </Link>
                     </div>
 
                     {/* Mobile Menu Toggle */}
@@ -199,12 +199,13 @@ export function Navbar({ session }: NavbarProps) {
                         </div>
 
                         {/* Employer CTA */}
-                        <button
-                            onClick={() => { openEmployerModal(); setIsOpen(false); }}
+                        <Link
+                            href="/employers"
+                            onClick={() => setIsOpen(false)}
                             className="block w-full text-center bg-[#0f766d]/10 text-[#0f766d] font-semibold text-sm px-5 py-3 rounded-lg"
                         >
                             For Employers
-                        </button>
+                        </Link>
                     </div>
                 )}
             </header>
