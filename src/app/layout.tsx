@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/NavbarClient";
 import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/components/auth/SessionProvider";
+import { auth } from "@/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,8 +32,6 @@ export const metadata: Metadata = {
   description: "Connect with top employers, discover opportunities, and accelerate your career journey with Top Career Live.",
 };
 
-import { auth } from "@/auth";
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -49,7 +48,7 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} ${inter.variable} antialiased bg-[#f8fafc] text-[#0e1b1a] flex flex-col min-h-screen font-sans`}
       >
-        <AuthProvider>
+        <AuthProvider session={session}>
           <Navbar session={session} />
           <main className="flex-grow max-w-[1440px] mx-auto px-6 lg:px-10 w-full">
             {children}
