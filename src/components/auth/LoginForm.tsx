@@ -6,6 +6,7 @@ import { loginSchema, type LoginFormData } from "@/lib/validation/auth";
 import { loginAction } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/Button";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 
 interface LoginFormProps {
     onSwitchToRegister?: () => void;
@@ -15,6 +16,7 @@ interface LoginFormProps {
 
 export const LoginForm = ({ onSwitchToRegister, onClose, role = "SEEKER" }: LoginFormProps) => {
     const router = useRouter();
+    const [view, setView] = useState<"login" | "forgot">("login");
     const [formData, setFormData] = useState<LoginFormData>({
         email: "",
         password: "",
@@ -23,6 +25,11 @@ export const LoginForm = ({ onSwitchToRegister, onClose, role = "SEEKER" }: Logi
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [focused, setFocused] = useState<string | null>(null);
+
+    // Show forgot password form inline
+    if (view === "forgot") {
+        return <ForgotPasswordForm onBack={() => setView("login")} />;
+    }
 
     const validateForm = (): boolean => {
         const result = loginSchema.safeParse(formData);
@@ -119,7 +126,7 @@ export const LoginForm = ({ onSwitchToRegister, onClose, role = "SEEKER" }: Logi
                     <button
                         type="button"
                         className="text-xs text-[#0f766d] hover:text-[#0d5c55] font-medium transition-colors cursor-pointer"
-                        onClick={() => console.log("Forgot password clicked")}
+                        onClick={() => setView("forgot")}
                     >
                         Forgot password?
                     </button>
