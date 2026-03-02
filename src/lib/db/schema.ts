@@ -10,6 +10,11 @@ export const jobStatus = pgEnum("job_status", ["OPEN", "CLOSED"]);
 
 export const applicationStatus = pgEnum("application_status", ["PENDING", "ACCEPTED", "REJECTED"]);
 
+// New Enums for Employer Profile
+export const employerAccountTypeEnum = pgEnum("employer_account_type", ["COMPANY", "INDIVIDUAL"]);
+export const hiringForEnum = pgEnum("hiring_for", ["COMPANY", "CONSULTANCY"]);
+export const companySizeEnum = pgEnum("company_size", ["1-50", "51-200", "201-500", "501-1000", "1000+"]);
+
 // New Enums for Seeker Profile
 export const genderEnum = pgEnum("gender", ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"]);
 export const workStatusEnum = pgEnum("work_status", ["FRESHER", "EXPERIENCED"]);
@@ -110,13 +115,24 @@ export const seekerProfiles = pgTable("seeker_profiles", {
 export const employerProfiles = pgTable("employer_profiles", {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: uuid("user_id").notNull().references(() => users.id),
-    companyName: text("company_name").notNull(),
-    companyLogo: text("company_logo").notNull().default(""),
-    companyDescription: text("company_description").notNull(),
-    companyWebsite: text("company_website").notNull(),
-    companySize: integer("company_size").notNull(),
-    companyIndustry: text("company_industry").notNull(),
-    companyLocation: text("company_location").notNull(), // Added for company-wide location
+
+    // New Fields for Client Registration
+    accountType: employerAccountTypeEnum("account_type").default("COMPANY").notNull(),
+    hiringFor: hiringForEnum("hiring_for").default("COMPANY").notNull(),
+    fullName: text("full_name").default("").notNull(),
+    designation: text("designation"),
+    pincode: text("pincode"),
+    companyAddress: text("company_address"),
+
+    // Relaxed Company/Business Fields (Nullable for Individuals)
+    companyName: text("company_name"),
+    companyLogo: text("company_logo").default(""),
+    companyDescription: text("company_description"),
+    companyWebsite: text("company_website"),
+    companySize: companySizeEnum("company_size"),
+    companyIndustry: text("company_industry"),
+    companyLocation: text("company_location"),
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
