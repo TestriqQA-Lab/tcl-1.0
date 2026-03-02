@@ -139,12 +139,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         } else if (validRole === "EMPLOYER") {
                             await tx.insert(employerProfiles).values({
                                 userId: newUser.id,
-                                companyName: user.name || username,
-                                companyDescription: "Pending description",
-                                companyWebsite: "https://example.com",
-                                companySize: 1,
-                                companyIndustry: "General",
-                                companyLocation: "Remote",
+                                fullName: user.name || username,
+                                accountType: "COMPANY",
+                                hiringFor: "COMPANY",
+                                companyName: null,
                                 companyLogo: "",
                             });
                         }

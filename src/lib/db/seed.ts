@@ -82,23 +82,31 @@ async function main() {
     await db.insert(employerProfiles).values([
         {
             userId: techCorpUser.id,
+            accountType: "COMPANY" as const,
+            hiringFor: "COMPANY" as const,
+            fullName: "TechCorp HR",
+            designation: "HR Manager",
             companyName: "TechCorp Global",
             companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuCdZa_HZnMhN8Y16gaQS0wmgJAX2QQPz7g8xYDA-CFKERzCSQyWqTXeboGl6ZLyt3dzfKl3hEyjjKWzF50mUvAFLYNxcbhyonFHndN8VAgQtbENjbC_IXiKlUhGlLOkrGuJnLEx8LK38Pd14SF-jHoD_kLRKZVb6-LgeEBiJd1_3hZulgs-bPp2NREZoWNTjbHbB3J40eI2_VRb-uafIV2i2Vffh_LAgxI4fGGEdl42UBJX2Ia5eNRIlStZF320YYiXBW04S0r3D3rh",
             companyDescription: "Leading provider of enterprise software solutions for Fortune 500 companies.",
             companyWebsite: "https://techcorp.global",
-            companySize: 500,
+            companySize: "501-1000" as const,
             companyIndustry: "Enterprise Software",
-            companyLocation: "San Francisco, CA"
+            companyLocation: "San Francisco, CA",
         },
         {
             userId: innovateUser.id,
+            accountType: "COMPANY" as const,
+            hiringFor: "COMPANY" as const,
+            fullName: "InnovateTech Careers",
+            designation: "Talent Acquisition Lead",
             companyName: "InnovateTech",
             companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuBhlor9VzdD8vX3YDQePkFjBsfp4c2Xws4UBQVap-Ye0bTqi0RgdNJeZGxy4RMAXyfQsk8l9NfkyJHUs6N7qS_l961MbASsqfl8s9OMF2IIAAeVMV25nY7rCZKgu7kbAql5cQi5P0vQGtbJ1V-SWwCyPVNi_dkIy4Z68XwDVCq7Njj-aN_swc60UKuaH-bB8Wuo68mtLymPgQcFEOLXvAjHfQEPk4h83TsWszrWpmPEdjUaoetJj514pnDg4e6S-WN1Fp5hTEZj91jU",
             companyDescription: "A fast-growing startup revolutionizing the fintech space with AI-driven insights.",
             companyWebsite: "https://innovatetech.io",
-            companySize: 50,
+            companySize: "11-50" as const,
             companyIndustry: "Fintech",
-            companyLocation: "Bengaluru, India"
+            companyLocation: "Bengaluru, India",
         }
     ]);
 

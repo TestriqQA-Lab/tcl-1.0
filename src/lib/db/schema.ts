@@ -13,7 +13,7 @@ export const applicationStatus = pgEnum("application_status", ["PENDING", "ACCEP
 // New Enums for Employer Profile
 export const employerAccountTypeEnum = pgEnum("employer_account_type", ["COMPANY", "INDIVIDUAL"]);
 export const hiringForEnum = pgEnum("hiring_for", ["COMPANY", "CONSULTANCY"]);
-export const companySizeEnum = pgEnum("company_size", ["1-50", "51-200", "201-500", "501-1000", "1000+"]);
+export const companySizeEnum = pgEnum("company_size", ["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"]);
 
 // New Enums for Seeker Profile
 export const genderEnum = pgEnum("gender", ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"]);
