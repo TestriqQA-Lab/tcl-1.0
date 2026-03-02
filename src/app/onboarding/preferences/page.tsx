@@ -83,7 +83,7 @@ export default function PreferencesPage() {
 
             if (result.success) {
                 console.log("Preferences saved successfully.");
-                router.push("/user-dashboard"); // Redirect to the correct dashboard path
+                router.push("/seeker/dashboard"); // Redirect to the correct dashboard path
             } else {
                 console.error("Server Action Error:", result.error);
                 alert(`Error saving preferences: ${result.error}`);

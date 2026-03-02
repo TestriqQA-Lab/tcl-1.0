@@ -140,6 +140,12 @@ export const jobs = pgTable("jobs", {
     requiredLanguages: text("required_languages").array().default([]), // ["English", "Hindi"]
     requiredCertifications: text("required_certifications").array().default([]), // ["AWS Certified"]
 
+    // Job Detail Page Fields (matching UI)
+    overview: text("overview").array().default([]), // Array of paragraphs describing the role
+    responsibilities: text("responsibilities").array().default([]), // Array of bullet responsibilities
+    requirements: text("requirements").array().default([]), // Array of bullet requirements/qualifications
+    howToApply: text("how_to_apply"), // Application instructions text
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

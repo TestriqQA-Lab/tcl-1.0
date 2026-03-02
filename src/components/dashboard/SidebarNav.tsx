@@ -16,8 +16,8 @@ export const SidebarNav = () => {
     const pathname = usePathname();
 
     const navItems = [
-        { label: "Dashboard", href: "/user-dashboard", icon: LayoutDashboard },
-        { label: "Profile", href: "/user-profile", icon: User },
+        { label: "Dashboard", href: "/seeker/dashboard", icon: LayoutDashboard },
+        { label: "Profile", href: "/seeker/profile", icon: User },
         { label: "Applications", href: "/user-applications", icon: FileText },
         { label: "Jobs", href: "/search", icon: Search },
         { label: "Companies", href: "/companies", icon: Building2 },
