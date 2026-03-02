@@ -44,7 +44,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 md:gap-8">
                         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
                             <div className="size-16 md:size-20 bg-white border border-gray-100 rounded-xl flex items-center justify-center p-3 shadow-sm overflow-hidden shrink-0">
-                                <img alt={`${job.company.name} Logo`} className="w-full" src={job.company.logo} />
+                                <img alt={`${job.company.name || "Company"} Logo`} className="w-full" src={job.company.logo || undefined} />
                             </div>
                             <div className="space-y-3">
                                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{job.title}</h1>
@@ -139,8 +139,8 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                                                 <div className="size-12 md:size-14 rounded-xl bg-white flex items-center justify-center p-2 border border-slate-100 shrink-0">
                                                     <img
                                                         className="w-full h-full object-contain"
-                                                        src={simJob.companyLogo}
-                                                        alt={`${simJob.company} logo`}
+                                                        src={simJob.companyLogo || undefined}
+                                                        alt={`${simJob.company || "Company"} logo`}
                                                     />
                                                 </div>
                                                 <div>
@@ -191,7 +191,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                         <div className="bg-white rounded-xl p-6 border border-gray-100 lg:sticky lg:top-24">
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="size-14 bg-white border border-gray-100 rounded-lg flex items-center justify-center p-2 shadow-sm overflow-hidden">
-                                    <img alt={`${job.company.name} Logo`} className="w-full" src={job.company.logo} />
+                                    <img alt={`${job.company.name || "Company"} Logo`} className="w-full" src={job.company.logo || undefined} />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gray-900">{job.company.name}</h3>
@@ -217,7 +217,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                                             <Link href={`/job/${simJob.id}`} passHref>
                                                 <div className="flex items-center gap-3">
                                                     <div className="size-10 bg-gray-100 rounded-lg flex items-center justify-center p-1 overflow-hidden">
-                                                        <img src={simJob.companyLogo} alt={simJob.company} className="object-contain w-full h-full" />
+                                                        <img src={simJob.companyLogo || undefined} alt={simJob.company || "Company"} className="object-contain w-full h-full" />
                                                     </div>
                                                     <div>
                                                         <p className="text-sm font-bold text-gray-900 group-hover:text-[#0f766d] transition-colors">
