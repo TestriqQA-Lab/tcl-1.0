@@ -9,7 +9,7 @@ import { AuthError } from "next-auth";
  * @param password - User password
  * @returns Success or error object
  */
-export async function loginAction(email: string, password: string) {
+export async function loginAction(email: string, password: string, expectedRole?: "SEEKER" | "EMPLOYER") {
     try {
         // Validate inputs
         if (!email || !password) {
@@ -20,6 +20,32 @@ export async function loginAction(email: string, password: string) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return { error: "Invalid email format" };
+        }
+
+        // Role check: verify the user's role matches the expected portal
+        if (expectedRole) {
+            const { db } = await import("@/lib/db/db");
+            const { users } = await import("@/lib/db/schema");
+            const { eq } = await import("drizzle-orm");
+
+            const found = await db
+                .select({ role: users.userRole })
+                .from(users)
+                .where(eq(users.email, email.toLowerCase()))
+                .limit(1);
+
+            if (found.length === 0) {
+                return { error: "Invalid email or password" };
+            }
+
+            const userRole = found[0].role;
+            if (userRole !== expectedRole) {
+                if (expectedRole === "EMPLOYER") {
+                    return { error: "This email is registered as a Job Seeker. Please use the Seeker login." };
+                } else {
+                    return { error: "This email is registered as an Employer. Please use the Employer login." };
+                }
+            }
         }
 
         // Call Auth.js signIn with credentials
@@ -203,12 +229,10 @@ export async function registerAction(
             } else if (validRole === "EMPLOYER") {
                 await tx.insert(employerProfiles).values({
                     userId: newUser.id,
-                    companyName: name, // Use registered name as initial company name
-                    companyDescription: "Pending description",
-                    companyWebsite: "https://example.com",
-                    companySize: 1,
-                    companyIndustry: "General",
-                    companyLocation: "Remote",
+                    fullName: name,
+                    accountType: "COMPANY",
+                    hiringFor: "COMPANY",
+                    companyName: null,
                     companyLogo: "",
                 });
             }

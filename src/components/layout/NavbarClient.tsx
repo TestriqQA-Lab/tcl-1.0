@@ -43,7 +43,7 @@ export function Navbar({ session }: NavbarProps) {
     const userInitial = user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U";
 
     if (pathname.startsWith("/employers")) {
-        return <EmployerNavbar />;
+        return <EmployerNavbar session={session} onLogout={handleLogout} />;
     }
 
     if (session) {

@@ -2,15 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
     CheckCircle2, Check, EyeOff, Eye, UserPlus, Rocket,
-    Building2, ChevronDown, PartyPopper
+    Building2, ChevronDown, PartyPopper, Loader2
 } from "lucide-react";
+import { registerEmployerAction } from "@/actions/employer.actions";
 
 type Step = "otp" | "basic-details" | "company-details";
 
 export default function ClientRegistrationPage() {
+    const router = useRouter();
     // ── Shared state ──
     const [step, setStep] = useState<Step>("otp");
 
@@ -38,6 +41,10 @@ export default function ClientRegistrationPage() {
     // ── Success Popup state ──
     const [showSuccess, setShowSuccess] = useState(false);
 
+    // ── Submission state ──
+    const [isLoading, setIsLoading] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
     const isOtpValid = phone.length >= 10 && termsConsent;
     const isBasicValid = fullName.trim().length > 0 && email.trim().length > 0 && password.length >= 6;
     const isCompanyValid = companyName.trim().length > 0 && designation.trim().length > 0;
@@ -54,12 +61,32 @@ export default function ClientRegistrationPage() {
         }
     };
 
-    const handleCompanyContinue = () => {
-        if (isCompanyValid) {
-            console.log("Submitting:", {
-                phone, fullName, email, password, accountType,
-                hiringFor, companyName, industry, employees, designation, pinCode, companyAddress
-            });
+    const handleCompanyContinue = async () => {
+        if (!isCompanyValid || isLoading) return;
+        setIsLoading(true);
+        setSubmitError(null);
+        const result = await registerEmployerAction({
+            phone,
+            fullName,
+            email,
+            password,
+            accountType,
+            hiringFor,
+            companyName,
+            companyIndustry: industry,
+            companySize: employees,
+            designation,
+            pincode: pinCode,
+            companyAddress,
+        });
+        setIsLoading(false);
+        if (result.error) {
+            setSubmitError(result.error);
+        } else {
+            // Auto-login the newly registered employer
+            const { signIn } = await import("next-auth/react");
+            await signIn("credentials", { email, password, redirect: false });
+            router.refresh();
             setShowSuccess(true);
         }
     };
@@ -391,7 +418,7 @@ export default function ClientRegistrationPage() {
                                                 <option value="51-200">51–200</option>
                                                 <option value="201-500">201–500</option>
                                                 <option value="501-1000">501–1000</option>
-                                                <option value="1001+">1001+</option>
+                                                <option value="1000+">1000+</option>
                                             </select>
                                             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8] pointer-events-none" />
                                         </div>
@@ -414,12 +441,21 @@ export default function ClientRegistrationPage() {
                                     </div>
                                 </div>
 
+                                {/* Error message */}
+                                {submitError && (
+                                    <p className="text-sm text-red-500 font-inter text-center bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                                        {submitError}
+                                    </p>
+                                )}
+
                                 {/* Continue Button */}
-                                <button type="button" onClick={handleCompanyContinue} disabled={!isCompanyValid}
-                                    className={`w-full h-10 md:h-11 lg:h-10 rounded-xl text-[13px] md:text-sm font-semibold font-inter transition-all active:scale-[0.98] ${isCompanyValid
+                                <button type="button" onClick={handleCompanyContinue} disabled={!isCompanyValid || isLoading}
+                                    className={`w-full h-10 md:h-11 lg:h-10 rounded-xl text-[13px] md:text-sm font-semibold font-inter transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${isCompanyValid && !isLoading
                                         ? "bg-[#0f766d] text-white shadow-lg shadow-[#0f766d]/30 hover:bg-[#0d635c]"
                                         : "bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed"}`}>
-                                    Continue
+                                    {isLoading ? (
+                                        <><Loader2 className="w-4 h-4 animate-spin" /> Creating account...</>
+                                    ) : "Continue"}
                                 </button>
                             </>
                         )}
