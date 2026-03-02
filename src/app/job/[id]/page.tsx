@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { SIMILAR_JOBS, SIMILAR_JOBS_FULL } from "@/data/job-detail-mock-data";
-import { getJobById } from "@/actions/job.actions";
+import { getJobById, getSimilarJobs } from "@/actions/job.actions";
 import { notFound } from "next/navigation";
 
-export default async function JobDetailPage({ params }: { params: { id: string } }) {
-    const job = await getJobById(params.id);
+export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const job = await getJobById(id);
+    const similarJobs = await getSimilarJobs(id, 4);
 
     if (!job) {
         notFound();
@@ -127,7 +128,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                 Similar Jobs You Might Like
                             </h2>
                             <div className="space-y-4">
-                                {SIMILAR_JOBS_FULL.map((simJob) => (
+                                {similarJobs.map((simJob) => (
                                     <Link
                                         key={simJob.id}
                                         href={`/job/${simJob.id}`}
@@ -163,7 +164,6 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                                             </div>
                                             <button
                                                 className="text-slate-300 hover:text-rose-500 transition-colors"
-                                                onClick={(e) => e.preventDefault()}
                                             >
                                                 <span className="material-symbols-outlined">favorite</span>
                                             </button>
@@ -212,21 +212,23 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                             <div className="mt-8">
                                 <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">Similar Jobs</h3>
                                 <div className="space-y-4">
-                                    {SIMILAR_JOBS.map((simJob) => (
+                                    {similarJobs.slice(0, 3).map((simJob) => (
                                         <div key={simJob.id} className="group cursor-pointer">
-                                            <div className="flex items-center gap-3">
-                                                <div className="size-10 bg-gray-100 rounded-lg flex items-center justify-center p-1">
-                                                    <div className={`${simJob.color} w-full h-full rounded-full`}></div>
+                                            <Link href={`/job/${simJob.id}`} passHref>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="size-10 bg-gray-100 rounded-lg flex items-center justify-center p-1 overflow-hidden">
+                                                        <img src={simJob.companyLogo} alt={simJob.company} className="object-contain w-full h-full" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-gray-900 group-hover:text-[#0f766d] transition-colors">
+                                                            {simJob.title}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {simJob.company} • {simJob.location}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-gray-900 group-hover:text-[#0f766d] transition-colors">
-                                                        {simJob.title}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500">
-                                                        {simJob.company} • {simJob.location}
-                                                    </p>
-                                                </div>
-                                            </div>
+                                            </Link>
                                         </div>
                                     ))}
                                 </div>

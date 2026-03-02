@@ -6,9 +6,9 @@ import { JOB_TYPE_FILTERS, DATE_POSTED_FILTERS } from "@/data/search-mock-data";
 import { getJobs } from "@/actions/job.actions";
 
 export default function SearchPage() {
-    const [searchKeyword, setSearchKeyword] = useState("Product Designer");
-    const [searchLocation, setSearchLocation] = useState("Bengaluru");
-    const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>(["Onsite"]);
+    const [searchKeyword, setSearchKeyword] = useState("");
+    const [searchLocation, setSearchLocation] = useState("");
+    const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
     const [selectedDateFilter, setSelectedDateFilter] = useState("Last 7 days");
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -82,7 +82,9 @@ export default function SearchPage() {
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-md md:text-lg font-bold text-slate-900">
-                            {jobs.length} jobs found for '{searchKeyword}' in {searchLocation}
+                            {jobs.length} job{jobs.length === 1 ? "" : "s"} found
+                            {searchKeyword ? ` for '${searchKeyword}'` : ""}
+                            {searchLocation ? ` in ${searchLocation}` : ""}
                         </p>
                     </div>
                     <div className="hidden md:flex items-center gap-3 text-sm">
