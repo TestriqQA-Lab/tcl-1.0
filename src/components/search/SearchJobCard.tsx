@@ -1,7 +1,16 @@
 import Link from "next/link";
-import { SearchJob } from "@/data/search-mock-data";
+export interface SearchJob {
+    id: string;
+    title: string;
+    company: string | null;
+    companyLogo: string | null;
+    location: string;
+    type: string;
+    description: string;
+    salary: string;
+}
 
-interface SearchJobCardProps {
+export interface SearchJobCardProps {
     job: SearchJob;
 }
 
@@ -14,8 +23,8 @@ export function SearchJobCard({ job }: SearchJobCardProps) {
                     <div className="size-14 rounded-xl bg-slate-50 flex items-center justify-center p-2 border border-slate-100 shrink-0">
                         <img
                             className="w-full h-full object-contain"
-                            src={job.companyLogo}
-                            alt={`${job.company} logo`}
+                            src={job.companyLogo || undefined}
+                            alt={`${job.company || "Company"} logo`}
                         />
                     </div>
                     <div>
@@ -25,7 +34,7 @@ export function SearchJobCard({ job }: SearchJobCardProps) {
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-slate-500">
                             <span className="flex items-center gap-1 font-medium text-slate-700">
                                 <span className="material-symbols-outlined text-[18px]">business</span>
-                                {job.company}
+                                {job.company || "Unknown"}
                             </span>
                             <span className="flex items-center gap-1">
                                 <span className="material-symbols-outlined text-[18px]">location_on</span>
