@@ -33,13 +33,13 @@ const metrics = [
 
 export function MetricsRow() {
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
             {metrics.map((m) => (
                 <div
                     key={m.label}
                     className={`flex flex-col gap-1.5 md:gap-2 p-3.5 md:p-[18px] rounded-[10px] ${m.isDark
-                            ? "bg-[#0e1b1a] text-white"
-                            : "bg-white text-[#0e1b1a] border border-[#E2E8F0]"
+                        ? "bg-[#0e1b1a] text-white"
+                        : "bg-white text-[#0e1b1a] border border-[#E2E8F0]"
                         }`}
                 >
                     <span

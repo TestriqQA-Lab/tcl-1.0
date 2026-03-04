@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
     LayoutDashboard,
@@ -18,7 +18,7 @@ const navItems = [
     {
         label: "Applications",
         icon: FileText,
-        href: "/employer-dashboard/applications",
+        href: "/employer-applications",
     },
     {
         label: "Job Postings",
@@ -50,6 +50,7 @@ export function DashboardSidebar({
     userName = "John Doe",
     userEmail = "john.doe@company.com",
 }: DashboardSidebarProps) {
+    const router = useRouter();
     const [profileOpen, setProfileOpen] = useState(false);
 
     return (
@@ -76,17 +77,17 @@ export function DashboardSidebar({
                     {navItems.map((item) => {
                         const isActive = item.label === activePage;
                         return (
-                            <Link
+                            <button
                                 key={item.label}
-                                href={item.href}
-                                className={`flex items-center gap-3 h-11 px-3.5 rounded-lg text-sm transition-colors ${isActive
+                                onClick={() => router.push(item.href)}
+                                className={`flex items-center gap-3 h-11 px-3.5 rounded-lg text-sm transition-colors text-left ${isActive
                                     ? "bg-[#0f766d] text-white font-semibold"
                                     : "text-white/50 hover:text-white/80 hover:bg-white/5"
                                     }`}
                             >
                                 <item.icon size={20} />
                                 <span>{item.label}</span>
-                            </Link>
+                            </button>
                         );
                     })}
                 </nav>

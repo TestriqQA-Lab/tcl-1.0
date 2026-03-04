@@ -35,7 +35,7 @@ const tabs = [
     {
         label: "Apps",
         icon: FileText,
-        href: "/employer-dashboard/applications",
+        href: "/employer-applications",
     },
     {
         label: "More",

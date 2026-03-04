@@ -60,7 +60,7 @@ export default function EmployerDashboardPage() {
                         </div>
 
                         {/* Right Column (desktop only) */}
-                        <div className="hidden lg:flex flex-col gap-5 w-[320px] shrink-0">
+                        <div className="hidden lg:flex flex-col gap-5 w-[200px] xl:w-[320px] shrink-0">
                             <QuickActionsPanel />
                             <UpcomingInterviewsCard />
                         </div>

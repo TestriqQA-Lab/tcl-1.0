@@ -7,11 +7,13 @@ import { useState } from "react";
 interface DashboardTopBarProps {
     userName?: string;
     userEmail?: string;
+    hideDesktopBar?: boolean;
 }
 
 export function DashboardTopBar({
     userName = "John",
-    userEmail = "john.doe@company.com"
+    userEmail = "john.doe@company.com",
+    hideDesktopBar = false
 }: DashboardTopBarProps) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
@@ -21,40 +23,42 @@ export function DashboardTopBar({
     return (
         <>
             {/* Desktop Top Bar */}
-            <div className="hidden lg:flex items-center justify-between w-full h-[72px] px-10 bg-white border-b border-[#E2E8F0] relative z-[90]">
-                {/* Left: Greeting */}
-                <div className="flex flex-col">
-                    <h1 className="text-xl font-bold text-[#0e1b1a] tracking-tight">
-                        Good Afternoon, {userName} 👋
-                    </h1>
-                    <p className="text-xs text-[#64748B]">
-                        Here&apos;s what&apos;s happening with your recruitment today.
-                    </p>
-                </div>
-
-                {/* Right: Search + Bell + CTA */}
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 w-[200px] h-[38px] px-3 bg-[#F1F5F9] rounded-lg border border-[#E2E8F0]">
-                        <Search size={16} className="text-[#94A3B8]" />
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            className="bg-transparent text-sm text-[#0e1b1a] placeholder-[#94A3B8] outline-none w-full"
-                        />
+            {!hideDesktopBar && (
+                <div className="hidden lg:flex items-center justify-between w-full h-[72px] px-10 bg-white border-b border-[#E2E8F0] relative z-[90]">
+                    {/* Left: Greeting */}
+                    <div className="flex flex-col">
+                        <h1 className="text-xl font-bold text-[#0e1b1a] tracking-tight">
+                            Good Afternoon, {userName} 👋
+                        </h1>
+                        <p className="text-xs text-[#64748B]">
+                            Here&apos;s what&apos;s happening with your recruitment today.
+                        </p>
                     </div>
-                    <button className="size-[38px] flex items-center justify-center rounded-lg border border-[#E2E8F0] hover:bg-[#F1F5F9] transition-colors relative">
-                        <Bell size={18} className="text-[#64748B]" />
-                        <span className="absolute top-2 right-2 size-1.5 bg-[#EF4444] rounded-full"></span>
-                    </button>
-                    <Link
-                        href="/employer-dashboard/post-job"
-                        className="flex items-center gap-1.5 h-[38px] px-4 bg-[#0f766d] hover:bg-[#0d635c] text-white text-sm font-semibold rounded-lg transition-colors"
-                    >
-                        <Plus size={16} />
-                        <span>Post a Job</span>
-                    </Link>
+
+                    {/* Right: Search + Bell + CTA */}
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 w-[200px] h-[38px] px-3 bg-[#F1F5F9] rounded-lg border border-[#E2E8F0]">
+                            <Search size={16} className="text-[#94A3B8]" />
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                className="bg-transparent text-sm text-[#0e1b1a] placeholder-[#94A3B8] outline-none w-full"
+                            />
+                        </div>
+                        <button className="size-[38px] flex items-center justify-center rounded-lg border border-[#E2E8F0] hover:bg-[#F1F5F9] transition-colors relative">
+                            <Bell size={18} className="text-[#64748B]" />
+                            <span className="absolute top-2 right-2 size-1.5 bg-[#EF4444] rounded-full"></span>
+                        </button>
+                        <Link
+                            href="/employer-dashboard/post-job"
+                            className="flex items-center gap-1.5 h-[38px] px-4 bg-[#0f766d] hover:bg-[#0d635c] text-white text-sm font-semibold rounded-lg transition-colors"
+                        >
+                            <Plus size={16} />
+                            <span>Post a Job</span>
+                        </Link>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Tablet & Mobile Top Bar */}
             <div className="lg:hidden flex items-center justify-between w-full h-16 px-4 md:px-6 bg-[#0e1b1a] relative z-[100]">
