@@ -2,51 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { Briefcase, ChevronLeft, ChevronRight } from "lucide-react";
-
-const activeJobs = [
-    {
-        id: "all",
-        title: "All Applications",
-        department: "",
-        applicants: 1847,
-        color: "bg-[#0f766d]",
-    },
-    {
-        id: "frontend",
-        title: "Sr. Frontend Developer",
-        department: "Engineering",
-        applicants: 342,
-        color: "bg-[#6366F1]",
-    },
-    {
-        id: "backend",
-        title: "Backend Engineer",
-        department: "Engineering",
-        applicants: 287,
-        color: "bg-[#0EA5E9]",
-    },
-    {
-        id: "designer",
-        title: "Product Designer",
-        department: "Design",
-        applicants: 198,
-        color: "bg-[#F59E0B]",
-    },
-    {
-        id: "analyst",
-        title: "Data Analyst",
-        department: "Analytics",
-        applicants: 156,
-        color: "bg-[#EF4444]",
-    },
-    {
-        id: "devops",
-        title: "DevOps Engineer",
-        department: "Engineering",
-        applicants: 124,
-        color: "bg-[#8B5CF6]",
-    },
-];
+import { activeJobs, getJobCount } from "./applicantsData";
 
 interface ActiveJobsStripProps {
     selectedJob: string;
@@ -150,7 +106,7 @@ export function ActiveJobsStrip({ selectedJob, onJobChange }: ActiveJobsStripPro
                                         ? "bg-[#0f766d] text-white"
                                         : "bg-[#F1F5F9] text-[#64748B]"
                                         }`}>
-                                        {job.applicants.toLocaleString()}
+                                        {getJobCount(job.id)}
                                     </span>
                                 </div>
                             </button>
@@ -175,5 +131,3 @@ export function ActiveJobsStrip({ selectedJob, onJobChange }: ActiveJobsStripPro
     );
 }
 
-// Export the job data so it can be used by the parent for filtering
-export { activeJobs };

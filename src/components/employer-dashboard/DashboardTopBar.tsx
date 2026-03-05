@@ -45,7 +45,7 @@ export function DashboardTopBar({
                                 className="bg-transparent text-sm text-[#0e1b1a] placeholder-[#94A3B8] outline-none w-full"
                             />
                         </div>
-                        <button className="size-[38px] flex items-center justify-center rounded-lg border border-[#E2E8F0] hover:bg-[#F1F5F9] transition-colors relative">
+                        <button onClick={() => setNotificationsOpen(!notificationsOpen)} className="size-[38px] flex items-center justify-center rounded-lg border border-[#E2E8F0] hover:bg-[#F1F5F9] transition-colors relative">
                             <Bell size={18} className="text-[#64748B]" />
                             <span className="absolute top-2 right-2 size-1.5 bg-[#EF4444] rounded-full"></span>
                         </button>
@@ -61,43 +61,45 @@ export function DashboardTopBar({
             )}
 
             {/* Tablet & Mobile Top Bar */}
-            <div className="lg:hidden flex items-center justify-between w-full h-16 px-4 md:px-6 bg-[#0e1b1a] relative z-[100]">
+            <div
+                className="lg:hidden flex items-center justify-between w-full h-[72px] px-4 md:px-6 bg-[#0e1b1a] relative z-[100] shrink-0"
+            >
                 {/* Logo */}
-                <div className="flex items-center gap-1.5 md:gap-2">
-                    <div className="size-6 md:size-7 bg-[#0f766d] rounded-[5px] md:rounded-md flex items-center justify-center text-white">
-                        <span className="material-symbols-outlined text-sm md:text-base">
+                <div className="flex items-center gap-2 md:gap-3">
+                    <div className="size-8 md:size-9 bg-[#0f766d] rounded-[6px] md:rounded-lg flex items-center justify-center text-white">
+                        <span className="material-symbols-outlined text-base md:text-[18px]">
                             rocket_launch
                         </span>
                     </div>
-                    <span className="text-white text-[15px] md:text-base font-bold md:hidden">
+                    <span className="text-white text-[17px] md:text-lg font-bold md:hidden">
                         TCL
                     </span>
-                    <span className="text-white text-base font-bold hidden md:inline">
+                    <span className="text-white text-lg font-bold hidden md:inline">
                         TopCareerLive
                     </span>
                 </div>
 
                 {/* Right Actions */}
-                <div className="flex items-center gap-2 md:gap-3 relative">
+                <div className="flex items-center gap-2.5 relative">
                     <button
-                        className="size-8 md:size-9 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/10 transition-colors"
+                        className="size-[38px] md:size-10 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/10 transition-colors"
                         onClick={() => setSearchOpen(true)}
                     >
-                        <Search size={16} className="text-white md:size-[18px]" />
+                        <Search size={18} className="text-white md:size-[20px]" />
                     </button>
                     <button
-                        className="size-8 md:size-9 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/10 transition-colors relative"
+                        className="size-[38px] md:size-10 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/10 transition-colors relative"
                         onClick={() => setNotificationsOpen(true)}
                     >
-                        <Bell size={16} className="text-white md:size-[18px]" />
+                        <Bell size={18} className="text-white md:size-[20px]" />
                         <span className="absolute top-2 right-2 size-1.5 bg-[#EF4444] rounded-full border border-[#0e1b1a]"></span>
                     </button>
                     {/* Tablet & Mobile: Avatar */}
                     <button
-                        className="size-8 md:size-9 bg-[#0f766d] rounded-full flex items-center justify-center border border-white/20 hover:bg-[#0d635c] transition-colors shrink-0"
+                        className="size-[38px] md:size-10 bg-[#0f766d] rounded-full flex items-center justify-center border border-white/20 hover:bg-[#0d635c] transition-colors shrink-0 ml-0.5"
                         onClick={() => setProfileOpen(true)}
                     >
-                        <span className="text-white text-[11px] md:text-sm font-bold">JD</span>
+                        <span className="text-white text-[13px] md:text-sm font-bold">JD</span>
                     </button>
                 </div>
             </div>
@@ -108,13 +110,13 @@ export function DashboardTopBar({
             <div
                 className={`lg:hidden fixed top-0 left-0 right-0 z-[150] bg-[#0e1b1a] transition-transform duration-300 ease-in-out ${searchOpen ? "translate-y-0 shadow-lg" : "-translate-y-full"}`}
             >
-                <div className="flex items-center gap-3 h-16 px-4">
-                    <div className="flex-1 flex items-center gap-2 h-10 px-3 bg-white/10 rounded-lg">
+                <div className="flex items-center gap-3 h-[72px] px-4">
+                    <div className="flex-1 flex items-center gap-2 h-10 px-4 bg-white/10 rounded-lg">
                         <Search size={16} className="text-white/50" />
                         <input
                             type="text"
                             placeholder="Search jobs, candidates..."
-                            className="bg-transparent text-sm text-white placeholder-white/50 outline-none w-full"
+                            className="bg-transparent text-[15px] text-white placeholder-white/50 outline-none w-full"
                             autoFocus={searchOpen}
                         />
                     </div>
@@ -126,9 +128,9 @@ export function DashboardTopBar({
 
             {/* Notifications Panel */}
             {notificationsOpen && (
-                <div className="lg:hidden fixed inset-0 z-[120] bg-black/40" onClick={() => setNotificationsOpen(false)}>
+                <div className="fixed inset-0 z-[120] bg-black/40" onClick={() => setNotificationsOpen(false)}>
                     <div
-                        className="absolute top-16 right-4 md:right-16 w-[300px] bg-white rounded-xl shadow-2xl overflow-hidden origin-top-right transform transition-all duration-200"
+                        className="absolute top-[72px] right-4 md:right-16 w-[300px] bg-white rounded-xl shadow-2xl overflow-hidden origin-top-right transform transition-all duration-200"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between px-4 py-3 border-b border-[#F1F5F9]">
@@ -159,7 +161,7 @@ export function DashboardTopBar({
             {profileOpen && (
                 <div className="lg:hidden fixed inset-0 z-[120] bg-black/40" onClick={() => setProfileOpen(false)}>
                     <div
-                        className="absolute top-16 right-4 w-[260px] bg-white rounded-xl shadow-2xl overflow-hidden origin-top-right"
+                        className="absolute top-[72px] right-4 w-[260px] bg-white rounded-xl shadow-2xl overflow-hidden origin-top-right"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="p-5 border-b border-[#F1F5F9] flex items-center gap-3">

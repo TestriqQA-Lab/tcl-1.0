@@ -23,7 +23,7 @@ const navItems = [
     {
         label: "Job Postings",
         icon: Briefcase,
-        href: "/employer-dashboard/job-postings",
+        href: "/job-postings",
     },
     {
         label: "Database Search",
@@ -54,7 +54,7 @@ export function DashboardSidebar({
     const [profileOpen, setProfileOpen] = useState(false);
 
     return (
-        <aside className="hidden lg:flex flex-col w-[260px] bg-[#0e1b1a] px-6 py-8 justify-between shrink-0 h-auto relative">
+        <aside className="hidden lg:flex flex-col w-[260px] bg-[#0e1b1a] px-6 py-8 justify-between shrink-0 sticky top-0 h-screen overflow-y-auto relative">
             {/* Top Section */}
             <div className="flex flex-col gap-8">
                 {/* Logo */}

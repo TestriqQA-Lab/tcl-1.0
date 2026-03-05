@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Eye, MoreHorizontal } from "lucide-react";
+import { applicants, activeJobs } from "./applicantsData";
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
     Shortlisted: { bg: "bg-[#DCFCE7]", text: "text-[#16A34A]" },
@@ -21,117 +22,40 @@ const avatarColors: Record<string, string> = {
     RG: "bg-[#14B8A6]",
 };
 
-const applicants = [
-    {
-        id: "ps-1",
-        initials: "PS",
-        name: "Priya Sharma",
-        email: "priya.sharma@email.com",
-        position: "Sr. Frontend Developer",
-        jobId: "frontend",
-        experience: "5 years",
-        status: "Shortlisted",
-        date: "Mar 3, 2026",
-    },
-    {
-        id: "rm-1",
-        initials: "RM",
-        name: "Rahul Mehta",
-        email: "rahul.mehta@email.com",
-        position: "Backend Engineer",
-        jobId: "backend",
-        experience: "3 years",
-        status: "In Review",
-        date: "Mar 2, 2026",
-    },
-    {
-        id: "ad-1",
-        initials: "AD",
-        name: "Anita Desai",
-        email: "anita.desai@email.com",
-        position: "Product Designer",
-        jobId: "designer",
-        experience: "4 years",
-        status: "Interview",
-        date: "Mar 1, 2026",
-    },
-    {
-        id: "vs-1",
-        initials: "VS",
-        name: "Vikram Singh",
-        email: "vikram.singh@email.com",
-        position: "Data Analyst",
-        jobId: "analyst",
-        experience: "2 years",
-        status: "Rejected",
-        date: "Feb 28, 2026",
-    },
-    {
-        id: "nk-1",
-        initials: "NK",
-        name: "Neha Kapoor",
-        email: "neha.kapoor@email.com",
-        position: "DevOps Engineer",
-        jobId: "devops",
-        experience: "6 years",
-        status: "Shortlisted",
-        date: "Feb 27, 2026",
-    },
-    {
-        id: "ak-1",
-        initials: "AK",
-        name: "Amit Kumar",
-        email: "amit.kumar@email.com",
-        position: "Sr. Frontend Developer",
-        jobId: "frontend",
-        experience: "4 years",
-        status: "In Review",
-        date: "Feb 26, 2026",
-    },
-    {
-        id: "sp-1",
-        initials: "SP",
-        name: "Sneha Patel",
-        email: "sneha.patel@email.com",
-        position: "Backend Engineer",
-        jobId: "backend",
-        experience: "5 years",
-        status: "Interview",
-        date: "Feb 25, 2026",
-    },
-    {
-        id: "rg-1",
-        initials: "RG",
-        name: "Rohan Gupta",
-        email: "rohan.gupta@email.com",
-        position: "Product Designer",
-        jobId: "designer",
-        experience: "3 years",
-        status: "Shortlisted",
-        date: "Feb 24, 2026",
-    },
-];
-
 interface ApplicantsTableProps {
     selectedJob?: string;
+    searchQuery?: string;
+    activeStatus?: string;
+    onSelectionChange?: (count: number) => void;
 }
 
-export function ApplicantsTable({ selectedJob = "all" }: ApplicantsTableProps) {
+export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeStatus = "All", onSelectionChange }: ApplicantsTableProps) {
     const [selected, setSelected] = useState<Set<string>>(new Set());
 
-    const filtered = selectedJob === "all"
-        ? applicants
-        : applicants.filter((a) => a.jobId === selectedJob);
+    const filtered = applicants.filter((a) => {
+        const matchesJob = selectedJob === "all" || a.jobId === selectedJob;
+        const matchesSearch = searchQuery.trim() === "" ||
+            a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            a.email.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus = activeStatus === "All" || a.status === activeStatus;
+        return matchesJob && matchesSearch && matchesStatus;
+    });
 
     // Clear selections when job filter changes
     useEffect(() => {
         setSelected(new Set());
+        onSelectionChange?.(0);
     }, [selectedJob]);
+
+    const updateSelected = (next: Set<string>) => {
+        setSelected(next);
+        onSelectionChange?.(next.size);
+    };
 
     // Get job title for the selected job
     const jobTitle = selectedJob === "all"
         ? "All Positions"
-        : filtered[0]?.position ?? "Unknown";
+        : activeJobs.find(j => j.id === selectedJob)?.title ?? "Unknown Position";
 
     const allFilteredIds = filtered.map((a) => a.id);
     const allSelected = filtered.length > 0 && allFilteredIds.every((id) => selected.has(id));
@@ -139,15 +63,13 @@ export function ApplicantsTable({ selectedJob = "all" }: ApplicantsTableProps) {
 
     const toggleAll = () => {
         if (allSelected) {
-            // Deselect all filtered
             const next = new Set(selected);
             allFilteredIds.forEach((id) => next.delete(id));
-            setSelected(next);
+            updateSelected(next);
         } else {
-            // Select all filtered
             const next = new Set(selected);
             allFilteredIds.forEach((id) => next.add(id));
-            setSelected(next);
+            updateSelected(next);
         }
     };
 
@@ -158,7 +80,7 @@ export function ApplicantsTable({ selectedJob = "all" }: ApplicantsTableProps) {
         } else {
             next.add(id);
         }
-        setSelected(next);
+        updateSelected(next);
     };
 
     if (filtered.length === 0) {
@@ -184,7 +106,7 @@ export function ApplicantsTable({ selectedJob = "all" }: ApplicantsTableProps) {
                         {selected.size} applicant{selected.size !== 1 ? "s" : ""} selected
                     </span>
                     <button
-                        onClick={() => setSelected(new Set())}
+                        onClick={() => updateSelected(new Set())}
                         className="text-[12px] font-medium text-[#0f766d] hover:text-[#0d635c] underline transition-colors"
                     >
                         Clear Selection

@@ -43,7 +43,7 @@ export function RecentApplicationsTable() {
                     Recent Applications
                 </h3>
                 <Link
-                    href="/employer-dashboard/applications"
+                    href="/employer-applications"
                     className="text-xs font-semibold text-[#0f766d] hover:underline"
                 >
                     View All →
