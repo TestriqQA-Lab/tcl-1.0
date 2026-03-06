@@ -25,7 +25,7 @@ export default function EmployerDashboardPage() {
                 {/* Main Dashboard Section */}
                 <div className="flex flex-col flex-1 min-w-0">
                     {/* Top Bar (responsive) */}
-                    <DashboardTopBar userName="John" />
+                    <DashboardTopBar />
 
                     {/* Tablet Nav Strip */}
                     <TabletNavStrip activePage="Dashboard" />
@@ -38,7 +38,7 @@ export default function EmployerDashboardPage() {
                             <div className="lg:hidden flex items-center justify-between">
                                 <div>
                                     <h1 className="text-lg font-bold text-[#0e1b1a]">
-                                        Good Afternoon, John 👋
+                                        Dashboard Overview
                                     </h1>
                                     <p className="text-xs text-[#64748B]">
                                         Here&apos;s what&apos;s happening today.

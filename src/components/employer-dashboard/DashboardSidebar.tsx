@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { getEmployerProfile } from "@/actions/employer.actions";
 import {
     LayoutDashboard,
     FileText,
@@ -41,17 +43,42 @@ const navItems = [
 
 interface DashboardSidebarProps {
     activePage?: string;
-    userName?: string;
-    userEmail?: string;
 }
 
 export function DashboardSidebar({
     activePage = "Dashboard",
-    userName = "John Doe",
-    userEmail = "john.doe@company.com",
 }: DashboardSidebarProps) {
     const router = useRouter();
+    const { data: session } = useSession();
     const [profileOpen, setProfileOpen] = useState(false);
+    const [companyName, setCompanyName] = useState<string | null | undefined>(undefined);
+
+    const userEmail = session?.user?.email ?? "";
+    const userId = session?.user?.id;
+
+    useEffect(() => {
+        if (!userId) return;
+        getEmployerProfile(userId).then((profile) => {
+            setCompanyName(profile.companyName ?? profile.fullName ?? null);
+        });
+    }, [userId]);
+
+    // Display name: prefer company name, fall back to session name
+    const isLoading = companyName === undefined;
+    const displayName = companyName ?? "Employer";
+
+    // Generate initials from displayName (up to 2 characters)
+    const initials = displayName
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+
+    const handleLogout = async () => {
+        setProfileOpen(false);
+        await signOut({ callbackUrl: "/employers" });
+    };
 
     return (
         <aside className="hidden lg:flex flex-col w-[260px] bg-[#0e1b1a] px-6 py-8 justify-between shrink-0 sticky top-0 h-screen overflow-y-auto relative">
@@ -114,13 +141,13 @@ export function DashboardSidebar({
                         <div className="fixed inset-0 z-[120]" onClick={() => setProfileOpen(false)} />
                         <div className="absolute bottom-16 left-0 right-0 z-[130] bg-[#1a2d2c] border border-white/10 rounded-xl shadow-2xl overflow-hidden shadow-black/50">
                             <div className="p-4 border-b border-white/10">
-                                <span className="text-[14px] font-bold text-white truncate block">{userName}</span>
+                                <span className="text-[14px] font-bold text-white truncate block">{displayName}</span>
                                 <span className="text-[12px] text-white/50 truncate block mt-0.5">{userEmail}</span>
                             </div>
                             <div className="p-2">
                                 <button
                                     className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                                    onClick={() => setProfileOpen(false)}
+                                    onClick={handleLogout}
                                 >
                                     <LogOut size={16} />
                                     Log Out
@@ -136,12 +163,16 @@ export function DashboardSidebar({
                     onClick={() => setProfileOpen(!profileOpen)}
                 >
                     <div className="size-9 bg-[#0f766d] rounded-full flex items-center justify-center shrink-0">
-                        <span className="text-white text-[13px] font-bold">JD</span>
+                        <span className="text-white text-[13px] font-bold">{initials}</span>
                     </div>
                     <div className="flex flex-col gap-0.5 overflow-hidden">
-                        <span className="text-white text-[13px] font-semibold truncate">
-                            {userName}
-                        </span>
+                        {isLoading ? (
+                            <div className="h-3.5 w-28 bg-white/15 rounded animate-pulse" />
+                        ) : (
+                            <span className="text-white text-[13px] font-semibold truncate">
+                                {displayName}
+                            </span>
+                        )}
                         <span className="text-white/45 text-[11px] truncate">Employer</span>
                     </div>
                 </button>

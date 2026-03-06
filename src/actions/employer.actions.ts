@@ -118,3 +118,27 @@ export async function registerEmployerAction(input: RegisterEmployerInput) {
         return { error: "Registration failed. Please try again." };
     }
 }
+
+/**
+ * Fetches the employer profile for a given user ID.
+ * Used by the dashboard sidebar to display company name.
+ */
+export async function getEmployerProfile(userId: string) {
+    try {
+        const profile = await db
+            .select({
+                companyName: employerProfiles.companyName,
+                fullName: employerProfiles.fullName,
+            })
+            .from(employerProfiles)
+            .where(eq(employerProfiles.userId, userId))
+            .limit(1);
+
+        if (profile.length === 0) return { companyName: null, fullName: null };
+        return profile[0];
+    } catch (error) {
+        console.error("Failed to fetch employer profile:", error);
+        return { companyName: null, fullName: null };
+    }
+}
+
