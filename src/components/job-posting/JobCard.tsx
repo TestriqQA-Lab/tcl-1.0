@@ -12,6 +12,8 @@ export interface JobCardProps {
     views: number;
     applications: number;
     shortlisted: number;
+    postedDate: string;
+    closedDate?: string;
 }
 
 const JobCard: React.FC<JobCardProps> = ({
@@ -24,6 +26,8 @@ const JobCard: React.FC<JobCardProps> = ({
     views,
     applications,
     shortlisted,
+    postedDate,
+    closedDate,
 }) => {
     // Status badge styling
     const getStatusStyles = () => {
@@ -75,6 +79,14 @@ const JobCard: React.FC<JobCardProps> = ({
                             <span className="text-[#64748B] font-inter text-sm">{department}</span>
                         </div>
                     )}
+                    <div className="flex items-center gap-1.5 py-1 px-2 bg-gray-50 rounded border border-gray-100">
+                        <span className="text-[#64748B] font-inter text-[11px] md:text-xs">Posted on: <span className="text-[#0e1b1a] font-semibold">{postedDate}</span></span>
+                    </div>
+                    {status === 'Closed' && closedDate && (
+                        <div className="flex items-center gap-1.5 py-1 px-2 bg-red-50/50 rounded border border-red-100/50">
+                            <span className="text-[#dc2626] font-inter text-[11px] md:text-xs">Closed on: <span className="font-semibold">{closedDate}</span></span>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -97,8 +109,17 @@ const JobCard: React.FC<JobCardProps> = ({
                 </div>
             </div>
 
-            {/* Right Section: Actions */}
-            <div className="flex flex-row gap-3 md:gap-4 w-full md:w-auto mt-2 md:mt-0 shrink-0">
+            <div className="flex flex-row md:flex-col flex-wrap gap-2 md:gap-2 w-full md:w-auto mt-2 md:mt-0 shrink-0">
+                {status === 'Paused' && (
+                    <button className="flex-1 md:flex-none flex justify-center items-center h-9 md:h-10 px-4 md:px-5 rounded-lg bg-[#f0fdf4] border border-[#bbf7d0] hover:bg-[#dcfce7] transition-colors group">
+                        <span className="text-[#15803d] font-inter text-[13px] md:text-sm font-semibold">Resume job post</span>
+                    </button>
+                )}
+                {status === 'Closed' && (
+                    <button className="flex-1 md:flex-none flex justify-center items-center h-9 md:h-10 px-4 md:px-5 rounded-lg bg-[#eff6ff] border border-[#bfdbfe] hover:bg-[#dbeafe] transition-colors">
+                        <span className="text-[#1d4ed8] font-inter text-[13px] md:text-sm font-semibold">Repost</span>
+                    </button>
+                )}
                 <button className="flex-1 md:flex-none flex justify-center items-center h-9 md:h-10 px-4 md:px-5 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFB] transition-colors">
                     <span className="text-[#0e1b1a] font-inter text-[13px] md:text-sm font-semibold">Edit Job</span>
                 </button>

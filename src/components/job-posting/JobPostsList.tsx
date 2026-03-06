@@ -12,6 +12,7 @@ const MOCK_JOBS: JobCardProps[] = [
         views: 128,
         applications: 45,
         shortlisted: 12,
+        postedDate: '12 Oct 2023',
     },
     {
         id: 'backend',
@@ -23,6 +24,7 @@ const MOCK_JOBS: JobCardProps[] = [
         views: 215,
         applications: 32,
         shortlisted: 5,
+        postedDate: '15 Oct 2023',
     },
     {
         id: 'designer',
@@ -34,6 +36,7 @@ const MOCK_JOBS: JobCardProps[] = [
         views: 342,
         applications: 89,
         shortlisted: 8,
+        postedDate: '18 Oct 2023',
     },
     {
         id: 'analyst',
@@ -45,6 +48,7 @@ const MOCK_JOBS: JobCardProps[] = [
         views: 156,
         applications: 18,
         shortlisted: 4,
+        postedDate: '20 Oct 2023',
     },
     {
         id: 'qa-engineer',
@@ -56,6 +60,7 @@ const MOCK_JOBS: JobCardProps[] = [
         views: 92,
         applications: 14,
         shortlisted: 2,
+        postedDate: '05 Oct 2023',
     },
     {
         id: 'hr-manager',
@@ -67,6 +72,7 @@ const MOCK_JOBS: JobCardProps[] = [
         views: 45,
         applications: 8,
         shortlisted: 1,
+        postedDate: '01 Oct 2023',
     },
     {
         id: 'sales-lead',
@@ -78,6 +84,8 @@ const MOCK_JOBS: JobCardProps[] = [
         views: 520,
         applications: 142,
         shortlisted: 15,
+        postedDate: '20 Sep 2023',
+        closedDate: '25 Oct 2023',
     },
     {
         id: 'content-writer',
@@ -89,6 +97,8 @@ const MOCK_JOBS: JobCardProps[] = [
         views: 310,
         applications: 95,
         shortlisted: 10,
+        postedDate: '15 Sep 2023',
+        closedDate: '20 Oct 2023',
     }
 ];
 
