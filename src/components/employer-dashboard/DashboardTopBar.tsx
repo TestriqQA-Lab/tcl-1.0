@@ -2,23 +2,54 @@
 
 import Link from "next/link";
 import { Search, Bell, Plus, Menu, X, LogOut } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { getEmployerProfile } from "@/actions/employer.actions";
 
 interface DashboardTopBarProps {
-    userName?: string;
-    userEmail?: string;
     hideDesktopBar?: boolean;
 }
 
 export function DashboardTopBar({
-    userName = "John",
-    userEmail = "john.doe@company.com",
     hideDesktopBar = false
 }: DashboardTopBarProps) {
+    const { data: session } = useSession();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
+    const [companyName, setCompanyName] = useState<string | null | undefined>(undefined);
+
+    const userId = session?.user?.id;
+    const userEmail = session?.user?.email ?? "";
+
+    useEffect(() => {
+        if (!userId) return;
+        getEmployerProfile(userId).then((profile) => {
+            setCompanyName(profile.companyName ?? profile.fullName ?? null);
+        });
+    }, [userId]);
+
+    const isLoading = companyName === undefined;
+    const displayName = companyName ?? "Employer";
+
+    // Generate initials (up to 2 chars)
+    const initials = displayName
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+
+    // Time-based greeting
+    const hour = new Date().getHours();
+    const greeting =
+        hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+
+    const handleLogout = async () => {
+        setProfileOpen(false);
+        await signOut({ callbackUrl: "/employers" });
+    };
 
     return (
         <>
@@ -28,7 +59,12 @@ export function DashboardTopBar({
                     {/* Left: Greeting */}
                     <div className="flex flex-col">
                         <h1 className="text-xl font-bold text-[#0e1b1a] tracking-tight">
-                            Good Afternoon, {userName} 👋
+                            {greeting},{" "}
+                            {isLoading ? (
+                                <span className="inline-block h-5 w-32 bg-[#E2E8F0] rounded animate-pulse align-middle" />
+                            ) : (
+                                <>{displayName} 👋</>
+                            )}
                         </h1>
                         <p className="text-xs text-[#64748B]">
                             Here&apos;s what&apos;s happening with your recruitment today.
@@ -99,7 +135,7 @@ export function DashboardTopBar({
                         className="size-[38px] md:size-10 bg-[#0f766d] rounded-full flex items-center justify-center border border-white/20 hover:bg-[#0d635c] transition-colors shrink-0 ml-0.5"
                         onClick={() => setProfileOpen(true)}
                     >
-                        <span className="text-white text-[13px] md:text-sm font-bold">JD</span>
+                        <span className="text-white text-[13px] md:text-sm font-bold">{initials}</span>
                     </button>
                 </div>
             </div>
@@ -166,20 +202,21 @@ export function DashboardTopBar({
                     >
                         <div className="p-5 border-b border-[#F1F5F9] flex items-center gap-3">
                             <div className="size-11 bg-[#0f766d] rounded-full flex items-center justify-center shadow-inner shrink-0">
-                                <span className="text-white text-sm font-bold">JD</span>
+                                <span className="text-white text-sm font-bold">{initials}</span>
                             </div>
                             <div className="flex flex-col min-w-0">
-                                <span className="text-[15px] font-bold text-[#0e1b1a] truncate">{userName} Doe</span>
+                                {isLoading ? (
+                                    <div className="h-4 w-28 bg-[#E2E8F0] rounded animate-pulse mb-1" />
+                                ) : (
+                                    <span className="text-[15px] font-bold text-[#0e1b1a] truncate">{displayName}</span>
+                                )}
                                 <span className="text-[12px] text-[#64748B] truncate">{userEmail}</span>
                             </div>
                         </div>
                         <div className="p-2">
                             <button
                                 className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[14px] font-medium text-[#EF4444] hover:bg-[#FEF2F2] rounded-lg transition-colors"
-                                onClick={() => {
-                                    // Handle logic here, maybe redirect using next/navigation
-                                    setProfileOpen(false);
-                                }}
+                                onClick={handleLogout}
                             >
                                 <LogOut size={16} />
                                 Log Out
