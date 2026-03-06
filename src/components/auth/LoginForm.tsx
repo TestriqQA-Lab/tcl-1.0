@@ -75,9 +75,17 @@ export const LoginForm = ({ onSwitchToRegister, onClose, role = "SEEKER", hideGo
             if (result.error) {
                 setErrors({ email: result.error });
             } else {
-                // Success - close modal and refresh
+                // Success - close modal and redirect based on role
                 onClose?.();
-                router.refresh();
+                if (role === "EMPLOYER") {
+                    // Full-page navigation so the fresh session cookie is picked
+                    // up by SessionProvider on the dashboard (router.push would
+                    // perform a client-side transition where useSession hasn't
+                    // refreshed yet).
+                    window.location.href = "/employer-dashboard";
+                } else {
+                    router.refresh();
+                }
             }
         } catch (error) {
             setErrors({ email: "An unexpected error occurred" });

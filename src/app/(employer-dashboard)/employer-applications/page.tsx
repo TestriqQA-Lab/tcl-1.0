@@ -23,7 +23,7 @@ export default function EmployerApplicationsPage() {
                 {/* Main Section */}
                 <div className="flex flex-col flex-1 min-w-0">
                     {/* Desktop & Tablet/Mobile: Shared Top Bar (Greeting) */}
-                    <DashboardTopBar userName="John" />
+                    <DashboardTopBar />
 
                     {/* Tablet Nav Strip */}
                     <TabletNavStrip activePage="Applications" />

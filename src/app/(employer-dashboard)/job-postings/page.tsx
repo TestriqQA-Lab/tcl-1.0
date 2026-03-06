@@ -21,7 +21,7 @@ export default function JobPostingsPage() {
                 {/* Main Dashboard Section */}
                 <div className="flex flex-col flex-1 min-w-0">
                     {/* Top Bar (responsive) */}
-                    <DashboardTopBar userName="John" hideDesktopBar={true} />
+                    <DashboardTopBar hideDesktopBar={true} />
 
                     {/* Tablet Nav Strip */}
                     <TabletNavStrip activePage="Job Postings" />

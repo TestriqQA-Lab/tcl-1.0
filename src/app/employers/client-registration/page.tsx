@@ -520,7 +520,7 @@ export default function ClientRegistrationPage() {
                         {/* Explore Plans Button */}
                         <button
                             type="button"
-                            onClick={() => window.location.href = "/employers"}
+                            onClick={() => window.location.href = "/employer-dashboard"}
                             className="w-full max-w-[280px] h-[50px] md:h-[52px] rounded-[14px] bg-gradient-to-b from-[#2563EB] to-[#1D4ED8] text-white text-[15px] md:text-base font-semibold font-inter shadow-[0_6px_16px_-2px_rgba(37,99,235,0.4)] hover:shadow-[0_8px_24px_-2px_rgba(37,99,235,0.5)] transition-all active:scale-[0.97] hover:brightness-110"
                         >
                             Explore plans
