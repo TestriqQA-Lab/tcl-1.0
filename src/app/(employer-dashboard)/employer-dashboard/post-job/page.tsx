@@ -112,7 +112,7 @@ export default function PostJobPage() {
             {/* Dashboard Navigation Area (Visible on Desktop/Tablet) */}
             <div className="flex flex-col w-full">
                 {/* Top Bar (responsive) */}
-                <DashboardTopBar userName="John" hideDesktopBar={true} />
+                <DashboardTopBar hideDesktopBar={true} />
 
                 {/* Tablet Nav Strip (Standard for Dashboard/Applications) */}
                 <TabletNavStrip activePage="Jobs" />
