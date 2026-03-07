@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Plus, Search, Bell } from 'lucide-react';
 
 const JobPostingsHeader = () => {
@@ -31,10 +32,10 @@ const JobPostingsHeader = () => {
                 </button>
 
                 {/* CTA Button */}
-                <button className="flex items-center gap-2 bg-[#0f766d] hover:bg-[#0c5e57] text-white px-4 md:px-5 pb-[1px] h-[38px] rounded-lg transition-colors w-full md:w-auto justify-center">
+                <Link href="/employer-dashboard/post-job" className="flex items-center gap-2 bg-[#0f766d] hover:bg-[#0c5e57] text-white px-4 md:px-5 pb-[1px] h-[38px] rounded-lg transition-colors w-full md:w-auto justify-center">
                     <Plus className="w-4 h-4 text-white" />
                     <span className="font-inter text-sm font-semibold">Post a New Job</span>
-                </button>
+                </Link>
             </div>
         </div>
     );
