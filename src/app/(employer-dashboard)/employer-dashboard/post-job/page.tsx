@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ChevronDown, Plus, Check, X, Copy, Trash2, RotateCw, Bold, Italic, Underline, AlignLeft, List, Lightbulb, Info } from "lucide-react";
+import { ArrowLeft, ChevronDown, Plus, Check, X, Copy, Trash2, Bold, Italic, Underline, AlignLeft, List, Lightbulb, Info } from "lucide-react";
 import { DashboardTopBar } from "@/components/employer-dashboard/DashboardTopBar";
 import { TabletNavStrip } from "@/components/employer-dashboard/TabletNavStrip";
 
@@ -16,10 +16,122 @@ const steps = [
 ];
 
 export default function PostJobPage() {
+    const router = useRouter();
+
+    // Rich text editor ref
+    const editorRef = useRef<HTMLDivElement>(null);
+    const savedSelectionRef = useRef<Range | null>(null);
+
+    // Save selection whenever user interacts with editor
+    const saveSelection = useCallback(() => {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            savedSelectionRef.current = sel.getRangeAt(0);
+        }
+    }, []);
+
+    const restoreSelection = useCallback(() => {
+        const sel = window.getSelection();
+        if (sel && savedSelectionRef.current) {
+            sel.removeAllRanges();
+            sel.addRange(savedSelectionRef.current);
+        }
+    }, []);
+
+    const execFormatCommand = useCallback((command: string, value?: string) => {
+        restoreSelection();
+        document.execCommand(command, false, value);
+    }, [restoreSelection]);
+
+    const getEditorTextLength = useCallback(() => {
+        return editorRef.current?.innerText?.trim().length || 0;
+    }, []);
     const [activeStepIndex, setActiveStepIndex] = useState(0);
 
     // Drawer State
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+    // Custom Questions State
+    type QuestionType = "Single choice" | "Multiple choice" | "Short answer";
+    interface CustomQuestion {
+        id: string;
+        text: string;
+        type: QuestionType;
+        mandatory: boolean;
+        options: string[];
+    }
+    const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
+
+    const createEmptyQuestion = (text = ""): CustomQuestion => ({
+        id: Date.now().toString() + Math.random().toString(36).slice(2),
+        text,
+        type: "Single choice",
+        mandatory: true,
+        options: ["", ""],
+    });
+
+    const updateQuestion = (id: string, updates: Partial<CustomQuestion>) => {
+        setCustomQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, ...updates } : q)));
+    };
+
+    const removeQuestion = (id: string) => {
+        setCustomQuestions((prev) => prev.filter((q) => q.id !== id));
+    };
+
+    const duplicateQuestion = (id: string) => {
+        setCustomQuestions((prev) => {
+            const idx = prev.findIndex((q) => q.id === id);
+            if (idx === -1) return prev;
+            const copy = { ...prev[idx], id: Date.now().toString() + Math.random().toString(36).slice(2), options: [...prev[idx].options] };
+            const next = [...prev];
+            next.splice(idx + 1, 0, copy);
+            return next;
+        });
+    };
+
+    const updateOption = (qId: string, optIdx: number, value: string) => {
+        setCustomQuestions((prev) => prev.map((q) => {
+            if (q.id !== qId) return q;
+            const opts = [...q.options];
+            opts[optIdx] = value;
+            return { ...q, options: opts };
+        }));
+    };
+
+    const addOption = (qId: string) => {
+        setCustomQuestions((prev) => prev.map((q) => (q.id === qId ? { ...q, options: [...q.options, ""] } : q)));
+    };
+
+    const removeOption = (qId: string, optIdx: number) => {
+        setCustomQuestions((prev) => prev.map((q) => {
+            if (q.id !== qId || q.options.length <= 2) return q;
+            return { ...q, options: q.options.filter((_, i) => i !== optIdx) };
+        }));
+    };
+
+    const suggestedQuestionTexts = [
+        "Do you have experience of sales in IT Services & Consulting?",
+        "Do you have a bike?",
+        "Do you have a laptop?",
+        "Are you open to a field job?",
+        "What's your current salary?",
+        "What's your expected salary?",
+        "What's your notice period?",
+        "Are you comfortable with English?",
+        "What kind of job are you comfortable with?",
+        "Are you willing to attend in-person interview?",
+    ];
+
+    const addSuggestedQuestion = (text: string) => {
+        setCustomQuestions((prev) => [...prev, createEmptyQuestion(text)]);
+    };
+
+    const openDrawerForNew = () => {
+        if (customQuestions.length === 0) {
+            setCustomQuestions([createEmptyQuestion()]);
+        }
+        setIsDrawerOpen(true);
+    };
 
     // Step 1 State
     const [jobTitle, setJobTitle] = useState("");
@@ -28,6 +140,63 @@ export default function PostJobPage() {
     const [minSal, setMinSal] = useState("");
     const [maxSal, setMaxSal] = useState("");
     const [perkSearch, setPerkSearch] = useState("");
+    const [selectedPerks, setSelectedPerks] = useState<string[]>([]);
+
+    // Helper: format number in Indian comma pattern (e.g. 1,00,000)
+    const formatIndianCurrency = (num: number): string => {
+        const s = num.toString();
+        if (s.length <= 3) return s;
+        const last3 = s.slice(-3);
+        const rest = s.slice(0, -3);
+        const formatted = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+        return formatted + "," + last3;
+    };
+
+    // Parse formatted string back to raw digits
+    const parseFormattedNumber = (val: string): string => val.replace(/,/g, "");
+
+    const handleMinSalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const raw = e.target.value.replace(/[^0-9]/g, "");
+        if (raw === "") { setMinSal(""); return; }
+        setMinSal(formatIndianCurrency(Number(raw)));
+        // Reset max if it's now <= min
+        const maxRaw = Number(parseFormattedNumber(maxSal));
+        if (maxRaw && maxRaw <= Number(raw)) setMaxSal("");
+    };
+
+    const handleMaxSalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const raw = e.target.value.replace(/[^0-9]/g, "");
+        if (raw === "") { setMaxSal(""); return; }
+        setMaxSal(formatIndianCurrency(Number(raw)));
+    };
+
+    const minSalNum = Number(parseFormattedNumber(minSal)) || 0;
+    const maxSalNum = Number(parseFormattedNumber(maxSal)) || 0;
+    const isSalaryInvalid = minSal !== "" && maxSal !== "" && maxSalNum <= minSalNum;
+
+    // Experience: compute max options based on minExp
+    const minExpNum = minExp === "" ? null : Number(minExp);
+    const maxExpOptions = minExpNum !== null
+        ? Array.from({ length: 5 }, (_, i) => minExpNum + 1 + i)
+        : [];
+
+    const togglePerk = (perk: string) => {
+        setSelectedPerks((prev) =>
+            prev.includes(perk) ? prev.filter((p) => p !== perk) : [...prev, perk]
+        );
+    };
+
+    const addCustomPerk = () => {
+        const trimmed = perkSearch.trim();
+        if (trimmed && !selectedPerks.includes(trimmed)) {
+            setSelectedPerks((prev) => [...prev, trimmed]);
+        }
+        setPerkSearch("");
+    };
+
+    const handlePerkKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") { e.preventDefault(); addCustomPerk(); }
+    };
 
     // Step 2 State
     const [candidateLocType, setCandidateLocType] = useState("Anywhere in India");
@@ -35,7 +204,36 @@ export default function PostJobPage() {
     const [relocationAllowance, setRelocationAllowance] = useState(false);
     const [education, setEducation] = useState("");
     const [skillsSearch, setSkillsSearch] = useState("");
+    const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
     const [selectedGender, setSelectedGender] = useState("Any");
+
+    const toggleSkill = (skill: string) => {
+        setSelectedSkills((prev) =>
+            prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+        );
+    };
+
+    const addCustomSkill = () => {
+        const trimmed = skillsSearch.trim();
+        if (trimmed && !selectedSkills.includes(trimmed)) {
+            setSelectedSkills((prev) => [...prev, trimmed]);
+        }
+        setSkillsSearch("");
+    };
+
+    const handleSkillKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") { e.preventDefault(); addCustomSkill(); }
+    };
+
+    const indianCities = [
+        "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad", "Chennai", "Kolkata", "Pune",
+        "Jaipur", "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam",
+        "Patna", "Vadodara", "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad", "Meerut",
+        "Rajkot", "Varanasi", "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai",
+        "Allahabad", "Ranchi", "Howrah", "Coimbatore", "Jabalpur", "Gwalior", "Vijayawada",
+        "Jodhpur", "Madurai", "Raipur", "Kochi", "Chandigarh", "Mysore", "Noida", "Gurgaon",
+        "Dehradun", "Mangalore", "Tiruchirappalli", "Thiruvananthapuram",
+    ];
 
     // Step 3 State
     const [selectedQuestions, setSelectedQuestions] = useState(["experience", "education", "english"]);
@@ -56,8 +254,6 @@ export default function PostJobPage() {
     const [callDays, setCallDays] = useState("Mon-Sat");
     const [isDaysDropdownOpen, setIsDaysDropdownOpen] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
-
-    const router = useRouter();
 
     useEffect(() => {
         if (isSuccess) {
@@ -112,7 +308,7 @@ export default function PostJobPage() {
             {/* Dashboard Navigation Area (Visible on Desktop/Tablet) */}
             <div className="flex flex-col w-full">
                 {/* Top Bar (responsive) */}
-                <DashboardTopBar userName="John" hideDesktopBar={true} />
+                <DashboardTopBar hideDesktopBar={true} />
 
                 {/* Tablet Nav Strip (Standard for Dashboard/Applications) */}
                 <TabletNavStrip activePage="Jobs" />
@@ -167,17 +363,17 @@ export default function PostJobPage() {
                                     <div
                                         key={index}
                                         className={`flex items-center gap-3 lg:gap-4 w-full rounded-lg transition-colors ${isActive
-                                                ? "bg-[#f3f4f6] px-3 py-2.5 lg:px-4 lg:py-3"
-                                                : "px-3 py-2.5 lg:px-4 lg:py-3 hover:bg-gray-50 cursor-pointer"
+                                            ? "bg-[#f3f4f6] px-3 py-2.5 lg:px-4 lg:py-3"
+                                            : "px-3 py-2.5 lg:px-4 lg:py-3 hover:bg-gray-50 cursor-pointer"
                                             }`}
                                         onClick={() => index <= activeStepIndex && setActiveStepIndex(index)}
                                     >
                                         <div
                                             className={`flex items-center justify-center rounded-full border transition-all ${isCompleted
-                                                    ? "size-[16px] lg:size-[20px] border-[#0f766d] bg-[#0f766d]"
-                                                    : isActive
-                                                        ? "size-[16px] lg:size-[20px] border-[#0f766d] bg-white ring-2 ring-[#0f766d]/10"
-                                                        : "size-[16px] lg:size-[20px] border-[#e5e7eb] bg-white"
+                                                ? "size-[16px] lg:size-[20px] border-[#0f766d] bg-[#0f766d]"
+                                                : isActive
+                                                    ? "size-[16px] lg:size-[20px] border-[#0f766d] bg-white ring-2 ring-[#0f766d]/10"
+                                                    : "size-[16px] lg:size-[20px] border-[#e5e7eb] bg-white"
                                                 }`}
                                         >
                                             {isCompleted ? (
@@ -188,10 +384,10 @@ export default function PostJobPage() {
                                         </div>
                                         <span
                                             className={`text-[14px] lg:text-[15px] ${isActive
-                                                    ? "font-semibold text-[#1f2937]"
-                                                    : isCompleted
-                                                        ? "font-medium text-[#374151]"
-                                                        : "font-normal text-[#6b7280]"
+                                                ? "font-semibold text-[#1f2937]"
+                                                : isCompleted
+                                                    ? "font-medium text-[#374151]"
+                                                    : "font-normal text-[#6b7280]"
                                                 }`}
                                         >
                                             {step}
@@ -235,11 +431,23 @@ export default function PostJobPage() {
                                         <label className="text-[14px] font-semibold text-[#374151]">Work experience</label>
                                         <div className="flex items-center gap-3 w-full">
                                             <div className="relative flex-1">
-                                                <select value={minExp} onChange={(e) => setMinExp(e.target.value)} className="w-full h-11 bg-white border border-[#d1d5db] rounded-md pl-4 pr-10 text-[14px] lg:text-[15px] appearance-none outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d] transition-all cursor-pointer text-[#111827]"><option value="" disabled hidden>Min exp.</option><option value="0">0 years</option><option value="1">1 year</option></select><ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9ca3af] pointer-events-none" />
+                                                <select value={minExp} onChange={(e) => { setMinExp(e.target.value); setMaxExp(""); }} className="w-full h-11 bg-white border border-[#d1d5db] rounded-md pl-4 pr-10 text-[14px] lg:text-[15px] appearance-none outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d] transition-all cursor-pointer text-[#111827]">
+                                                    <option value="" disabled hidden>Min exp.</option>
+                                                    {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((y) => (
+                                                        <option key={y} value={String(y)}>{y} {y === 1 ? "year" : "years"}</option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9ca3af] pointer-events-none" />
                                             </div>
                                             <span className="text-[14px] text-[#6b7280]">to</span>
                                             <div className="relative flex-1">
-                                                <select value={maxExp} onChange={(e) => setMaxExp(e.target.value)} className="w-full h-11 bg-white border border-[#d1d5db] rounded-md pl-4 pr-10 text-[14px] lg:text-[15px] appearance-none outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d] transition-all cursor-pointer text-[#111827]"><option value="" disabled hidden>Max exp.</option><option value="5">5+ years</option></select><ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9ca3af] pointer-events-none" />
+                                                <select value={maxExp} onChange={(e) => setMaxExp(e.target.value)} disabled={minExpNum === null} className={`w-full h-11 bg-white border border-[#d1d5db] rounded-md pl-4 pr-10 text-[14px] lg:text-[15px] appearance-none outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d] transition-all cursor-pointer text-[#111827] ${minExpNum === null ? "opacity-50 cursor-not-allowed" : ""}`}>
+                                                    <option value="" disabled hidden>Max exp.</option>
+                                                    {maxExpOptions.map((y) => (
+                                                        <option key={y} value={String(y)}>{y} {y === 1 ? "year" : "years"}</option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9ca3af] pointer-events-none" />
                                             </div>
                                         </div>
                                     </div>
@@ -247,25 +455,71 @@ export default function PostJobPage() {
                                     <div className="flex flex-col gap-2 w-full">
                                         <label className="text-[14px] font-semibold text-[#374151]">Salary per month</label>
                                         <div className="flex items-center gap-2 lg:gap-4 w-full">
-                                            <div className="flex items-center w-full h-11 bg-white border border-[#d1d5db] rounded-md px-3 lg:px-4 active:border-[#0f766d]">
+                                            <div className={`flex items-center w-full h-11 bg-white border rounded-md px-3 lg:px-4 transition-colors focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] ${isSalaryInvalid ? "border-red-400" : "border-[#d1d5db]"}`}>
                                                 <span className="text-[13px] text-[#9ca3af] font-medium">₹</span>
                                                 <div className="w-[1px] h-5 bg-[#e5e7eb] mx-2"></div>
-                                                <input type="number" placeholder="Min" className="w-full outline-none text-[14px]" />
+                                                <input type="text" inputMode="numeric" placeholder="Min" value={minSal} onChange={handleMinSalChange} className="w-full outline-none text-[14px] text-[#111827] placeholder:text-[#9ca3af]" />
                                             </div>
                                             <span className="text-[14px] text-[#6b7280]">to</span>
-                                            <div className="flex items-center w-full h-11 bg-white border border-[#d1d5db] rounded-md px-3 lg:px-4">
+                                            <div className={`flex items-center w-full h-11 bg-white border rounded-md px-3 lg:px-4 transition-colors focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] ${isSalaryInvalid ? "border-red-400" : "border-[#d1d5db]"}`}>
                                                 <span className="text-[13px] text-[#9ca3af] font-medium">₹</span>
                                                 <div className="w-[1px] h-5 bg-[#e5e7eb] mx-2"></div>
-                                                <input type="number" placeholder="Max" className="w-full outline-none text-[14px]" />
+                                                <input type="text" inputMode="numeric" placeholder="Max" value={maxSal} onChange={handleMaxSalChange} className="w-full outline-none text-[14px] text-[#111827] placeholder:text-[#9ca3af]" />
                                             </div>
                                         </div>
+                                        {isSalaryInvalid && (
+                                            <p className="text-[12px] text-red-500 mt-1">Max salary must be greater than min salary</p>
+                                        )}
                                     </div>
 
                                     <div className="flex flex-col gap-2 w-full">
                                         <label className="text-[14px] font-semibold text-[#374151]">Perks and benefits <span className="text-[#6b7280] font-normal">(Optional)</span></label>
-                                        <div className="flex items-center w-full h-11 bg-white border border-[#d1d5db] rounded-md px-4"><input type="text" placeholder="Search for perks" className="w-full outline-none text-[14px]" /></div>
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {suggestedPerks.map((p, i) => <button key={i} className="px-3 py-1.5 rounded-full border border-[#e5e7eb] text-[12px] flex items-center gap-1.5 hover:bg-gray-50"><Plus size={14} className="text-gray-400" />{p}</button>)}
+
+                                        {/* Selected perks as tags */}
+                                        {selectedPerks.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedPerks.map((p) => (
+                                                    <span key={p} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#eff6f5] border border-[#0f766d]/20 text-[12px] font-medium text-[#0f766d]">
+                                                        {p}
+                                                        <button onClick={() => togglePerk(p)} className="hover:bg-[#0f766d]/10 rounded-full p-0.5 transition-colors"><X size={12} /></button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Search / add custom perk input */}
+                                        <div className="flex items-center w-full h-11 bg-white border border-[#d1d5db] rounded-md px-4 focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] transition-all">
+                                            <input
+                                                type="text"
+                                                value={perkSearch}
+                                                onChange={(e) => setPerkSearch(e.target.value)}
+                                                onKeyDown={handlePerkKeyDown}
+                                                placeholder="Type a perk and press Enter to add"
+                                                className="w-full outline-none text-[14px] text-[#111827] placeholder:text-[#9ca3af]"
+                                            />
+                                            {perkSearch.trim() && (
+                                                <button onClick={addCustomPerk} className="text-[#0f766d] hover:bg-[#eff6f5] rounded-md px-2 py-1 text-[13px] font-semibold shrink-0 transition-colors">Add</button>
+                                            )}
+                                        </div>
+
+                                        {/* Suggested perks */}
+                                        <div className="flex flex-wrap gap-2 mt-1">
+                                            {suggestedPerks.map((p) => {
+                                                const isSelected = selectedPerks.includes(p);
+                                                return (
+                                                    <button
+                                                        key={p}
+                                                        onClick={() => togglePerk(p)}
+                                                        className={`px-3 py-1.5 rounded-full border text-[12px] flex items-center gap-1.5 transition-all ${isSelected
+                                                            ? "border-[#0f766d] bg-[#eff6f5] text-[#0f766d] font-medium"
+                                                            : "border-[#e5e7eb] text-[#374151] hover:bg-gray-50"
+                                                            }`}
+                                                    >
+                                                        {isSelected ? <Check size={14} className="text-[#0f766d]" /> : <Plus size={14} className="text-gray-400" />}
+                                                        {p}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 </div>
@@ -293,8 +547,8 @@ export default function PostJobPage() {
                                                         key={type}
                                                         onClick={() => setCandidateLocType(type)}
                                                         className={`px-6 py-2 rounded-full border text-[14px] font-medium transition-all ${isSel
-                                                                ? "border-[#0f766d] bg-[#eff6f5] text-[#0f766d]"
-                                                                : "border-[#d1d5db] bg-white text-[#374151] hover:border-gray-400"
+                                                            ? "border-[#0f766d] bg-[#eff6f5] text-[#0f766d]"
+                                                            : "border-[#d1d5db] bg-white text-[#374151] hover:border-gray-400"
                                                             }`}
                                                     >
                                                         {type}
@@ -313,9 +567,9 @@ export default function PostJobPage() {
                                                     className="w-full h-11 bg-white border border-[#d1d5db] rounded-md pl-4 pr-10 text-[14px] appearance-none outline-none focus:border-[#0f766d]"
                                                 >
                                                     <option value="">Select City</option>
-                                                    <option value="Mumbai">Mumbai</option>
-                                                    <option value="Delhi">Delhi</option>
-                                                    <option value="Bangalore">Bangalore</option>
+                                                    {indianCities.map((city) => (
+                                                        <option key={city} value={city}>{city}</option>
+                                                    ))}
                                                 </select>
                                                 <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9ca3af] pointer-events-none" />
                                             </div>
@@ -343,9 +597,10 @@ export default function PostJobPage() {
                                                 className="w-full h-11 bg-white border border-[#d1d5db] rounded-md pl-4 pr-10 text-[14px] appearance-none outline-none focus:border-[#0f766d]"
                                             >
                                                 <option value="">Select qualification</option>
+                                                <option value="12th Pass">12th Pass</option>
+                                                <option value="Diploma">Diploma</option>
                                                 <option value="Graduate">Graduate</option>
-                                                <option value="Postgraduate">Postgraduate</option>
-                                                <option value="Doctorate">Doctorate</option>
+                                                <option value="Post Graduate">Post Graduate</option>
                                             </select>
                                             <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9ca3af] pointer-events-none" />
                                         </div>
@@ -356,22 +611,52 @@ export default function PostJobPage() {
                                         <label className="text-[14px] font-semibold text-[#374151]">
                                             Specific skills requirements
                                         </label>
-                                        <div className="flex items-center w-full h-11 bg-white border border-[#d1d5db] rounded-md px-4 focus-within:border-[#0f766d]">
+
+                                        {/* Selected skills as tags */}
+                                        {selectedSkills.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedSkills.map((s) => (
+                                                    <span key={s} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#eff6f5] border border-[#0f766d]/20 text-[12px] font-medium text-[#0f766d]">
+                                                        {s}
+                                                        <button onClick={() => toggleSkill(s)} className="hover:bg-[#0f766d]/10 rounded-full p-0.5 transition-colors"><X size={12} /></button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Search / add custom skill input */}
+                                        <div className="flex items-center w-full h-11 bg-white border border-[#d1d5db] rounded-md px-4 focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] transition-all">
                                             <input
                                                 type="text"
                                                 value={skillsSearch}
                                                 onChange={(e) => setSkillsSearch(e.target.value)}
-                                                placeholder="Search for skills"
-                                                className="w-full outline-none text-[14px]"
+                                                onKeyDown={handleSkillKeyDown}
+                                                placeholder="Type a skill and press Enter to add"
+                                                className="w-full outline-none text-[14px] text-[#111827] placeholder:text-[#9ca3af]"
                                             />
+                                            {skillsSearch.trim() && (
+                                                <button onClick={addCustomSkill} className="text-[#0f766d] hover:bg-[#eff6f5] rounded-md px-2 py-1 text-[13px] font-semibold shrink-0 transition-colors">Add</button>
+                                            )}
                                         </div>
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {suggestedSkills.map((s, i) => (
-                                                <button key={i} className="px-3 py-1.5 rounded-full border border-[#e5e7eb] text-[12px] flex items-center gap-1.5 hover:bg-gray-50">
-                                                    <Plus size={14} className="text-gray-400" />
-                                                    {s}
-                                                </button>
-                                            ))}
+
+                                        {/* Suggested skills */}
+                                        <div className="flex flex-wrap gap-2 mt-1">
+                                            {suggestedSkills.map((s) => {
+                                                const isSelected = selectedSkills.includes(s);
+                                                return (
+                                                    <button
+                                                        key={s}
+                                                        onClick={() => toggleSkill(s)}
+                                                        className={`px-3 py-1.5 rounded-full border text-[12px] flex items-center gap-1.5 transition-all ${isSelected
+                                                            ? "border-[#0f766d] bg-[#eff6f5] text-[#0f766d] font-medium"
+                                                            : "border-[#e5e7eb] text-[#374151] hover:bg-gray-50"
+                                                            }`}
+                                                    >
+                                                        {isSelected ? <Check size={14} className="text-[#0f766d]" /> : <Plus size={14} className="text-gray-400" />}
+                                                        {s}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
 
@@ -388,8 +673,8 @@ export default function PostJobPage() {
                                                         key={g}
                                                         onClick={() => setSelectedGender(g)}
                                                         className={`px-8 py-2 rounded-full border text-[14px] font-medium transition-all ${isSel
-                                                                ? "border-[#0f766d] bg-[#eff6f5] text-[#0f766d]"
-                                                                : "border-[#d1d5db] bg-white text-[#374151] hover:border-gray-400"
+                                                            ? "border-[#0f766d] bg-[#eff6f5] text-[#0f766d]"
+                                                            : "border-[#d1d5db] bg-white text-[#374151] hover:border-gray-400"
                                                             }`}
                                                     >
                                                         {g}
@@ -510,9 +795,36 @@ export default function PostJobPage() {
                                         </div>
                                     </div>
 
+                                    {/* Custom Questions rendered in Step 3 */}
+                                    {customQuestions.map((cq, cqIdx) => (
+                                        <div key={cq.id} className={`p-4 lg:p-6 rounded-xl border border-[#0f766d] bg-[#eff6f5]/30 shadow-sm transition-all`}>
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex gap-3 lg:gap-4 flex-1">
+                                                    <div className="size-5 mt-0.5 rounded bg-[#0f766d] flex items-center justify-center shrink-0">
+                                                        <Check size={12} className="text-white" />
+                                                    </div>
+                                                    <div className="flex flex-col gap-2 flex-1">
+                                                        <span className="text-[15px] font-semibold text-[#111827]">{cq.text || `Custom Question ${cqIdx + 1}`}</span>
+                                                        <div className="flex items-center gap-3 flex-wrap">
+                                                            <span className="text-[12px] text-[#6b7280] bg-[#f1f5f9] px-2 py-0.5 rounded">{cq.type}</span>
+                                                            {cq.mandatory && <span className="text-[12px] text-[#0f766d] font-medium">Mandatory</span>}
+                                                            {cq.type !== "Short answer" && cq.options.filter(o => o.trim()).length > 0 && (
+                                                                <span className="text-[12px] text-[#6b7280]">{cq.options.filter(o => o.trim()).length} options</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    <button onClick={() => { setIsDrawerOpen(true); }} className="text-[13px] text-[#0f766d] font-semibold hover:underline">Edit</button>
+                                                    <button onClick={() => removeQuestion(cq.id)} className="text-[13px] text-[#6b7280] hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+
                                     {/* Add Custom Question Button */}
                                     <button
-                                        onClick={() => setIsDrawerOpen(true)}
+                                        onClick={openDrawerForNew}
                                         className="flex items-center gap-2 mt-2 px-1 text-[#0f766d] hover:text-[#0d635c] transition-colors w-fit group"
                                     >
                                         <div className="size-6 rounded-full border border-[#0f766d] flex items-center justify-center group-hover:bg-[#f0f9f8]">
@@ -529,45 +841,47 @@ export default function PostJobPage() {
                                 <h1 className="text-[20px] lg:text-[24px] font-bold text-[#111827] mb-2">Job description</h1>
 
                                 <div className="flex flex-col gap-6">
-                                    {/* Info Banner */}
-                                    <div className="flex items-center gap-3 p-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg">
-                                        <Lightbulb size={20} className="text-[#334155] shrink-0 fill-current opacity-20" />
-                                        <p className="text-[14px] text-[#334155]">
-                                            Auto-generated based on your details. You can edit it as well.
+                                    {/* Info Banner - Coming Soon */}
+                                    <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-[#f0fdf4] to-[#f8fafc] border border-[#d1fae5] rounded-lg">
+                                        <Lightbulb size={20} className="text-[#0f766d] shrink-0" />
+                                        <p className="text-[14px] text-[#334155] flex items-center gap-2">
+                                            Auto-generated job descriptions based on your details
+                                            <span className="text-[11px] font-bold text-white bg-[#0f766d] px-2 py-0.5 rounded-full">COMING SOON</span>
                                         </p>
                                     </div>
 
                                     {/* Job Description Editor Card */}
                                     <div className="flex flex-col border border-[#e5e7eb] rounded-xl overflow-hidden">
                                         {/* Editor Toolbar */}
-                                        <div className="flex items-center justify-between px-4 py-3 bg-[#f9fafb] border-b border-[#e5e7eb]">
+                                        <div className="flex items-center px-4 py-3 bg-[#f9fafb] border-b border-[#e5e7eb]">
                                             <div className="flex items-center gap-4">
                                                 <div className="flex items-center gap-1.5 border-r border-gray-300 pr-4">
-                                                    <button className="p-1 hover:bg-gray-200 rounded text-gray-600 transition-colors"><Bold size={16} /></button>
-                                                    <button className="p-1 hover:bg-gray-200 rounded text-gray-600 transition-colors"><Italic size={16} /></button>
-                                                    <button className="p-1 hover:bg-gray-200 rounded text-gray-600 transition-colors"><Underline size={16} /></button>
+                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('bold')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Bold"><Bold size={16} /></button>
+                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('italic')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Italic"><Italic size={16} /></button>
+                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('underline')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Underline"><Underline size={16} /></button>
                                                 </div>
-                                                <div className="flex items-center gap-1.5 border-r border-gray-300 pr-4">
-                                                    <button className="p-1 hover:bg-gray-200 rounded text-gray-600 transition-colors"><AlignLeft size={16} /></button>
-                                                    <button className="p-1 hover:bg-gray-200 rounded text-gray-600 transition-colors"><List size={16} /></button>
+                                                <div className="flex items-center gap-1.5">
+                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('justifyLeft')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Align Left"><AlignLeft size={16} /></button>
+                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('insertUnorderedList')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Bullet List"><List size={16} /></button>
                                                 </div>
                                             </div>
-                                            <button className="flex items-center gap-2 px-3 py-1.5 border border-[#0f766d] rounded text-[#0f766d] text-[13px] font-semibold hover:bg-[#f0f9f8] transition-colors">
-                                                <RotateCw size={14} />
-                                                Regenerate
-                                            </button>
                                         </div>
 
-                                        {/* Textarea Area */}
+                                        {/* ContentEditable Area */}
                                         <div className="relative p-4 bg-white">
-                                            <textarea
-                                                value={jobDescription}
-                                                onChange={(e) => setJobDescription(e.target.value)}
-                                                className="w-full min-h-[220px] outline-none text-[15px] leading-relaxed text-[#111827] resize-none overflow-y-auto"
-                                                placeholder="Enter job responsibilities..."
+                                            <div
+                                                ref={editorRef}
+                                                contentEditable
+                                                suppressContentEditableWarning
+                                                onInput={() => setJobDescription(editorRef.current?.innerHTML || "")}
+                                                onMouseUp={saveSelection}
+                                                onKeyUp={saveSelection}
+                                                className="w-full min-h-[220px] outline-none text-[15px] leading-relaxed text-[#111827] overflow-y-auto [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-[#9ca3af]"
+                                                data-placeholder="Enter job responsibilities..."
+                                                style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
                                             />
                                             <div className="absolute bottom-4 right-4 text-[12px] text-gray-400 font-medium">
-                                                {jobDescription.length}/1000
+                                                {getEditorTextLength()}/1000
                                             </div>
                                         </div>
                                     </div>
@@ -658,16 +972,20 @@ export default function PostJobPage() {
                                             {/* Receive calls between Section */}
                                             <div className="flex flex-col gap-4">
                                                 <h3 className="text-[16px] font-semibold text-[#111827]">Receive calls between</h3>
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-3 flex-wrap">
                                                     <div className="relative w-full md:w-44">
                                                         <select
                                                             value={callStartTime}
                                                             onChange={(e) => setCallStartTime(e.target.value)}
-                                                            className="w-full h-11 border border-[#d1d5db] rounded-md px-4 text-[14px] appearance-none outline-none focus:border-[#0f766d] bg-white"
+                                                            className="w-full h-11 border border-[#d1d5db] rounded-md px-4 text-[14px] appearance-none outline-none focus:border-[#0f766d] bg-white cursor-pointer"
                                                         >
-                                                            <option>09:00 AM</option>
-                                                            <option>10:00 AM</option>
-                                                            <option>11:00 AM</option>
+                                                            {Array.from({ length: 17 }, (_, i) => {
+                                                                const hour24 = 6 + i;
+                                                                const hour12 = hour24 > 12 ? hour24 - 12 : hour24 === 0 ? 12 : hour24;
+                                                                const ampm = hour24 >= 12 ? "PM" : "AM";
+                                                                const label = `${String(hour12).padStart(2, '0')}:00 ${ampm}`;
+                                                                return <option key={label} value={label}>{label}</option>;
+                                                            })}
                                                         </select>
                                                         <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                                     </div>
@@ -676,11 +994,28 @@ export default function PostJobPage() {
                                                         <select
                                                             value={callEndTime}
                                                             onChange={(e) => setCallEndTime(e.target.value)}
-                                                            className="w-full h-11 border border-[#d1d5db] rounded-md px-4 text-[14px] appearance-none outline-none focus:border-[#0f766d] bg-white"
+                                                            className="w-full h-11 border border-[#d1d5db] rounded-md px-4 text-[14px] appearance-none outline-none focus:border-[#0f766d] bg-white cursor-pointer"
                                                         >
-                                                            <option>06:00 PM</option>
-                                                            <option>07:00 PM</option>
-                                                            <option>08:00 PM</option>
+                                                            {(() => {
+                                                                // Parse start time to 24h
+                                                                const startMatch = callStartTime.match(/(\d+):00\s*(AM|PM)/i);
+                                                                let startH24 = 9;
+                                                                if (startMatch) {
+                                                                    let h = parseInt(startMatch[1]);
+                                                                    const p = startMatch[2].toUpperCase();
+                                                                    if (p === "PM" && h !== 12) h += 12;
+                                                                    if (p === "AM" && h === 12) h = 0;
+                                                                    startH24 = h;
+                                                                }
+                                                                return Array.from({ length: 17 }, (_, i) => {
+                                                                    const hour24 = 6 + i;
+                                                                    if (hour24 <= startH24) return null;
+                                                                    const hour12 = hour24 > 12 ? hour24 - 12 : hour24 === 0 ? 12 : hour24;
+                                                                    const ampm = hour24 >= 12 ? "PM" : "AM";
+                                                                    const label = `${String(hour12).padStart(2, '0')}:00 ${ampm}`;
+                                                                    return <option key={label} value={label}>{label}</option>;
+                                                                });
+                                                            })()}
                                                         </select>
                                                         <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                                     </div>
@@ -768,89 +1103,119 @@ export default function PostJobPage() {
 
                     {/* Drawer Content - Scrollable */}
                     <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar pb-32">
-                        {/* Question Block 1 */}
-                        <div className="flex flex-col gap-6 p-5 lg:p-6 border border-[#e5e7eb] rounded-xl mb-6">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[14px] font-semibold text-[#374151]">Question 1</span>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex items-center gap-2 cursor-pointer">
-                                        <div className="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" className="sr-only peer" checked />
-                                            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#0f766d]"></div>
-                                        </div>
-                                        <span className="text-[13px] text-[#6b7280]">Mandatory</span>
+                        {/* Dynamic Question Blocks */}
+                        {customQuestions.map((cq, cqIdx) => (
+                            <div key={cq.id} className="flex flex-col gap-5 p-5 lg:p-6 border border-[#e5e7eb] rounded-xl mb-6">
+                                {/* Header: Question N + Mandatory toggle */}
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[14px] font-semibold text-[#374151]">Question {cqIdx + 1}</span>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => updateQuestion(cq.id, { mandatory: !cq.mandatory })}
+                                            className="flex items-center gap-2 cursor-pointer"
+                                        >
+                                            <div className="relative inline-flex items-center">
+                                                <div className={`w-9 h-5 rounded-full transition-colors relative ${cq.mandatory ? "bg-[#0f766d]" : "bg-gray-200"
+                                                    }`}>
+                                                    <div className={`absolute top-[2px] h-4 w-4 bg-white border border-gray-300 rounded-full transition-transform ${cq.mandatory ? "translate-x-[18px]" : "translate-x-[2px]"
+                                                        }`} />
+                                                </div>
+                                            </div>
+                                            <span className="text-[13px] text-[#6b7280]">Mandatory</span>
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center w-full h-11 bg-white border border-[#d1d5db] rounded-md px-4 focus-within:border-[#0f766d]">
+                                {/* Question text input */}
+                                <div className="flex items-center w-full h-11 bg-white border border-[#d1d5db] rounded-md px-4 focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] transition-all">
                                     <input
                                         type="text"
+                                        value={cq.text}
+                                        onChange={(e) => updateQuestion(cq.id, { text: e.target.value })}
                                         placeholder="Enter your question here"
-                                        className="w-full outline-none text-[15px] text-[#111827]"
+                                        className="w-full outline-none text-[15px] text-[#111827] placeholder:text-[#9ca3af]"
                                     />
                                 </div>
-                            </div>
 
-                            <div className="flex flex-col gap-3">
-                                <span className="text-[13px] text-[#6b7280]">Question type:</span>
-                                <div className="flex flex-wrap gap-2">
-                                    {[
-                                        { label: "Single choice", selected: true },
-                                        { label: "Multiple choice", selected: false },
-                                        { label: "Short answer", selected: false }
-                                    ].map((type, i) => (
-                                        <button
-                                            key={i}
-                                            className={`px-4 py-1.5 rounded-full border text-[13px] font-medium transition-all ${type.selected
+                                {/* Question type selector */}
+                                <div className="flex flex-col gap-3">
+                                    <span className="text-[13px] text-[#6b7280]">Question type:</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(["Single choice", "Multiple choice", "Short answer"] as QuestionType[]).map((type) => (
+                                            <button
+                                                key={type}
+                                                onClick={() => updateQuestion(cq.id, { type })}
+                                                className={`px-4 py-1.5 rounded-full border text-[13px] font-medium transition-all ${cq.type === type
                                                     ? "border-[#0f766d] bg-[#eff6f5] text-[#0f766d]"
                                                     : "border-[#d1d5db] text-[#374151] hover:border-gray-400"
-                                                }`}
-                                        >
-                                            {type.label}
-                                        </button>
-                                    ))}
+                                                    }`}
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Options Section */}
-                            <div className="flex flex-col gap-3">
-                                {[1, 2].map((opt) => (
-                                    <div key={opt} className="flex items-center gap-3">
-                                        <div className="size-4 rounded-full border border-gray-300"></div>
-                                        <div className="flex items-center flex-1 h-10 px-4 bg-white border border-[#d1d5db] rounded-md focus-within:border-[#0f766d]">
-                                            <input
-                                                type="text"
-                                                placeholder={`Option ${opt}`}
-                                                className="w-full h-full bg-transparent outline-none text-[14px]"
-                                            />
-                                        </div>
-                                        <button className="p-1.5 hover:bg-gray-100 rounded text-gray-400 opacity-0 group-hover:opacity-100">
-                                            <X size={14} />
+                                {/* Options Section (only for choice types) */}
+                                {cq.type !== "Short answer" && (
+                                    <div className="flex flex-col gap-3">
+                                        {cq.options.map((opt, optIdx) => (
+                                            <div key={optIdx} className="flex items-center gap-3 group">
+                                                <div className={`size-4 shrink-0 border border-gray-300 ${cq.type === "Single choice" ? "rounded-full" : "rounded"
+                                                    }`} />
+                                                <div className="flex items-center flex-1 h-10 px-4 bg-white border border-[#d1d5db] rounded-md focus-within:border-[#0f766d] transition-colors">
+                                                    <input
+                                                        type="text"
+                                                        value={opt}
+                                                        onChange={(e) => updateOption(cq.id, optIdx, e.target.value)}
+                                                        placeholder={`Option ${optIdx + 1}`}
+                                                        className="w-full h-full bg-transparent outline-none text-[14px] text-[#111827] placeholder:text-[#9ca3af]"
+                                                    />
+                                                </div>
+                                                {cq.options.length > 2 && (
+                                                    <button
+                                                        onClick={() => removeOption(cq.id, optIdx)}
+                                                        className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-red-500 transition-colors"
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <button
+                                            onClick={() => addOption(cq.id)}
+                                            className="text-[13px] font-semibold text-[#0f766d] hover:underline w-fit mt-1"
+                                        >
+                                            + Add another option
                                         </button>
                                     </div>
-                                ))}
-                                <button className="text-[13px] font-semibold text-[#0f766d] hover:underline w-fit mt-1">
-                                    + Add another option
-                                </button>
-                            </div>
+                                )}
 
-                            {/* Duplicate/Remove Actions */}
-                            <div className="flex items-center justify-end gap-5 pt-4 border-t border-gray-100 mt-2">
-                                <button className="flex items-center gap-1.5 text-[13px] text-[#6b7280] hover:text-[#374151]">
-                                    <Copy size={16} />
-                                    <span>Duplicate</span>
-                                </button>
-                                <button className="flex items-center gap-1.5 text-[13px] text-[#6b7280] hover:text-red-500">
-                                    <Trash2 size={16} />
-                                    <span>Remove</span>
-                                </button>
+                                {/* Duplicate/Remove Actions */}
+                                <div className="flex items-center justify-end gap-5 pt-4 border-t border-gray-100 mt-1">
+                                    <button
+                                        onClick={() => duplicateQuestion(cq.id)}
+                                        className="flex items-center gap-1.5 text-[13px] text-[#6b7280] hover:text-[#374151] transition-colors"
+                                    >
+                                        <Copy size={16} />
+                                        <span>Duplicate</span>
+                                    </button>
+                                    <button
+                                        onClick={() => removeQuestion(cq.id)}
+                                        className="flex items-center gap-1.5 text-[13px] text-[#6b7280] hover:text-red-500 transition-colors"
+                                    >
+                                        <Trash2 size={16} />
+                                        <span>Remove</span>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        ))}
 
                         {/* Add another Question Button */}
-                        <button className="w-full py-2.5 border border-[#0f766d] border-dashed rounded-lg text-[#0f766d] font-semibold text-[14px] hover:bg-[#f0f9f8] transition-colors mb-8">
+                        <button
+                            onClick={() => setCustomQuestions((prev) => [...prev, createEmptyQuestion()])}
+                            className="w-full py-2.5 border border-[#0f766d] border-dashed rounded-lg text-[#0f766d] font-semibold text-[14px] hover:bg-[#f0f9f8] transition-colors mb-8"
+                        >
                             + Add a question
                         </button>
 
@@ -858,23 +1223,23 @@ export default function PostJobPage() {
                         <div className="flex flex-col gap-4">
                             <span className="text-[14px] font-semibold text-[#374151]">Suggested questions:</span>
                             <div className="flex flex-col gap-2.5">
-                                {[
-                                    "Do you have experience of sales in IT Services & Consulting?",
-                                    "Do you have a bike?",
-                                    "Do you have a laptop?",
-                                    "Are you open to a field job?",
-                                    "What's your current salary?",
-                                    "What's your expected salary?",
-                                    "What's your notice period?",
-                                    "Are you comfortable with English?",
-                                    "What kind of job are you comfortable with?",
-                                    "Are you willing to attend in-person interview?"
-                                ].map((q, i) => (
-                                    <button key={i} className="flex items-center gap-2 text-left p-2.5 border border-[#e5e7eb] rounded-lg text-[13px] text-[#374151] hover:border-[#0f766d] transition-colors">
-                                        <Plus size={14} className="text-[#0f766d] shrink-0" />
-                                        <span>{q}</span>
-                                    </button>
-                                ))}
+                                {suggestedQuestionTexts.map((q, i) => {
+                                    const alreadyAdded = customQuestions.some((cq) => cq.text === q);
+                                    return (
+                                        <button
+                                            key={i}
+                                            onClick={() => !alreadyAdded && addSuggestedQuestion(q)}
+                                            disabled={alreadyAdded}
+                                            className={`flex items-center gap-2 text-left p-2.5 border rounded-lg text-[13px] transition-colors ${alreadyAdded
+                                                ? "border-[#0f766d] bg-[#eff6f5]/50 text-[#0f766d] cursor-default"
+                                                : "border-[#e5e7eb] text-[#374151] hover:border-[#0f766d]"
+                                                }`}
+                                        >
+                                            {alreadyAdded ? <Check size={14} className="text-[#0f766d] shrink-0" /> : <Plus size={14} className="text-[#0f766d] shrink-0" />}
+                                            <span>{q}</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
