@@ -4,15 +4,15 @@ import { db } from "@/lib/db/db";
 import { projects } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
-function parseMonthYear(month: string, year: string): string | null {
+function parseMonthYear(month: string, year: string): Date | null {
     if (!month || !year) return null;
-    const monthMap: Record<string, string> = {
-        January: "01", February: "02", March: "03", April: "04",
-        May: "05", June: "06", July: "07", August: "08",
-        September: "09", October: "10", November: "11", December: "12",
+    const monthMap: Record<string, number> = {
+        January: 0, February: 1, March: 2, April: 3,
+        May: 4, June: 5, July: 6, August: 7,
+        September: 8, October: 9, November: 10, December: 11,
     };
-    const m = monthMap[month] || "01";
-    return `${year}-${m}-01`;
+    const m = monthMap[month] || 0;
+    return new Date(parseInt(year), m, 1);
 }
 
 export async function GET() {
@@ -49,10 +49,8 @@ export async function POST(req: NextRequest) {
             description: body.description || "",
             technologies,
             url: body.projectUrl || null,
-            startMonth: body.startMonth || null,
-            startYear: body.startYear || null,
-            endMonth: body.endMonth || null,
-            endYear: body.endYear || null,
+            startDate: parseMonthYear(body.startMonth, body.startYear),
+            endDate: parseMonthYear(body.endMonth, body.endYear),
         }).returning();
 
         return NextResponse.json(inserted);
@@ -85,10 +83,8 @@ export async function PATCH(req: NextRequest) {
                 description: updateData.description,
                 technologies,
                 url: updateData.projectUrl || null,
-                startMonth: updateData.startMonth || null,
-                startYear: updateData.startYear || null,
-                endMonth: updateData.endMonth || null,
-                endYear: updateData.endYear || null,
+                startDate: parseMonthYear(updateData.startMonth, updateData.startYear),
+                endDate: parseMonthYear(updateData.endMonth, updateData.endYear),
                 updatedAt: new Date(),
             })
             .where(and(eq(projects.id, id), eq(projects.userId, userId)))

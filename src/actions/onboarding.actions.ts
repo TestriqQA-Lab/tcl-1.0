@@ -70,15 +70,13 @@ export async function updateEmploymentAction(
         if (data.workStatus === "EXPERIENCED" && data.companyName && data.designation) {
             const jDate = data.joiningDate ? new Date(data.joiningDate) : new Date();
             const eDate = data.endDate ? new Date(data.endDate) : null;
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
             await db.insert(experience).values({
                 userId: userId,
                 companyName: data.companyName,
                 designation: data.designation,
-                startMonth: months[jDate.getMonth()],
-                startYear: jDate.getFullYear().toString(),
-                endMonth: eDate ? months[eDate.getMonth()] : null,
-                endYear: eDate ? eDate.getFullYear().toString() : null,
+                startDate: jDate,
+                endDate: eDate,
                 isCurrent: !data.endDate,
                 employmentType: "FULL_TIME",
             });
@@ -175,8 +173,8 @@ export async function updateEducationAction(
             stream: data.degree.specialization,
             isPursuing: data.degree.isPursuing,
             percentage: data.degree.cgpa,
-            passingYear: data.degree.endDate ? data.degree.endDate.getFullYear().toString() : null,
-            endingYear: data.degree.endDate ? data.degree.endDate.getFullYear().toString() : null,
+            startDate: data.degree.startDate,
+            endDate: data.degree.endDate || null,
         });
 
         // 2. Insert Class 12
@@ -187,8 +185,8 @@ export async function updateEducationAction(
             degree: "Class XII",
             stream: data.class12.specialization,
             isPursuing: data.class12.isPursuing,
-            passingYear: data.class12.endDate ? data.class12.endDate.getFullYear().toString() : null,
-            endingYear: data.class12.endDate ? data.class12.endDate.getFullYear().toString() : null,
+            startDate: data.class12.startDate,
+            endDate: data.class12.endDate || null,
         });
 
         return { success: true };

@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, uuid, pgEnum, integer, boolean, date } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, pgEnum, integer, boolean, date, index } from "drizzle-orm/pg-core";
 
 // Enums
 export const userRole = pgEnum("user_role", ["SEEKER", "EMPLOYER", "ADMIN"]);
@@ -55,7 +55,7 @@ export const users = pgTable("users", {
 // 1.2 Seeker Profiles Table
 export const seekerProfiles = pgTable("seeker_profiles", {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull().references(() => users.id),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
 
     // Basic Info
     isPublic: boolean("is_public").default(true).notNull(), // Account Visibility
@@ -63,7 +63,7 @@ export const seekerProfiles = pgTable("seeker_profiles", {
     // Personal Details
     fullName: text("full_name").notNull(),
     gender: genderEnum("gender"),
-    dateOfBirth: date("date_of_birth"), // Auto-calculate age in app
+    dateOfBirth: date("date_of_birth", { mode: "date" }), // Auto-calculate age in app
     currentLocation: text("current_location"),
     preferredWorkLocation: text("preferred_work_location").array().default([]), // Array of cities/remote
     nationality: text("nationality"),
@@ -109,12 +109,14 @@ export const seekerProfiles = pgTable("seeker_profiles", {
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    userIdIndex: index("seeker_profiles_user_id_idx").on(t.userId),
+}));
 
 // 1.3 Employer Profiles Table
 export const employerProfiles = pgTable("employer_profiles", {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull().references(() => users.id),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
 
     // New Fields for Client Registration
     accountType: employerAccountTypeEnum("account_type").default("COMPANY").notNull(),
@@ -135,12 +137,14 @@ export const employerProfiles = pgTable("employer_profiles", {
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    userIdIndex: index("employer_profiles_user_id_idx").on(t.userId),
+}));
 
 // 2. Jobs Table
 export const jobs = pgTable("jobs", {
     id: uuid("id").primaryKey().defaultRandom(),
-    employerId: uuid("employer_id").notNull().references(() => users.id),
+    employerId: uuid("employer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     description: text("description").notNull(),
     type: jobType("type").default("ONSITE").notNull(),
@@ -162,34 +166,69 @@ export const jobs = pgTable("jobs", {
     requirements: text("requirements").array().default([]), // Array of bullet requirements/qualifications
     howToApply: text("how_to_apply"), // Application instructions text
 
+    // --- I] Job Details ---
+    workExperienceMin: integer("work_experience_min"),
+    workExperienceMax: integer("work_experience_max"),
+    monthlySalaryMin: integer("monthly_salary_min"),
+    monthlySalaryMax: integer("monthly_salary_max"),
+    perksAndBenefits: text("perks_and_benefits").array().default([]), // For predefined + custom perks
+
+    // --- II] Candidate Preferences ---
+    candidateLocationRequirement: text("candidate_location_requirement"), // "ANYWHERE", "SPECIFIC_CITY" -> might also map to explicit cities later
+    candidateEducationLevel: text("candidate_education_level"), // "diploma", "12 pass", "graduate", "post-graduate"
+    preferredCandidateGender: genderEnum("preferred_candidate_gender"), // Reusing existing genderEnum (MALE, FEMALE, OTHER, PREFER_NOT_TO_SAY)
+
+    // --- III] Screening Questions ---
+    screeningExperienceMin: integer("screening_experience_min"), // e.g. 1 to 10
+    screeningEducationLevel: text("screening_education_level"),
+    screeningEnglishLevel: text("screening_english_level"), // "no english", "basic english", "good english", "fluent english"
+
+    // --- IV] Job Description ---
+    // responsibilities: text("responsibilities").array().default([]), // < Existing array field, but we might want a raw text for textarea
+    jobResponsibilitiesText: text("job_responsibilities_text"),
+    aboutCompany: text("about_company"),
+
+    // --- V] Communication Preferences ---
+    allowCalls: boolean("allow_calls").default(false),
+    recruiterName: text("recruiter_name"),
+    recruiterContact: text("recruiter_contact"),
+    callTimeFrom: text("call_time_from"), // e.g. "09:00 AM"
+    callTimeTo: text("call_time_to"),   // e.g. "06:00 PM"
+    callDays: text("call_days"),        // "Mon-Fri", "Mon-Sat", "Everyday"
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    employerIdIndex: index("jobs_employer_id_idx").on(t.employerId),
+}));
 
 // 3. Applications Table
 export const applications = pgTable('applications', {
     id: uuid("id").primaryKey().defaultRandom(),
-    applicantId: uuid("applicant_id").notNull().references(() => users.id),
-    jobId: uuid("job_id").notNull().references(() => jobs.id),
+    applicantId: uuid("applicant_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    jobId: uuid("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
     applicationStatus: applicationStatus("application_status").default("PENDING").notNull(),
     applicationDate: timestamp("application_date").defaultNow().notNull(),
     resumeUrl: text("resume_url").default("").notNull(),
     coverLetterUrl: text("cover_letter_url").default("").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull()
-});
+}, (t) => ({
+    applicantIdIndex: index("applications_applicant_id_idx").on(t.applicantId),
+    jobIdIndex: index("applications_job_id_idx").on(t.jobId),
+}));
 
 // 4. Education Table
 export const education = pgTable("education", {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull().references(() => users.id),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
 
     type: text("type").notNull(), // Class X, Class XII, Degree
     board: text("board"),
     medium: text("medium"),
     percentage: text("percentage"),
-    passingYear: text("passing_year"),
-    endingYear: text("ending_year"),
+    startDate: date("start_date", { mode: "date" }), // Replaced startYear/Month with unified date
+    endDate: date("end_date", { mode: "date" }), // Replaced passingYear/endingYear
     isPursuing: boolean("is_pursuing").default(false),
     institute: text("institute"),
     degree: text("degree"),
@@ -197,19 +236,19 @@ export const education = pgTable("education", {
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    userIdIndex: index("education_user_id_idx").on(t.userId),
+}));
 
 // 5. Experience Table
 export const experience = pgTable("experience", {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull().references(() => users.id),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     companyName: text("company_name").notNull(),
     designation: text("designation").notNull(), // Also used for 'role' in internships
     employmentType: preferredWorkTypeEnum("employment_type").notNull(),
-    startMonth: text("start_month").notNull(),
-    startYear: text("start_year").notNull(),
-    endMonth: text("end_month"),
-    endYear: text("end_year"),
+    startDate: date("start_date", { mode: "date" }).notNull(), // Modern standard
+    endDate: date("end_date", { mode: "date" }),
     isCurrent: boolean("is_current").default(false),
     description: text("description"),
 
@@ -219,37 +258,43 @@ export const experience = pgTable("experience", {
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    userIdIndex: index("experience_user_id_idx").on(t.userId),
+}));
 
 // 6. Skills Table
 export const skills = pgTable("skills", {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull().references(() => users.id),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     skillName: text("skill_name").notNull(),
     proficiency: proficiencyLevelEnum("proficiency").default("BEGINNER"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    userIdIndex: index("skills_user_id_idx").on(t.userId),
+}));
 
 // 7. Certifications Table
 export const certifications = pgTable("certifications", {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull().references(() => users.id),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     certificationName: text("certification_name").notNull(),
     issuer: text("issuer").notNull(),
-    issueDate: date("issue_date").notNull(),
-    expiryDate: date("expiry_date"), // Null if no expiry
+    issueDate: date("issue_date", { mode: "date" }).notNull(),
+    expiryDate: date("expiry_date", { mode: "date" }), // Null if no expiry
     credentialUrl: text("credential_url"),
     description: text("description"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    userIdIndex: index("certifications_user_id_idx").on(t.userId),
+}));
 
 // 8. Languages Table
 // Corrected to separate proficiency levels
 export const languages = pgTable("languages", {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull().references(() => users.id),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     languageName: text("language_name").notNull(),
 
     // Granular Proficiency
@@ -259,7 +304,9 @@ export const languages = pgTable("languages", {
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    userIdIndex: index("languages_user_id_idx").on(t.userId),
+}));
 
 // 9. Job Skills Table
 /* Deleted: Job Skills Table - Replaced with array in Jobs table for simpler MVP */
@@ -273,23 +320,23 @@ export const languages = pgTable("languages", {
 // 12. Projects Table
 export const projects = pgTable("projects", {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull().references(() => users.id),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     description: text("description").notNull(),
     technologies: text("technologies").array().default([]), // Maps to keySkills string
     url: text("url"), // Live link
-    startMonth: text("start_month"),
-    startYear: text("start_year"),
-    endMonth: text("end_month"),
-    endYear: text("end_year"),
+    startDate: date("start_date", { mode: "date" }),
+    endDate: date("end_date", { mode: "date" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    userIdIndex: index("projects_user_id_idx").on(t.userId),
+}));
 
 // 13. Achievements Table (Generic for all granular achievements)
 export const achievements = pgTable("achievements", {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull().references(() => users.id),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     type: text("type").notNull(), // CERTIFICATION, AWARD, CLUB, EXAM, ACADEMIC
 
     // Title/Name fields (certification name, exam name, club name, etc.)
@@ -308,11 +355,9 @@ export const achievements = pgTable("achievements", {
     totalScore: text("total_score"),
 
     // Dates
-    startMonth: text("start_month"),
-    startYear: text("start_year"),
-    endMonth: text("end_month"),
-    endYear: text("end_year"),
-    date: text("date"), // generic year 
+    startDate: date("start_date", { mode: "date" }),
+    endDate: date("end_date", { mode: "date" }),
+    date: date("specific_date", { mode: "date" }),
 
     // Flags
     isCurrent: boolean("is_current").default(false),
@@ -323,7 +368,9 @@ export const achievements = pgTable("achievements", {
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    userIdIndex: index("achievements_user_id_idx").on(t.userId),
+}));
 
 // 14. Password Reset Tokens Table
 export const passwordResetTokens = pgTable("password_reset_tokens", {
