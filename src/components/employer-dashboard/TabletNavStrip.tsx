@@ -6,7 +6,7 @@ const tabs = [
     { label: "Dashboard", href: "/employer-dashboard" },
     { label: "Applications", href: "/employer-applications" },
     { label: "Jobs", href: "/employer-dashboard/job-postings" },
-    { label: "Search", href: "/employer-dashboard/database-search" },
+    { label: "Search", href: "/database-search" },
     { label: "Blogs", href: "/employer-dashboard/blogs" },
     { label: "Analytics", href: "/employer-dashboard/analytics" },
 ];

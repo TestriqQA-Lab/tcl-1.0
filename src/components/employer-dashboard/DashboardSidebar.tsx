@@ -30,7 +30,7 @@ const navItems = [
     {
         label: "Database Search",
         icon: Search,
-        href: "/employer-dashboard/database-search",
+        href: "/database-search",
     },
     { label: "Blogs", icon: BookOpen, href: "/employer-dashboard/blogs" },
     { label: "Analytics", icon: BarChart3, href: "/employer-dashboard/analytics" },
@@ -122,18 +122,6 @@ export function DashboardSidebar({
 
             {/* Bottom Section */}
             <div className="flex flex-col gap-4 relative">
-                {/* Upgrade Card */}
-                <div className="bg-[#134e4a] rounded-[10px] p-4 flex flex-col gap-2.5">
-                    <span className="text-white text-[15px] font-bold">
-                        Upgrade to Pro
-                    </span>
-                    <p className="text-white/60 text-xs leading-relaxed">
-                        Unlock premium hiring tools and AI-powered candidate matching.
-                    </p>
-                    <button className="w-full h-9 bg-[#0f766d] hover:bg-[#0d635c] text-white text-[13px] font-semibold rounded-md transition-colors">
-                        Upgrade Now
-                    </button>
-                </div>
 
                 {/* Profile Panel Popup */}
                 {profileOpen && (

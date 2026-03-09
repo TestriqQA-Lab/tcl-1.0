@@ -15,7 +15,7 @@ const actions = [
     {
         label: "Search Candidates",
         icon: Search,
-        href: "/employer-dashboard/database-search",
+        href: "/database-search",
     },
     {
         label: "Schedule Interview",

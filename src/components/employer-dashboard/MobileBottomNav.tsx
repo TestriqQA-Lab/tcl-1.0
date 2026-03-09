@@ -22,6 +22,11 @@ const tabs = [
         href: "/employer-dashboard",
     },
     {
+        label: "Search",
+        icon: Search,
+        href: "/database-search",
+    },
+    {
         label: "Jobs",
         icon: Briefcase,
         href: "/employer-dashboard/job-postings",
