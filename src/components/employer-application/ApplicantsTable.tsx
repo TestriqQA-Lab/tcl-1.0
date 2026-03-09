@@ -2,14 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Eye, MoreHorizontal } from "lucide-react";
-import { applicants, activeJobs } from "./applicantsData";
-
-const statusStyles: Record<string, { bg: string; text: string }> = {
-    Shortlisted: { bg: "bg-[#DCFCE7]", text: "text-[#16A34A]" },
-    "In Review": { bg: "bg-[#FEF3C7]", text: "text-[#D97706]" },
-    Interview: { bg: "bg-[#DBEAFE]", text: "text-[#2563EB]" },
-    Rejected: { bg: "bg-[#FEE2E2]", text: "text-[#EF4444]" },
-};
+import { applicants as initialApplicants, activeJobs } from "./applicantsData";
+import { ApplicantStatusDropdown, ApplicationStatus } from "./ApplicantStatusDropdown";
 
 const avatarColors: Record<string, string> = {
     PS: "bg-[#0f766d]",
@@ -31,8 +25,9 @@ interface ApplicantsTableProps {
 
 export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeStatus = "All", onSelectionChange }: ApplicantsTableProps) {
     const [selected, setSelected] = useState<Set<string>>(new Set());
+    const [localApplicants, setLocalApplicants] = useState(initialApplicants);
 
-    const filtered = applicants.filter((a) => {
+    const filtered = localApplicants.filter((a) => {
         const matchesJob = selectedJob === "all" || a.jobId === selectedJob;
         const matchesSearch = searchQuery.trim() === "" ||
             a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -50,6 +45,12 @@ export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeS
     const updateSelected = (next: Set<string>) => {
         setSelected(next);
         onSelectionChange?.(next.size);
+    };
+
+    const handleStatusChange = (id: string, newStatus: ApplicationStatus) => {
+        setLocalApplicants((prev) =>
+            prev.map((app) => (app.id === id ? { ...app, status: newStatus as any } : app))
+        );
     };
 
     // Get job title for the selected job
@@ -150,7 +151,6 @@ export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeS
 
                 {/* Rows */}
                 {filtered.map((app, i) => {
-                    const style = statusStyles[app.status];
                     const isChecked = selected.has(app.id);
                     return (
                         <div
@@ -178,9 +178,10 @@ export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeS
                             <span className="flex-1 text-[13px] text-[#334155] truncate">{app.position}</span>
                             <span className="w-[110px] text-[13px] text-[#64748B]">{app.experience}</span>
                             <div className="w-[120px]">
-                                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-medium ${style.bg} ${style.text}`}>
-                                    {app.status}
-                                </span>
+                                <ApplicantStatusDropdown
+                                    currentStatus={app.status as ApplicationStatus}
+                                    onStatusChange={(newStatus) => handleStatusChange(app.id, newStatus)}
+                                />
                             </div>
                             <span className="w-[110px] text-xs text-[#94A3B8]">{app.date}</span>
                             <div className="w-[80px] flex items-center gap-2">
@@ -215,7 +216,6 @@ export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeS
 
                 {/* Rows */}
                 {filtered.map((app, i) => {
-                    const style = statusStyles[app.status];
                     const isChecked = selected.has(app.id);
                     return (
                         <div
@@ -236,9 +236,10 @@ export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeS
                                 <span className="text-[13px] font-medium text-[#0e1b1a] truncate">{app.name}</span>
                             </div>
                             <span className="text-[13px] text-[#334155] truncate">{app.position}</span>
-                            <span className={`inline-flex w-fit px-2 py-0.5 rounded-full text-[11px] font-medium ${style.bg} ${style.text}`}>
-                                {app.status}
-                            </span>
+                            <ApplicantStatusDropdown
+                                currentStatus={app.status as ApplicationStatus}
+                                onStatusChange={(newStatus) => handleStatusChange(app.id, newStatus)}
+                            />
                             <span className="text-xs text-[#94A3B8]">{app.date}</span>
                         </div>
                     );
@@ -248,7 +249,6 @@ export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeS
             {/* ===== Mobile Card List (below md) ===== */}
             <div className="md:hidden flex flex-col">
                 {filtered.map((app, i) => {
-                    const style = statusStyles[app.status];
                     const isChecked = selected.has(app.id);
                     return (
                         <div
@@ -273,9 +273,10 @@ export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeS
                                         <span className="text-[11px] text-[#94A3B8]">{app.email}</span>
                                     </div>
                                 </div>
-                                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-medium ${style.bg} ${style.text}`}>
-                                    {app.status}
-                                </span>
+                                <ApplicantStatusDropdown
+                                    currentStatus={app.status as ApplicationStatus}
+                                    onStatusChange={(newStatus) => handleStatusChange(app.id, newStatus)}
+                                />
                             </div>
                             {/* Bottom: Position + Experience + Date */}
                             <div className="flex items-center justify-between text-[12px] text-[#64748B] ml-[66px]">

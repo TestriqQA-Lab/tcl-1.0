@@ -41,7 +41,7 @@ export const applicants: Applicant[] = [
         position: "Product Designer",
         jobId: "designer",
         experience: "4 years",
-        status: "Interview",
+        status: "Shortlisted",
         date: "Mar 1, 2026",
     },
     {
@@ -85,7 +85,7 @@ export const applicants: Applicant[] = [
         position: "Backend Engineer",
         jobId: "backend",
         experience: "5 years",
-        status: "Interview",
+        status: "In Review",
         date: "Feb 25, 2026",
     },
     {

@@ -7,9 +7,11 @@ import { useEffect } from "react";
 interface FilterDrawerProps {
     isOpen: boolean;
     onClose: () => void;
+    onSearch?: () => void;
+    onClear?: () => void;
 }
 
-export function FilterDrawer({ isOpen, onClose }: FilterDrawerProps) {
+export function FilterDrawer({ isOpen, onClose, onSearch, onClear }: FilterDrawerProps) {
     // Prevent body scrolling when drawer is open
     useEffect(() => {
         if (isOpen) {
@@ -51,7 +53,7 @@ export function FilterDrawer({ isOpen, onClose }: FilterDrawerProps) {
 
                 {/* Filters Content Area */}
                 <div className="flex-1 overflow-y-auto">
-                    <SearchFilters />
+                    <SearchFilters onSearch={onSearch} onClear={onClear} />
                 </div>
             </div>
         </>

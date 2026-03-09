@@ -19,6 +19,7 @@ export function DashboardTopBar({
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const [companyName, setCompanyName] = useState<string | null | undefined>(undefined);
+    const [companyLogo, setCompanyLogo] = useState<string | null | undefined>(undefined);
 
     const userId = session?.user?.id;
     const userEmail = session?.user?.email ?? "";
@@ -27,6 +28,7 @@ export function DashboardTopBar({
         if (!userId) return;
         getEmployerProfile(userId).then((profile) => {
             setCompanyName(profile.companyName ?? profile.fullName ?? null);
+            setCompanyLogo(profile.companyLogo ?? null);
         });
     }, [userId]);
 
@@ -132,10 +134,14 @@ export function DashboardTopBar({
                     </button>
                     {/* Tablet & Mobile: Avatar */}
                     <button
-                        className="size-[38px] md:size-10 bg-[#0f766d] rounded-full flex items-center justify-center border border-white/20 hover:bg-[#0d635c] transition-colors shrink-0 ml-0.5"
+                        className="size-[38px] md:size-10 bg-[#0f766d] rounded-full flex items-center justify-center border border-white/20 hover:bg-[#0d635c] transition-colors shrink-0 ml-0.5 overflow-hidden"
                         onClick={() => setProfileOpen(true)}
                     >
-                        <span className="text-white text-[13px] md:text-sm font-bold">{initials}</span>
+                        {companyLogo ? (
+                            <img src={companyLogo} alt={displayName} className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="text-white text-[13px] md:text-sm font-bold">{initials}</span>
+                        )}
                     </button>
                 </div>
             </div>
@@ -201,8 +207,12 @@ export function DashboardTopBar({
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="p-5 border-b border-[#F1F5F9] flex items-center gap-3">
-                            <div className="size-11 bg-[#0f766d] rounded-full flex items-center justify-center shadow-inner shrink-0">
-                                <span className="text-white text-sm font-bold">{initials}</span>
+                            <div className="size-11 bg-[#0f766d] rounded-full flex items-center justify-center shadow-inner shrink-0 overflow-hidden">
+                                {companyLogo ? (
+                                    <img src={companyLogo} alt={displayName} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-white text-sm font-bold">{initials}</span>
+                                )}
                             </div>
                             <div className="flex flex-col min-w-0">
                                 {isLoading ? (

@@ -65,7 +65,12 @@ const MOCK_INDUSTRIES = [
     "Wholesale", "It Services & Consulting"
 ];
 
-export function SearchFilters() {
+interface SearchFiltersProps {
+    onSearch?: () => void;
+    onClear?: () => void;
+}
+
+export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
     // Location State
     const [locationInput, setLocationInput] = useState("");
     const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
@@ -132,7 +137,7 @@ export function SearchFilters() {
             {/* Filter Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-[#E2E8F0] shrink-0">
                 <h2 className="text-[16px] font-bold text-[#0e1b1a]">Filters</h2>
-                <button type="button" className="text-[13px] text-[#64748B] underline hover:text-[#0e1b1a]">
+                <button type="button" onClick={onClear} className="text-[13px] text-[#64748B] underline hover:text-[#0e1b1a]">
                     Clear all
                 </button>
             </div>
@@ -376,6 +381,7 @@ export function SearchFilters() {
             <div className="p-6 border-t border-[#E2E8F0] shrink-0 bg-white sticky bottom-0 z-10">
                 <button
                     type="button"
+                    onClick={onSearch}
                     className="flex justify-center items-center w-full h-11 bg-[#0f766d] hover:bg-[#0c5c55] text-white text-[15px] font-bold rounded-lg transition-colors"
                 >
                     Search
