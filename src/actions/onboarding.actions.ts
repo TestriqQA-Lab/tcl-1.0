@@ -48,23 +48,39 @@ export async function updateEmploymentAction(
         const { seekerProfiles, experience, skills, projects, languages } = await import("@/lib/db/schema");
         const { eq } = await import("drizzle-orm");
 
-        // 1. Update Seeker Profile
-        await db.update(seekerProfiles)
-            .set({
-                workStatus: data.workStatus,
-                lookingFor: data.lookingFor,
-                currentEmploymentStatus: data.employmentStatus,
-                totalExperienceYears: data.totalExperienceYears,
-                totalExperienceMonths: data.totalExperienceMonths,
-                currentIndustry: data.currentIndustry,
-                currentDepartment: data.currentDepartment,
-                currentRoleCategory: data.currentRoleCategory,
-                currentJobRole: data.currentJobRole,
-                currentSalary: data.currentSalary,
-                noticePeriod: data.noticePeriod as any, // Cast if enum mismatch, or map
-                updatedAt: new Date(),
-            })
-            .where(eq(seekerProfiles.userId, userId));
+        // 1. Check if Seeker Profile exists
+        const [existingProfile] = await db
+            .select()
+            .from(seekerProfiles)
+            .where(eq(seekerProfiles.userId, userId))
+            .limit(1);
+
+        const profileData = {
+            workStatus: data.workStatus,
+            lookingFor: data.lookingFor,
+            currentEmploymentStatus: data.employmentStatus,
+            totalExperienceYears: data.totalExperienceYears,
+            totalExperienceMonths: data.totalExperienceMonths,
+            currentIndustry: data.currentIndustry,
+            currentDepartment: data.currentDepartment,
+            currentRoleCategory: data.currentRoleCategory,
+            currentJobRole: data.currentJobRole,
+            currentSalary: data.currentSalary,
+            noticePeriod: data.noticePeriod as any,
+            updatedAt: new Date(),
+        };
+
+        if (existingProfile) {
+            await db.update(seekerProfiles)
+                .set(profileData)
+                .where(eq(seekerProfiles.userId, userId));
+        } else {
+            await db.insert(seekerProfiles).values({
+                ...profileData,
+                userId,
+                fullName: session.user.name || "Anonymous User", // Fallback name
+            });
+        }
 
         // 2. Insert/Update Experience (if Employed/Experienced)
         if (data.workStatus === "EXPERIENCED" && data.companyName && data.designation) {
@@ -216,15 +232,32 @@ export async function updatePreferencesAction(
         const { seekerProfiles } = await import("@/lib/db/schema");
         const { eq } = await import("drizzle-orm");
 
-        await db.update(seekerProfiles)
-            .set({
-                bio: data.headline,
-                preferredWorkLocation: data.locations,
-                expectedSalaryMin: data.salary,
-                gender: data.gender,
-                updatedAt: new Date(),
-            })
-            .where(eq(seekerProfiles.userId, userId));
+        // Check if Seeker Profile exists
+        const [existingProfile] = await db
+            .select()
+            .from(seekerProfiles)
+            .where(eq(seekerProfiles.userId, userId))
+            .limit(1);
+
+        const profileData = {
+            bio: data.headline,
+            preferredWorkLocation: data.locations,
+            expectedSalaryMin: data.salary,
+            gender: data.gender,
+            updatedAt: new Date(),
+        };
+
+        if (existingProfile) {
+            await db.update(seekerProfiles)
+                .set(profileData)
+                .where(eq(seekerProfiles.userId, userId));
+        } else {
+            await db.insert(seekerProfiles).values({
+                ...profileData,
+                userId,
+                fullName: session.user.name || "Anonymous User", // Fallback name
+            });
+        }
 
         return { success: true };
 

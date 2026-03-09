@@ -396,13 +396,14 @@ export default function ClientRegistrationPage() {
                                         <div className="relative">
                                             <select value={industry} onChange={(e) => setIndustry(e.target.value)} className={selectClass}>
                                                 <option value="">Select industry</option>
-                                                <option value="it">IT / Software</option>
-                                                <option value="finance">Finance / Banking</option>
-                                                <option value="healthcare">Healthcare</option>
-                                                <option value="education">Education</option>
-                                                <option value="manufacturing">Manufacturing</option>
-                                                <option value="retail">Retail</option>
-                                                <option value="other">Other</option>
+                                                <option value="Healthcare">Healthcare</option>
+                                                <option value="Manufacturing">Manufacturing</option>
+                                                <option value="IT / Software">IT / Software</option>
+                                                <option value="Finance / Banking">Finance / Banking</option>
+                                                <option value="Education">Education</option>
+                                                <option value="Retail">Retail</option>
+                                                <option value="Construction">Construction</option>
+                                                <option value="Other">Other</option>
                                             </select>
                                             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8] pointer-events-none" />
                                         </div>

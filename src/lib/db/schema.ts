@@ -6,7 +6,7 @@ export const userRole = pgEnum("user_role", ["SEEKER", "EMPLOYER", "ADMIN"]);
 export const userAccountStatus = pgEnum("account_status", ["ACTIVE", "INACTIVE", "BANNED"]);
 
 export const jobType = pgEnum("job_type", ["ONSITE", "HYBRID", "REMOTE"]);
-export const jobStatus = pgEnum("job_status", ["OPEN", "CLOSED"]);
+export const jobStatus = pgEnum("job_status", ["OPEN", "CLOSED", "PAUSED"]);
 
 export const applicationStatus = pgEnum("application_status", ["PENDING", "ACCEPTED", "REJECTED"]);
 
@@ -198,6 +198,7 @@ export const jobs = pgTable("jobs", {
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    statusChangedAt: timestamp("status_changed_at"), // Set when job is paused or closed
 }, (t) => ({
     employerIdIndex: index("jobs_employer_id_idx").on(t.employerId),
 }));
@@ -247,7 +248,7 @@ export const experience = pgTable("experience", {
     companyName: text("company_name").notNull(),
     designation: text("designation").notNull(), // Also used for 'role' in internships
     employmentType: preferredWorkTypeEnum("employment_type").notNull(),
-    startDate: date("start_date", { mode: "date" }).notNull(), // Modern standard
+    startDate: date("start_date", { mode: "date" }), // Made nullable to avoid migration issues with existing data
     endDate: date("end_date", { mode: "date" }),
     isCurrent: boolean("is_current").default(false),
     description: text("description"),

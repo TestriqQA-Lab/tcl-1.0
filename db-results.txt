@@ -1,0 +1,26 @@
+--- USERS ---
+Total Users: 15
+- ID: 779caa02-3a44-4b6e-875e-4d74f0c32c65 | Email: admin@testriq.com | Role: ADMIN
+- ID: 30623ae6-d284-4499-858b-e78ee1041520 | Email: hr@techcorp.com | Role: EMPLOYER
+- ID: c48f7575-b9e5-408c-8056-9ba07a111b7c | Email: careers@innovatetech.io | Role: EMPLOYER
+- ID: d8772cb4-76fe-40ea-9458-35e1002e0780 | Email: john.doe@example.com | Role: SEEKER
+- ID: ea06f1c3-dae0-421a-b1d8-ca50d87c1449 | Email: jane.smith@example.com | Role: SEEKER
+- ID: 3ad2a038-efc1-4289-b22b-14cd8e7629f6 | Email: shravanmore.testriq@gmail.com | Role: SEEKER
+- ID: c2d473f1-5efe-495c-a272-bcd5d7ad5eba | Email: tech@testriq.com | Role: SEEKER
+- ID: 50ad14a4-f5e9-4236-a48d-fa759fe47a82 | Email: cim@gmail.co, | Role: EMPLOYER
+- ID: b403d238-e172-43ca-9d29-ca0398563306 | Email: shravan@gmail.com | Role: EMPLOYER
+- ID: 8d9ec8a1-59a3-42f0-8a2c-5129fdacf99a | Email: javachip005@gmail.com | Role: EMPLOYER
+- ID: a38b7ebc-50fb-4756-876c-134158936611 | Email: jayesh.mistry@testriq.com | Role: SEEKER
+- ID: f8624b23-0361-4871-beda-69af4beb363b | Email: hr@cim.com | Role: EMPLOYER
+- ID: f573c9fd-e7b7-4631-a773-0b425ab7867d | Email: jayesh@gmail.com | Role: EMPLOYER
+- ID: d25e8020-47af-46df-be3e-9ca19affbca6 | Email: adnan.khan@testriq.com | Role: EMPLOYER
+- ID: c0625236-a660-4dea-b90e-90d783f4bdfa | Email: adnanmkhan2003@gmail.com | Role: SEEKER
+--- SEEKER PROFILES ---
+Total Profiles: 7
+- Profile ID: d413a1d8-b740-4e77-8e15-b57d0f912da8 | User ID: 3ad2a038-efc1-4289-b22b-14cd8e7629f6 | Name: Shravan Testing
+- Profile ID: 745103e5-e026-44ff-b313-089491bcc47a | User ID: c2d473f1-5efe-495c-a272-bcd5d7ad5eba | Name: Tech Testriq
+- Profile ID: 78eb3853-1f1a-4207-a132-710d22edc1f3 | User ID: a38b7ebc-50fb-4756-876c-134158936611 | Name: Jayesh Mistry
+- Profile ID: 08034095-0a77-4551-8e0a-9abe4fbee18a | User ID: d8772cb4-76fe-40ea-9458-35e1002e0780 | Name: John Doe
+- Profile ID: f80e093b-306f-4700-81e3-fb43d8986fd5 | User ID: ea06f1c3-dae0-421a-b1d8-ca50d87c1449 | Name: Jane Smith
+- Profile ID: b3705a59-6344-49e5-82c7-687c90a60680 | User ID: c0625236-a660-4dea-b90e-90d783f4bdfa | Name: Adnan Khan
+- Profile ID: 7b67b4fb-a72b-4f92-8e36-40855819161f | User ID: e88f24de-308d-4fc0-8a73-8928f0cc0f90 | Name: Adbab

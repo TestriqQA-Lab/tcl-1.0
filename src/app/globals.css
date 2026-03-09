@@ -25,6 +25,12 @@ body {
   color: var(--foreground);
 }
 
+/* Brand color text selection highlight */
+::selection {
+  background-color: #0f766d;
+  color: #ffffff;
+}
+
 h1,
 h2,
 h3,

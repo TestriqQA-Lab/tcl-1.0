@@ -1,9 +1,10 @@
 "use server";
 
 import { db } from "@/lib/db/db";
-import { jobs, employerProfiles, users } from "@/lib/db/schema";
+import { jobs, employerProfiles, users, applications } from "@/lib/db/schema";
 import { auth } from "@/auth";
-import { eq, ilike, or, and, inArray, desc } from "drizzle-orm";
+import { eq, ilike, or, and, inArray, desc, sql } from "drizzle-orm";
+import type { CreateJobPayload } from "@/types/job";
 
 export async function getJobs(params: {
     keyword?: string;
@@ -153,34 +154,66 @@ export async function getSimilarJobs(jobId: string, limitCount = 3) {
         return [];
     }
 }
-export interface CreateJobPayload {
-    title: string;
-    workExperienceMin: number | null;
-    workExperienceMax: number | null;
-    monthlySalaryMin: number | null;
-    monthlySalaryMax: number | null;
-    perksAndBenefits: string[];
 
-    candidateLocationRequirement: string;
-    candidateEducationLevel: string;
-    requiredSkills: string[];
-    preferredCandidateGender: "ANY" | "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | string;
+export async function getEmployerJobs() {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { error: "Unauthorized" };
+        }
 
-    screeningExperienceMin: number | null;
-    screeningEducationLevel: string;
-    screeningEnglishLevel: string;
+        const employerId = session.user.id;
 
-    description: string;
-    aboutCompany: string;
+        const results = await db
+            .select({
+                id: jobs.id,
+                title: jobs.title,
+                location: jobs.location,
+                type: jobs.type,
+                status: jobs.status,
+                createdAt: jobs.createdAt,
+                statusChangedAt: jobs.statusChangedAt,
+                applications: sql<number>`count(distinct ${applications.id})::int`,
+                shortlisted: sql<number>`count(distinct case when ${applications.applicationStatus} = 'ACCEPTED' then ${applications.id} end)::int`,
+            })
+            .from(jobs)
+            .leftJoin(applications, eq(jobs.id, applications.jobId))
+            .where(eq(jobs.employerId, employerId))
+            .groupBy(jobs.id)
+            .orderBy(desc(jobs.createdAt));
 
-    allowCalls: boolean;
-    recruiterName: string;
-    recruiterContact: string;
-    callTimeFrom: string;
-    callTimeTo: string;
-    callDays: string;
+        return {
+            success: true,
+            jobs: results.map(job => {
+                // Formatting date to '12 Oct 2023'
+                const dateOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+                const formattedDate = job.createdAt.toLocaleDateString('en-GB', dateOptions);
+                const formattedStatusChangedDate = job.statusChangedAt
+                    ? job.statusChangedAt.toLocaleDateString('en-GB', dateOptions)
+                    : undefined;
 
-    location: string;
+                let status: 'Active' | 'Paused' | 'Closed' = 'Closed';
+                if (job.status === 'OPEN') status = 'Active';
+                else if (job.status === 'PAUSED') status = 'Paused';
+
+                return {
+                    id: job.id,
+                    title: job.title,
+                    location: job.location,
+                    type: job.type.charAt(0) + job.type.slice(1).toLowerCase(),
+                    department: 'Engineering', // Placeholder, map if added to DB
+                    status,
+                    applications: job.applications,
+                    shortlisted: job.shortlisted,
+                    postedDate: formattedDate,
+                    statusChangedDate: formattedStatusChangedDate,
+                };
+            })
+        };
+    } catch (error) {
+        console.error("Error fetching employer jobs:", error);
+        return { error: "Failed to fetch jobs" };
+    }
 }
 
 export async function createJobAction(payload: CreateJobPayload) {
@@ -249,5 +282,96 @@ export async function createJobAction(payload: CreateJobPayload) {
     } catch (error: any) {
         console.error("Error creating job:", error);
         return { error: error.message || "Failed to create job" };
+    }
+}
+
+export async function updateJobStatus(jobId: string, newStatus: "OPEN" | "PAUSED" | "CLOSED") {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { error: "Unauthorized" };
+        }
+
+        const { revalidatePath } = await import("next/cache");
+
+        await db.update(jobs)
+            .set({
+                status: newStatus,
+                // Stamp timestamp when pausing or closing; clear it when reopening
+                statusChangedAt: newStatus !== 'OPEN' ? new Date() : null,
+            })
+            .where(
+                and(
+                    eq(jobs.id, jobId),
+                    eq(jobs.employerId, session.user.id)
+                )
+            );
+
+        revalidatePath("/job-postings");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error updating job status:", error);
+        return { error: error.message || "Failed to update job status" };
+    }
+}
+export async function getJobByIdForEmployer(jobId: string) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) return { error: "Unauthorized" };
+
+        const result = await db
+            .select()
+            .from(jobs)
+            .where(and(eq(jobs.id, jobId), eq(jobs.employerId, session.user.id)))
+            .limit(1);
+
+        if (!result.length) return { error: "Job not found" };
+        return { success: true, job: result[0] };
+    } catch (error: any) {
+        console.error("Error fetching job by id:", error);
+        return { error: error.message || "Failed to fetch job" };
+    }
+}
+
+export async function updateJobAction(jobId: string, payload: CreateJobPayload) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) return { error: "Unauthorized" };
+
+        const { revalidatePath } = await import("next/cache");
+
+        await db.update(jobs)
+            .set({
+                title: payload.title,
+                description: payload.description,
+                location: payload.location,
+                workExperienceMin: payload.workExperienceMin ?? undefined,
+                workExperienceMax: payload.workExperienceMax ?? undefined,
+                monthlySalaryMin: payload.monthlySalaryMin ?? undefined,
+                monthlySalaryMax: payload.monthlySalaryMax ?? undefined,
+                perksAndBenefits: payload.perksAndBenefits,
+                candidateLocationRequirement: payload.candidateLocationRequirement,
+                candidateEducationLevel: payload.candidateEducationLevel,
+                requiredSkills: payload.requiredSkills,
+                preferredCandidateGender: payload.preferredCandidateGender as any,
+                screeningExperienceMin: payload.screeningExperienceMin ?? undefined,
+                screeningEducationLevel: payload.screeningEducationLevel,
+                screeningEnglishLevel: payload.screeningEnglishLevel,
+                aboutCompany: payload.aboutCompany,
+                allowCalls: payload.allowCalls,
+                recruiterName: payload.recruiterName,
+                recruiterContact: payload.recruiterContact,
+                callTimeFrom: payload.callTimeFrom,
+                callTimeTo: payload.callTimeTo,
+                callDays: payload.callDays,
+                updatedAt: new Date(),
+            })
+            .where(and(eq(jobs.id, jobId), eq(jobs.employerId, session.user.id)));
+
+        revalidatePath("/job-postings");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error updating job:", error);
+        return { error: error.message || "Failed to update job" };
     }
 }

@@ -5,12 +5,20 @@ import { MobileBottomNav } from "@/components/employer-dashboard/MobileBottomNav
 import { EmployerFooter } from "@/components/employer/EmployerFooter";
 import JobPostingsContent from '@/components/job-posting/JobPostingsContent';
 
+import { getEmployerJobs } from "@/actions/job.actions";
+
 export const metadata = {
     title: "Job Postings | TopCareerLive Employer",
     description: "Manage your active, paused, and closed jobs.",
 };
 
-export default function JobPostingsPage() {
+export default async function JobPostingsPage() {
+    const response = await getEmployerJobs();
+    let initialJobs: any[] = [];
+    if (response && response.success && response.jobs) {
+        initialJobs = response.jobs;
+    }
+
     return (
         <div className="flex flex-col min-h-screen w-full bg-[#F8FAFB]">
             {/* Main Content Area */}
@@ -27,7 +35,7 @@ export default function JobPostingsPage() {
                     <TabletNavStrip activePage="Job Postings" />
 
                     {/* Content Component */}
-                    <JobPostingsContent />
+                    <JobPostingsContent initialJobs={initialJobs} />
                 </div>
             </div>
 

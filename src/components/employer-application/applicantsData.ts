@@ -8,6 +8,7 @@ export interface Applicant {
     experience: string;
     status: string;
     date: string;
+    noticePeriod: string;
 }
 
 export const applicants: Applicant[] = [
@@ -21,6 +22,7 @@ export const applicants: Applicant[] = [
         experience: "5 years",
         status: "Shortlisted",
         date: "Mar 3, 2026",
+        noticePeriod: "IMMEDIATE",
     },
     {
         id: "rm-1",
@@ -32,6 +34,7 @@ export const applicants: Applicant[] = [
         experience: "3 years",
         status: "In Review",
         date: "Mar 2, 2026",
+        noticePeriod: "30_DAYS",
     },
     {
         id: "ad-1",
@@ -43,6 +46,7 @@ export const applicants: Applicant[] = [
         experience: "4 years",
         status: "Interview",
         date: "Mar 1, 2026",
+        noticePeriod: "15_DAYS",
     },
     {
         id: "vs-1",
@@ -54,6 +58,7 @@ export const applicants: Applicant[] = [
         experience: "2 years",
         status: "Rejected",
         date: "Feb 28, 2026",
+        noticePeriod: "60_DAYS",
     },
     {
         id: "nk-1",
@@ -65,6 +70,7 @@ export const applicants: Applicant[] = [
         experience: "6 years",
         status: "Shortlisted",
         date: "Feb 27, 2026",
+        noticePeriod: "IMMEDIATE",
     },
     {
         id: "ak-1",
@@ -76,6 +82,7 @@ export const applicants: Applicant[] = [
         experience: "4 years",
         status: "In Review",
         date: "Feb 26, 2026",
+        noticePeriod: "30_DAYS",
     },
     {
         id: "sp-1",
@@ -87,6 +94,7 @@ export const applicants: Applicant[] = [
         experience: "5 years",
         status: "Interview",
         date: "Feb 25, 2026",
+        noticePeriod: "15_DAYS",
     },
     {
         id: "rg-1",
@@ -98,6 +106,7 @@ export const applicants: Applicant[] = [
         experience: "3 years",
         status: "Shortlisted",
         date: "Feb 24, 2026",
+        noticePeriod: "90_DAYS",
     },
 ];
 

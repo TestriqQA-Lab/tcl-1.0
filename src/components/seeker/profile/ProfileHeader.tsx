@@ -15,6 +15,7 @@ interface ProfileData {
         currentLocation: string | null;
         gender: string | null;
         bio: string | null;
+        noticePeriod: string | null;
     } | null;
 }
 
@@ -67,6 +68,7 @@ const ProfileHeader = () => {
     const phone = data?.user?.phoneNumber || '';
     const location = data?.profile?.currentLocation || '';
     const gender = data?.profile?.gender || '';
+    const noticePeriod = data?.profile?.noticePeriod || '';
     const isVerified = data?.user?.isVerified || false;
 
     if (loading) {
@@ -158,6 +160,10 @@ const ProfileHeader = () => {
                                 {gender.charAt(0) + gender.slice(1).toLowerCase().replace('_', ' ')}
                             </div>
                         )}
+                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold border transition-all ${noticePeriod ? 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            {noticePeriod ? noticePeriod.replace('_', ' ') : 'Notice Period Not Set'}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -186,6 +192,12 @@ const ProfileHeader = () => {
                         <span className="text-gray-600">Personal details</span>
                         <span className="text-[#117a7a] font-bold">+8%</span>
                     </div>
+                    {!noticePeriod && (
+                        <div className="flex justify-between items-center text-xs">
+                            <span className="text-gray-600">Notice period</span>
+                            <span className="text-[#117a7a] font-bold">+5%</span>
+                        </div>
+                    )}
                 </div>
 
                 <button className="w-full bg-[#117a7a] hover:bg-[#0e6666] text-white text-xs font-bold py-2.5 rounded-lg transition-colors shadow-sm">

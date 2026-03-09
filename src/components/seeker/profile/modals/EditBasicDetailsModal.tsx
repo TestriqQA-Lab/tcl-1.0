@@ -11,8 +11,17 @@ interface EditBasicDetailsModalProps {
         phoneNumber: string;
         gender: string;
         currentLocation: string;
+        currentIndustry: string;
+        noticePeriod: string;
     };
-    onSave?: (data: { fullName: string; phoneNumber: string; gender: string; currentLocation: string }) => void;
+    onSave?: (data: {
+        fullName: string;
+        phoneNumber: string;
+        gender: string;
+        currentLocation: string;
+        currentIndustry: string;
+        noticePeriod: string;
+    }) => void;
 }
 
 const genderOptions = [
@@ -22,24 +31,41 @@ const genderOptions = [
     { value: 'PREFER_NOT_TO_SAY', label: 'Prefer not to say' },
 ];
 
+const industryOptions = [
+    'HR', 'Marketing', 'IT', 'Operations', 'Finance', 'Healthcare',
+    'Education', 'Manufacturing', 'Retail', 'Construction', 'Other'
+];
+
+const noticePeriodOptions = [
+    { value: 'IMMEDIATE', label: 'Immediate' },
+    { value: '15_DAYS', label: '15 Days' },
+    { value: '30_DAYS', label: '30 Days' },
+    { value: '60_DAYS', label: '60 Days' },
+    { value: '90_DAYS', label: '90 Days' },
+];
+
 const EditBasicDetailsModal: React.FC<EditBasicDetailsModalProps> = ({
     isOpen,
     onClose,
     initialData = { fullName: '', phoneNumber: '', gender: '', currentLocation: '' },
     onSave,
 }) => {
-    const [fullName, setFullName] = useState(initialData.fullName);
-    const [phoneNumber, setPhoneNumber] = useState(initialData.phoneNumber);
-    const [gender, setGender] = useState(initialData.gender);
-    const [currentLocation, setCurrentLocation] = useState(initialData.currentLocation);
+    const [fullName, setFullName] = useState(initialData.fullName || '');
+    const [phoneNumber, setPhoneNumber] = useState(initialData.phoneNumber || '');
+    const [gender, setGender] = useState(initialData.gender || '');
+    const [currentLocation, setCurrentLocation] = useState(initialData.currentLocation || '');
+    const [currentIndustry, setCurrentIndustry] = useState(initialData.currentIndustry || '');
+    const [noticePeriod, setNoticePeriod] = useState(initialData.noticePeriod || '');
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
-            setFullName(initialData.fullName);
-            setPhoneNumber(initialData.phoneNumber);
-            setGender(initialData.gender);
-            setCurrentLocation(initialData.currentLocation);
+            setFullName(initialData.fullName || '');
+            setPhoneNumber(initialData.phoneNumber || '');
+            setGender(initialData.gender || '');
+            setCurrentLocation(initialData.currentLocation || '');
+            setCurrentIndustry(initialData.currentIndustry || '');
+            setNoticePeriod(initialData.noticePeriod || '');
         }
     }, [isOpen, initialData]);
 
@@ -52,7 +78,14 @@ const EditBasicDetailsModal: React.FC<EditBasicDetailsModalProps> = ({
 
     const handleSave = async () => {
         setSaving(true);
-        onSave?.({ fullName, phoneNumber, gender, currentLocation });
+        onSave?.({
+            fullName,
+            phoneNumber,
+            gender,
+            currentLocation,
+            currentIndustry,
+            noticePeriod
+        });
         setSaving(false);
         onClose();
     };
@@ -148,6 +181,48 @@ const EditBasicDetailsModal: React.FC<EditBasicDetailsModalProps> = ({
                                 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0f766d]/20 focus:border-[#0f766d]
                                 transition-all duration-200"
                         />
+                    </div>
+
+                    {/* Industry */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Industry
+                        </label>
+                        <select
+                            value={currentIndustry}
+                            onChange={(e) => setCurrentIndustry(e.target.value)}
+                            className="w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl
+                                focus:outline-none focus:ring-2 focus:ring-[#0f766d]/20 focus:border-[#0f766d]
+                                transition-all duration-200"
+                        >
+                            <option value="">Select Industry</option>
+                            {industryOptions.map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Notice Period */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Notice Period
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {noticePeriodOptions.map((opt) => (
+                                <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => setNoticePeriod(opt.value)}
+                                    className={`px-3 py-2 rounded-xl text-xs font-medium border transition-all duration-200
+                                        ${noticePeriod === opt.value
+                                            ? 'bg-[#0f766d] text-white border-[#0f766d] shadow-sm'
+                                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 

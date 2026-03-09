@@ -7,13 +7,14 @@ export type TabType = 'active' | 'paused' | 'closed';
 interface StatusFilterStripProps {
     activeTab: TabType;
     onTabChange: (tab: TabType) => void;
+    counts: { active: number; paused: number; closed: number };
 }
 
-const StatusFilterStrip: React.FC<StatusFilterStripProps> = ({ activeTab, onTabChange }) => {
+const StatusFilterStrip: React.FC<StatusFilterStripProps> = ({ activeTab, onTabChange, counts }) => {
     const tabs = [
-        { id: 'active', label: 'Active Jobs', count: 4 },
-        { id: 'paused', label: 'Paused', count: 2 },
-        { id: 'closed', label: 'Closed', count: 2 },
+        { id: 'active', label: 'Active Jobs', count: counts.active },
+        { id: 'paused', label: 'Paused', count: counts.paused },
+        { id: 'closed', label: 'Closed', count: counts.closed },
     ];
 
     return (
@@ -33,8 +34,7 @@ const StatusFilterStrip: React.FC<StatusFilterStripProps> = ({ activeTab, onTabC
                             {tab.label}
                         </span>
                         <div
-                            className={`flex items-center justify-center px-2 py-0.5 rounded-full ${isActive ? 'bg-[#0f766d1a] text-[#0f766d]' : 'bg-[#F1F5F9] text-[#64748B]'
-                                }`}
+                            className={`flex items-center justify-center px-2 py-0.5 rounded-full ${isActive ? 'bg-[#0f766d1a] text-[#0f766d]' : 'bg-[#F1F5F9] text-[#64748B]'}`}
                         >
                             <span className="font-inter text-xs font-semibold">{tab.count}</span>
                         </div>
