@@ -10,14 +10,18 @@ function dbToUi(row: any): EducationData & { dbId: string } {
     if (t === 'Class 12') t = 'Class XII';
     if (t === 'Class 10') t = 'Class X';
 
+    // Extract year from DB Date objects
+    const endDate = row.endDate ? new Date(row.endDate) : null;
+    const endYear = endDate ? String(endDate.getFullYear()) : '';
+
     return {
         dbId: row.id,
         type: t,
         board: row.board || '',
         medium: row.medium || '',
         percentage: row.percentage || '',
-        endingYear: row.endingYear ? String(row.endingYear) : '',
-        passingYear: row.passingYear ? String(row.passingYear) : '',
+        endingYear: endYear,
+        passingYear: endYear,
         isPursuing: row.isPursuing || false,
         degree: row.degree || '',
         stream: row.stream || '',

@@ -7,43 +7,56 @@ import EditCertificationModal, { CertificationData } from '../modals/EditCertifi
 import EditAwardModal, { AwardData } from '../modals/EditAwardModal';
 import EditClubModal, { ClubData } from '../modals/EditClubModal';
 
+const MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 function dbToCert(row: any): CertificationData & { dbId: string } {
+    const startDate = row.startDate ? new Date(row.startDate) : null;
+    const endDate = row.endDate ? new Date(row.endDate) : null;
+
     return {
         dbId: row.id,
         id: row.id,
         name: row.title || '',
         completionId: row.completionId || '',
         url: row.url || '',
-        startMonth: row.startMonth || '',
-        startYear: row.startYear || '',
-        endMonth: row.endMonth || '',
-        endYear: row.endYear || '',
+        startMonth: startDate ? MONTH_NAMES[startDate.getMonth()] : '',
+        startYear: startDate ? String(startDate.getFullYear()) : '',
+        endMonth: endDate ? MONTH_NAMES[endDate.getMonth()] : '',
+        endYear: endDate ? String(endDate.getFullYear()) : '',
         doesNotExpire: row.doesNotExpire || false,
     };
 }
 
 function dbToAward(row: any): AwardData & { dbId: string } {
+    const startDate = row.startDate ? new Date(row.startDate) : null;
+
     return {
         dbId: row.id,
         id: row.id,
         title: row.title || '',
         issuer: row.organization || '',
-        issueMonth: row.startMonth || '',
-        issueYear: row.startYear || '',
+        issueMonth: startDate ? MONTH_NAMES[startDate.getMonth()] : '',
+        issueYear: startDate ? String(startDate.getFullYear()) : '',
         description: row.description || ''
     };
 }
 
 function dbToClub(row: any): ClubData & { dbId: string } {
+    const startDate = row.startDate ? new Date(row.startDate) : null;
+    const endDate = row.endDate ? new Date(row.endDate) : null;
+
     return {
         dbId: row.id,
         id: row.id,
         clubName: row.title || '',
         position: row.organization || '',
-        startMonth: row.startMonth || '',
-        startYear: row.startYear || '',
-        endMonth: row.endMonth || '',
-        endYear: row.endYear || '',
+        startMonth: startDate ? MONTH_NAMES[startDate.getMonth()] : '',
+        startYear: startDate ? String(startDate.getFullYear()) : '',
+        endMonth: endDate ? MONTH_NAMES[endDate.getMonth()] : '',
+        endYear: endDate ? String(endDate.getFullYear()) : '',
         isCurrent: row.isCurrent || false,
         description: row.description || '',
     };
