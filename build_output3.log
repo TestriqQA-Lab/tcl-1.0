@@ -1,0 +1,50 @@
+
+> tcl-1.0@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+[2m[DEBUG][22m Writing debug info to: [2m[34m`[39m[22m[34mC:\Users\user1\Documents\GitHub\tcl-1.0\tailwindcss-20392.log[39m[2m[34m`[39m[22m
+
+
+[2m[1045.64ms][22m [@tailwindcss/postcss] src\app\globals.css
+[2m[   0.24ms][22m  [2m ↳ [22mQuick bail check
+[2m[ 102.93ms][22m  [2m ↳ [22mSetup compiler
+[2m[   3.27ms][22m    [2m ↳ [22mPostCSS AST -> Tailwind CSS AST
+[2m[  99.55ms][22m    [2m ↳ [22mCreate compiler
+[2m[   2.50ms][22m  [2m ↳ [22mRegister full rebuild paths
+[2m[  36.57ms][22m  [2m ↳ [22mSetup scanner
+[2m[ 238.52ms][22m  [2m ↳ [22mScan for candidates
+[2m[ 218.92ms][22m  [2m ↳ [22mRegister dependency messages
+[2m[ 183.65ms][22m  [2m ↳ [22mBuild utilities
+[2m[ 232.42ms][22m  [2m ↳ [22mOptimization
+[2m[  11.50ms][22m    [2m ↳ [22mAST -> CSS
+[2m[ 169.12ms][22m    [2m ↳ [22mLightning CSS
+[2m[  51.71ms][22m    [2m ↳ [22mCSS -> PostCSS AST
+[2m[  28.47ms][22m  [2m ↳ [22mUpdate PostCSS AST
+
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./src/lib/email/mailer.ts:1:1
+Module not found: Can't resolve 'nodemailer'
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m nodemailer [36mfrom[39m [32m"nodemailer"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 2 |[39m
+ [90m 3 |[39m [36mconst[39m transporter [33m=[39m nodemailer[33m.[39mcreateTransport({
+ [90m 4 |[39m   host[33m:[39m [32m"smtp.gmail.com"[39m[33m,[39m[0m
+
+
+
+Import trace:
+  App Route:
+    ./src/lib/email/mailer.ts
+    ./src/app/api/auth/forgot-password/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./src/lib/email/mailer.ts:1:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)

@@ -10,6 +10,8 @@ interface BasicDetailsData {
     phoneNumber: string;
     gender: string;
     currentLocation: string;
+    currentIndustry: string;
+    noticePeriod: string;
 }
 
 function formatGender(val: string | null): string {
@@ -31,6 +33,8 @@ const BasicDetails = () => {
         phoneNumber: '',
         gender: '',
         currentLocation: '',
+        currentIndustry: '',
+        noticePeriod: '',
     });
 
     useEffect(() => {
@@ -44,6 +48,8 @@ const BasicDetails = () => {
                         phoneNumber: profileJson.user?.phoneNumber || '',
                         gender: profileJson.profile.gender || '',
                         currentLocation: profileJson.profile.currentLocation || '',
+                        currentIndustry: profileJson.profile.currentIndustry || '',
+                        noticePeriod: profileJson.profile.noticePeriod || '',
                     });
                 }
             })
@@ -63,6 +69,8 @@ const BasicDetails = () => {
                 gender: data.gender || null,
                 currentLocation: data.currentLocation || null,
                 phoneNumber: data.phoneNumber || null,
+                currentIndustry: data.currentIndustry || null,
+                noticePeriod: data.noticePeriod || null,
             }),
         });
 
@@ -104,6 +112,14 @@ const BasicDetails = () => {
                         <div>
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Location</p>
                             <p className="text-sm font-medium text-gray-900">{details.currentLocation || '—'}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Industry</p>
+                            <p className="text-sm font-medium text-gray-900">{details.currentIndustry || '—'}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Notice Period</p>
+                            <p className="text-sm font-medium text-gray-900">{details.noticePeriod?.replace('_', ' ') || '—'}</p>
                         </div>
                     </div>
                 )}

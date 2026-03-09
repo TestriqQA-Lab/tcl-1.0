@@ -4,17 +4,23 @@ import { db } from "@/lib/db/db";
 import { seekerProfiles, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
+import { appendFileSync } from "fs";
+
 export async function GET() {
     try {
         const session = await auth();
+        const logData = `[${new Date().toISOString()}] GET /api/profile - Session User ID: ${session?.user?.id}\n`;
+        appendFileSync("C:\\Users\\user1\\Documents\\GitHub\\tcl-1.0\\api-debug.log", logData);
+
         if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const userId = session.user.id;
+        console.log("GET /api/profile - Querying for userId:", userId);
 
         // Fetch user — explicitly omit sensitive fields (password, providerAccountId)
-        const [user] = await db
+        const userResult = await db
             .select({
                 id: users.id,
                 email: users.email,
@@ -32,9 +38,15 @@ export async function GET() {
             .from(users)
             .where(eq(users.id, userId))
             .limit(1);
+
+        const user = userResult[0];
+        console.log("GET /api/profile - User found:", !!user);
+
         const [profile] = await db.select().from(seekerProfiles).where(eq(seekerProfiles.userId, userId)).limit(1);
+        console.log("GET /api/profile - Profile found:", !!profile);
 
         if (!user) {
+            console.log("GET /api/profile - Returning 404");
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
@@ -48,12 +60,14 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
     try {
         const session = await auth();
+        console.log("PATCH /api/profile - Session User ID:", session?.user?.id);
         if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const userId = session.user.id;
         const body = await req.json();
+        console.log("PATCH /api/profile - Body:", JSON.stringify(body, null, 2));
 
         // Separate user fields from profile fields
         const userFields: Partial<typeof users.$inferInsert> = {};

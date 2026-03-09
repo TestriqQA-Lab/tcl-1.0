@@ -144,6 +144,7 @@ export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeS
                     <span className="flex-1 text-xs font-semibold text-[#64748B]">Candidate</span>
                     <span className="flex-1 text-xs font-semibold text-[#64748B]">Position Applied</span>
                     <span className="w-[110px] text-xs font-semibold text-[#64748B]">Experience</span>
+                    <span className="w-[100px] text-xs font-semibold text-[#64748B]">Notice Period</span>
                     <span className="w-[120px] text-xs font-semibold text-[#64748B]">Status</span>
                     <span className="w-[110px] text-xs font-semibold text-[#64748B]">Applied Date</span>
                     <span className="w-[80px] text-xs font-semibold text-[#64748B]">Actions</span>
@@ -177,6 +178,11 @@ export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeS
                             </div>
                             <span className="flex-1 text-[13px] text-[#334155] truncate">{app.position}</span>
                             <span className="w-[110px] text-[13px] text-[#64748B]">{app.experience}</span>
+                            <div className="w-[100px]">
+                                <span className="text-[12px] font-medium text-[#0f766d] bg-[#f0fdf4] px-2 py-0.5 rounded border border-[#bbf7d0]">
+                                    {app.noticePeriod.replace('_', ' ')}
+                                </span>
+                            </div>
                             <div className="w-[120px]">
                                 <ApplicantStatusDropdown
                                     currentStatus={app.status as ApplicationStatus}
@@ -280,7 +286,7 @@ export function ApplicantsTable({ selectedJob = "all", searchQuery = "", activeS
                             </div>
                             {/* Bottom: Position + Experience + Date */}
                             <div className="flex items-center justify-between text-[12px] text-[#64748B] ml-[66px]">
-                                <span>{app.position} • {app.experience}</span>
+                                <span>{app.position} • {app.experience} • <span className="text-[#0f766d] font-semibold">{app.noticePeriod.replace('_', ' ')}</span></span>
                                 <span className="text-[#94A3B8]">{app.date}</span>
                             </div>
                         </div>

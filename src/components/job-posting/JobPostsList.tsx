@@ -1,113 +1,14 @@
 import React from 'react';
 import JobCard, { JobCardProps } from './JobCard';
 
-const MOCK_JOBS: JobCardProps[] = [
-    {
-        id: 'frontend',
-        title: 'Sr. Frontend Developer',
-        location: 'San Francisco, CA (Remote)',
-        type: 'Full-time',
-        department: 'Engineering',
-        status: 'Active',
-        views: 128,
-        applications: 45,
-        shortlisted: 12,
-        postedDate: '12 Oct 2023',
-    },
-    {
-        id: 'backend',
-        title: 'Backend Engineer',
-        location: 'Bangalore, India',
-        type: 'Full-time',
-        department: 'Engineering',
-        status: 'Active',
-        views: 215,
-        applications: 32,
-        shortlisted: 5,
-        postedDate: '15 Oct 2023',
-    },
-    {
-        id: 'designer',
-        title: 'Product Designer',
-        location: 'New York, NY (Hybrid)',
-        type: 'Full-time',
-        department: 'Design',
-        status: 'Active',
-        views: 342,
-        applications: 89,
-        shortlisted: 8,
-        postedDate: '18 Oct 2023',
-    },
-    {
-        id: 'analyst',
-        title: 'Data Analyst',
-        location: 'Remote',
-        type: 'Contract',
-        department: 'Analytics',
-        status: 'Active',
-        views: 156,
-        applications: 18,
-        shortlisted: 4,
-        postedDate: '20 Oct 2023',
-    },
-    {
-        id: 'qa-engineer',
-        title: 'Sr. QA Engineer',
-        location: 'Austin, TX',
-        type: 'Full-time',
-        department: 'Engineering',
-        status: 'Paused',
-        views: 92,
-        applications: 14,
-        shortlisted: 2,
-        postedDate: '05 Oct 2023',
-    },
-    {
-        id: 'hr-manager',
-        title: 'HR Manager',
-        location: 'Chicago, IL',
-        type: 'Full-time',
-        department: 'People',
-        status: 'Paused',
-        views: 45,
-        applications: 8,
-        shortlisted: 1,
-        postedDate: '01 Oct 2023',
-    },
-    {
-        id: 'sales-lead',
-        title: 'Sales Lead',
-        location: 'Remote',
-        type: 'Full-time',
-        department: 'Sales',
-        status: 'Closed',
-        views: 520,
-        applications: 142,
-        shortlisted: 15,
-        postedDate: '20 Sep 2023',
-        closedDate: '25 Oct 2023',
-    },
-    {
-        id: 'content-writer',
-        title: 'Content Writer',
-        location: 'Remote',
-        type: 'Part-time',
-        department: 'Marketing',
-        status: 'Closed',
-        views: 310,
-        applications: 95,
-        shortlisted: 10,
-        postedDate: '15 Sep 2023',
-        closedDate: '20 Oct 2023',
-    }
-];
-
 interface JobPostsListProps {
+    jobs: JobCardProps[];
     selectedStatus: string;
+    onEditJob?: (jobId: string) => void;
 }
 
-const JobPostsList: React.FC<JobPostsListProps> = ({ selectedStatus }) => {
-    const filteredJobs = MOCK_JOBS.filter(job =>
+const JobPostsList: React.FC<JobPostsListProps> = ({ jobs, selectedStatus, onEditJob }) => {
+    const filteredJobs = jobs.filter(job =>
         job.status.toLowerCase() === selectedStatus.toLowerCase()
     );
 
@@ -115,7 +16,7 @@ const JobPostsList: React.FC<JobPostsListProps> = ({ selectedStatus }) => {
         <div className="flex flex-col w-full gap-4 md:gap-5 mt-2 md:mt-4">
             {filteredJobs.length > 0 ? (
                 filteredJobs.map((job) => (
-                    <JobCard key={job.id} {...job} />
+                    <JobCard key={job.id} {...job} onEditJob={onEditJob || job.onEditJob} />
                 ))
             ) : (
                 <div className="flex flex-col items-center justify-center py-12 px-4 bg-white rounded-xl border border-[#E2E8F0]">

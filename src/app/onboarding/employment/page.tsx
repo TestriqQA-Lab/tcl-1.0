@@ -297,7 +297,6 @@ export default function EmploymentPage() {
                                 { label: "Current Company", key: "companyName", placeholder: "e.g. Google" },
                                 { label: "Designation", key: "designation", placeholder: "e.g. Senior Developer" },
                                 { label: "Current City", key: "currentCity", placeholder: "e.g. Mumbai" },
-                                { label: "Notice Period", key: "noticePeriod", placeholder: "e.g. 30 Days" }, // Could be select
                             ].map((field) => (
                                 <div key={field.key}>
                                     <label className="block text-sm font-semibold text-gray-900 mb-2">{field.label}</label>
@@ -310,6 +309,45 @@ export default function EmploymentPage() {
                                     />
                                 </div>
                             ))}
+
+                            {/* Industry Select */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-900 mb-2">Industry</label>
+                                <select
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm focus:border-[#0f766d] focus:outline-none bg-white"
+                                    value={experience.industry}
+                                    onChange={(e) => setExperience({ ...experience, industry: e.target.value })}
+                                >
+                                    <option value="">Select Industry</option>
+                                    <option value="HR">HR</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="IT">IT</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Healthcare">Healthcare</option>
+                                    <option value="Education">Education</option>
+                                    <option value="Manufacturing">Manufacturing</option>
+                                    <option value="Retail">Retail</option>
+                                    <option value="Construction">Construction</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            {/* Notice Period Select */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-900 mb-2">Notice Period</label>
+                                <select
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm focus:border-[#0f766d] focus:outline-none bg-white"
+                                    value={experience.noticePeriod}
+                                    onChange={(e) => setExperience({ ...experience, noticePeriod: e.target.value })}
+                                >
+                                    <option value="IMMEDIATE">Immediate</option>
+                                    <option value="15_DAYS">15 Days</option>
+                                    <option value="30_DAYS">30 Days</option>
+                                    <option value="60_DAYS">60 Days</option>
+                                    <option value="90_DAYS">90 Days</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>

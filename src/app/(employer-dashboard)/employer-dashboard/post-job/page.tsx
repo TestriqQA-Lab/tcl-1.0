@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, ChevronDown, Plus, Check, X, Copy, Trash2, Bold, Italic, Underline, AlignLeft, List, Lightbulb, Info } from "lucide-react";
 import { DashboardTopBar } from "@/components/employer-dashboard/DashboardTopBar";
 import { TabletNavStrip } from "@/components/employer-dashboard/TabletNavStrip";
+import { createJobAction } from "@/actions/job.actions";
 
 const steps = [
     "Job details",
@@ -253,6 +254,7 @@ export default function PostJobPage() {
     const [callEndTime, setCallEndTime] = useState("06:00 PM");
     const [callDays, setCallDays] = useState("Mon-Sat");
     const [isDaysDropdownOpen, setIsDaysDropdownOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
     useEffect(() => {
@@ -287,12 +289,61 @@ export default function PostJobPage() {
         "Digital marketing",
     ];
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (activeStepIndex < steps.length - 1) {
             setActiveStepIndex(activeStepIndex + 1);
             window.scrollTo(0, 0);
         } else {
-            setIsSuccess(true);
+            setIsSubmitting(true);
+            try {
+                // Parse salaries from "1,00,000" to number
+                const parseNumber = (val: string): number | null => {
+                    if (!val) return null;
+                    const raw = val.replace(/,/g, "");
+                    return raw ? Number(raw) : null;
+                };
+
+                const payload = {
+                    title: jobTitle,
+                    description: jobDescription,
+                    location: candidateLocType === "In a specific city" ? specificCity : "India",
+                    workExperienceMin: minExp ? Number(minExp) : null,
+                    workExperienceMax: maxExp ? Number(maxExp) : null,
+                    monthlySalaryMin: parseNumber(minSal),
+                    monthlySalaryMax: parseNumber(maxSal),
+                    perksAndBenefits: selectedPerks,
+
+                    candidateLocationRequirement: candidateLocType,
+                    candidateEducationLevel: education,
+                    requiredSkills: selectedSkills,
+                    preferredCandidateGender: selectedGender,
+
+                    screeningExperienceMin: selectedQuestions.includes("experience") ? Number(minExpYears) : null,
+                    screeningEducationLevel: selectedQuestions.includes("education") ? minEducationLevel : "",
+                    screeningEnglishLevel: selectedQuestions.includes("english") ? englishLevel : "",
+
+                    aboutCompany: companyDescription,
+
+                    allowCalls,
+                    recruiterName,
+                    recruiterContact: mobileNumber,
+                    callTimeFrom: callStartTime,
+                    callTimeTo: callEndTime,
+                    callDays: callDays,
+                };
+
+                const result = await createJobAction(payload);
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                setIsSuccess(true);
+            } catch (err: any) {
+                console.error("Failed to post job:", err);
+                alert("Failed to post job. Please try again.");
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -457,13 +508,13 @@ export default function PostJobPage() {
                                         <div className="flex items-center gap-2 lg:gap-4 w-full">
                                             <div className={`flex items-center w-full h-11 bg-white border rounded-md px-3 lg:px-4 transition-colors focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] ${isSalaryInvalid ? "border-red-400" : "border-[#d1d5db]"}`}>
                                                 <span className="text-[13px] text-[#9ca3af] font-medium">₹</span>
-                                                <div className="w-[1px] h-5 bg-[#e5e7eb] mx-2"></div>
+                                                <div className="w-px h-5 bg-[#e5e7eb] mx-2"></div>
                                                 <input type="text" inputMode="numeric" placeholder="Min" value={minSal} onChange={handleMinSalChange} className="w-full outline-none text-[14px] text-[#111827] placeholder:text-[#9ca3af]" />
                                             </div>
                                             <span className="text-[14px] text-[#6b7280]">to</span>
                                             <div className={`flex items-center w-full h-11 bg-white border rounded-md px-3 lg:px-4 transition-colors focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] ${isSalaryInvalid ? "border-red-400" : "border-[#d1d5db]"}`}>
                                                 <span className="text-[13px] text-[#9ca3af] font-medium">₹</span>
-                                                <div className="w-[1px] h-5 bg-[#e5e7eb] mx-2"></div>
+                                                <div className="w-px h-5 bg-[#e5e7eb] mx-2"></div>
                                                 <input type="text" inputMode="numeric" placeholder="Max" value={maxSal} onChange={handleMaxSalChange} className="w-full outline-none text-[14px] text-[#111827] placeholder:text-[#9ca3af]" />
                                             </div>
                                         </div>
@@ -842,7 +893,7 @@ export default function PostJobPage() {
 
                                 <div className="flex flex-col gap-6">
                                     {/* Info Banner - Coming Soon */}
-                                    <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-[#f0fdf4] to-[#f8fafc] border border-[#d1fae5] rounded-lg">
+                                    <div className="flex items-center gap-3 p-4 bg-linear-to-r from-[#f0fdf4] to-[#f8fafc] border border-[#d1fae5] rounded-lg">
                                         <Lightbulb size={20} className="text-[#0f766d] shrink-0" />
                                         <p className="text-[14px] text-[#334155] flex items-center gap-2">
                                             Auto-generated job descriptions based on your details
@@ -876,7 +927,7 @@ export default function PostJobPage() {
                                                 onInput={() => setJobDescription(editorRef.current?.innerHTML || "")}
                                                 onMouseUp={saveSelection}
                                                 onKeyUp={saveSelection}
-                                                className="w-full min-h-[220px] outline-none text-[15px] leading-relaxed text-[#111827] overflow-y-auto [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-[#9ca3af]"
+                                                className="w-full min-h-[220px] outline-none text-[15px] leading-relaxed text-[#111827] overflow-y-auto empty:before:content-[attr(data-placeholder)] empty:before:text-[#9ca3af]"
                                                 data-placeholder="Enter job responsibilities..."
                                                 style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
                                             />
@@ -1039,10 +1090,10 @@ export default function PostJobPage() {
                                                 {isDaysDropdownOpen && (
                                                     <>
                                                         <div
-                                                            className="fixed inset-0 z-[110]"
+                                                            className="fixed inset-0 z-110"
                                                             onClick={() => setIsDaysDropdownOpen(false)}
                                                         />
-                                                        <div className="absolute top-8 left-10 w-40 bg-white border border-[#e5e7eb] rounded-lg shadow-lg py-1 z-[120] animate-in fade-in zoom-in-95 duration-150">
+                                                        <div className="absolute top-8 left-10 w-40 bg-white border border-[#e5e7eb] rounded-lg shadow-lg py-1 z-120 animate-in fade-in zoom-in-95 duration-150">
                                                             {["Everyday", "Mon-Fri", "Mon-Sat"].map((day) => (
                                                                 <button
                                                                     key={day}
@@ -1083,13 +1134,13 @@ export default function PostJobPage() {
                 {/* Drawer Overlay */}
                 {isDrawerOpen && (
                     <div
-                        className="fixed inset-0 bg-black/40 z-[90] transition-opacity animate-in fade-in duration-300"
+                        className="fixed inset-0 bg-black/40 z-90 transition-opacity animate-in fade-in duration-300"
                         onClick={() => setIsDrawerOpen(false)}
                     />
                 )}
 
                 {/* Custom Question Drawer */}
-                <div className={`fixed top-0 right-0 h-full w-full md:w-[600px] bg-white z-[100] shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${isDrawerOpen ? "translate-x-0" : "translate-x-full"}`}>
+                <div className={`fixed top-0 right-0 h-full w-full md:w-[600px] bg-white z-100 shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${isDrawerOpen ? "translate-x-0" : "translate-x-full"}`}>
                     {/* Drawer Header */}
                     <div className="flex items-center justify-between px-6 py-5 border-b border-[#e5e7eb] shrink-0">
                         <h2 className="text-[18px] lg:text-[20px] font-semibold text-[#111827]">Add questions</h2>
@@ -1256,7 +1307,7 @@ export default function PostJobPage() {
                 </div>
 
                 {/* Bottom Action Bar */}
-                <div className="fixed bottom-0 left-0 right-0 w-full h-[72px] lg:h-[80px] bg-white border-t border-[#e5e7eb] flex items-center justify-end px-4 md:px-6 lg:px-10 z-[60]">
+                <div className="fixed bottom-0 left-0 right-0 w-full h-[72px] lg:h-[80px] bg-white border-t border-[#e5e7eb] flex items-center justify-end px-4 md:px-6 lg:px-10 z-60">
                     <div className="flex items-center gap-4 w-full md:w-auto">
                         {activeStepIndex > 0 && (
                             <button
@@ -1268,16 +1319,17 @@ export default function PostJobPage() {
                         )}
                         <button
                             onClick={handleNext}
-                            className="w-full md:w-auto md:min-w-[140px] h-[44px] lg:h-[46px] bg-[#0f766d] hover:bg-[#0d635c] text-white rounded-md font-medium text-[15px] transition-colors flex items-center justify-center"
+                            disabled={isSubmitting}
+                            className={`w-full md:w-auto md:min-w-[140px] h-[44px] lg:h-[46px] text-white rounded-md font-medium text-[15px] transition-colors flex items-center justify-center ${isSubmitting ? "bg-gray-400 cursor-not-allowed" : "bg-[#0f766d] hover:bg-[#0d635c]"}`}
                         >
-                            {activeStepIndex === steps.length - 1 ? "Post job" : "Next"}
+                            {isSubmitting ? "Posting Job..." : activeStepIndex === steps.length - 1 ? "Post job" : "Next"}
                         </button>
                     </div>
                 </div>
 
                 {/* Success Overlay */}
                 {isSuccess && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-200 flex items-center justify-center p-4">
                         {/* Backdrop */}
                         <div className="absolute inset-0 bg-[#0e1b1a]/80 backdrop-blur-sm animate-in fade-in duration-500" />
 
@@ -1285,7 +1337,7 @@ export default function PostJobPage() {
                         <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 lg:p-10 flex flex-col items-center text-center animate-in zoom-in-95 fade-in duration-500 delay-150 fill-mode-both">
                             {/* Animated Checkmark Circle */}
                             <div className="size-20 rounded-full bg-[#eff6f5] flex items-center justify-center mb-6 relative">
-                                <div className="absolute inset-0 rounded-full border-4 border-[#0f766d] border-t-transparent animate-spin duration-[1000ms]" />
+                                <div className="absolute inset-0 rounded-full border-4 border-[#0f766d] border-t-transparent animate-spin duration-1000" />
                                 <div className="size-16 rounded-full bg-[#0f766d] flex items-center justify-center text-white animate-in zoom-in-50 duration-300 delay-500 fill-mode-both">
                                     <Check size={32} strokeWidth={3} />
                                 </div>
