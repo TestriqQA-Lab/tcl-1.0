@@ -4,13 +4,12 @@ import { db } from "@/lib/db/db";
 import { seekerProfiles, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
-import { appendFileSync } from "fs";
+
 
 export async function GET() {
     try {
         const session = await auth();
-        const logData = `[${new Date().toISOString()}] GET /api/profile - Session User ID: ${session?.user?.id}\n`;
-        appendFileSync("C:\\Users\\user1\\Documents\\GitHub\\tcl-1.0\\api-debug.log", logData);
+
 
         if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

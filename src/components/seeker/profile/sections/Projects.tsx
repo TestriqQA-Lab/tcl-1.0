@@ -12,13 +12,16 @@ const MONTH_NAMES = [
 ];
 
 function dbToUi(row: any): ProjectData & { dbId: string } {
+    const startDate = row.startDate ? new Date(row.startDate) : null;
+    const endDate = row.endDate ? new Date(row.endDate) : null;
+
     return {
         dbId: row.id,
         title: row.title || '',
-        startMonth: row.startMonth || '',
-        startYear: row.startYear || '',
-        endMonth: row.endMonth || '',
-        endYear: row.endYear || '',
+        startMonth: startDate ? MONTH_NAMES[startDate.getMonth()] : '',
+        startYear: startDate ? String(startDate.getFullYear()) : '',
+        endMonth: endDate ? MONTH_NAMES[endDate.getMonth()] : '',
+        endYear: endDate ? String(endDate.getFullYear()) : '',
         description: row.description || '',
         keySkills: Array.isArray(row.technologies) ? row.technologies.join(', ') : '',
         projectUrl: row.url || '',
