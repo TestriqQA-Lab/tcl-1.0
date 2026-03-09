@@ -3,7 +3,6 @@ import {
     PlusCircle,
     Search,
     Calendar,
-    Download,
 } from "lucide-react";
 
 const actions = [
@@ -15,17 +14,12 @@ const actions = [
     {
         label: "Search Candidates",
         icon: Search,
-        href: "/employer-dashboard/database-search",
+        href: "/database-search",
     },
     {
-        label: "Schedule Interview",
+        label: "Review Applications",
         icon: Calendar,
-        href: "/employer-dashboard/interviews",
-    },
-    {
-        label: "Export Reports",
-        icon: Download,
-        href: "#",
+        href: "/employer-applications",
     },
 ];
 

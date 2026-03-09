@@ -129,16 +129,17 @@ export async function getEmployerProfile(userId: string) {
             .select({
                 companyName: employerProfiles.companyName,
                 fullName: employerProfiles.fullName,
+                companyLogo: employerProfiles.companyLogo,
             })
             .from(employerProfiles)
             .where(eq(employerProfiles.userId, userId))
             .limit(1);
 
-        if (profile.length === 0) return { companyName: null, fullName: null };
+        if (profile.length === 0) return { companyName: null, fullName: null, companyLogo: null };
         return profile[0];
     } catch (error) {
         console.error("Failed to fetch employer profile:", error);
-        return { companyName: null, fullName: null };
+        return { companyName: null, fullName: null, companyLogo: null };
     }
 }
 

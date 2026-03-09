@@ -30,15 +30,15 @@ const navItems = [
     {
         label: "Database Search",
         icon: Search,
-        href: "/employer-dashboard/database-search",
+        href: "/database-search",
     },
     { label: "Blogs", icon: BookOpen, href: "/employer-dashboard/blogs" },
-    { label: "Analytics", icon: BarChart3, href: "/employer-dashboard/analytics" },
-    {
-        label: "Settings",
-        icon: Settings,
-        href: "/employer-dashboard/settings",
-    },
+    // { label: "Analytics", icon: BarChart3, href: "/employer-dashboard/analytics" },
+    // {
+    //     label: "Settings",
+    //     icon: Settings,
+    //     href: "/employer-dashboard/settings",
+    // },
 ];
 
 interface DashboardSidebarProps {
@@ -52,6 +52,7 @@ export function DashboardSidebar({
     const { data: session } = useSession();
     const [profileOpen, setProfileOpen] = useState(false);
     const [companyName, setCompanyName] = useState<string | null | undefined>(undefined);
+    const [companyLogo, setCompanyLogo] = useState<string | null | undefined>(undefined);
 
     const userEmail = session?.user?.email ?? "";
     const userId = session?.user?.id;
@@ -60,6 +61,7 @@ export function DashboardSidebar({
         if (!userId) return;
         getEmployerProfile(userId).then((profile) => {
             setCompanyName(profile.companyName ?? profile.fullName ?? null);
+            setCompanyLogo(profile.companyLogo ?? null);
         });
     }, [userId]);
 
@@ -107,12 +109,12 @@ export function DashboardSidebar({
                             <button
                                 key={item.label}
                                 onClick={() => router.push(item.href)}
-                                className={`flex items-center gap-3 h-11 px-3.5 rounded-lg text-sm transition-colors text-left ${isActive
+                                className={`flex items-center gap-6 h-14 px-4 rounded-lg text-[16px] transition-colors text-left ${isActive
                                     ? "bg-[#0f766d] text-white font-semibold"
                                     : "text-white/50 hover:text-white/80 hover:bg-white/5"
                                     }`}
                             >
-                                <item.icon size={20} />
+                                <item.icon size={24} />
                                 <span>{item.label}</span>
                             </button>
                         );
@@ -122,18 +124,6 @@ export function DashboardSidebar({
 
             {/* Bottom Section */}
             <div className="flex flex-col gap-4 relative">
-                {/* Upgrade Card */}
-                <div className="bg-[#134e4a] rounded-[10px] p-4 flex flex-col gap-2.5">
-                    <span className="text-white text-[15px] font-bold">
-                        Upgrade to Pro
-                    </span>
-                    <p className="text-white/60 text-xs leading-relaxed">
-                        Unlock premium hiring tools and AI-powered candidate matching.
-                    </p>
-                    <button className="w-full h-9 bg-[#0f766d] hover:bg-[#0d635c] text-white text-[13px] font-semibold rounded-md transition-colors">
-                        Upgrade Now
-                    </button>
-                </div>
 
                 {/* Profile Panel Popup */}
                 {profileOpen && (
@@ -159,11 +149,15 @@ export function DashboardSidebar({
 
                 {/* User Profile Button */}
                 <button
-                    className="flex items-center gap-2.5 pt-2.5 border-t border-white/8 cursor-pointer hover:bg-white/5 p-2 -mx-2 rounded-lg transition-colors outline-none text-left"
+                    className="flex items-center gap-2.5 pt-2.5 border border-white/8 shadow-sm shadow-gray-500 cursor-pointer hover:bg-white/5 p-2 -mx-2 rounded-lg transition-colors outline-none text-left w-full"
                     onClick={() => setProfileOpen(!profileOpen)}
                 >
-                    <div className="size-9 bg-[#0f766d] rounded-full flex items-center justify-center shrink-0">
-                        <span className="text-white text-[13px] font-bold">{initials}</span>
+                    <div className="size-9 bg-[#0f766d] rounded-full flex items-center justify-center shrink-0 overflow-hidden">
+                        {companyLogo ? (
+                            <img src={companyLogo} alt={displayName} className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="text-white text-[13px] font-bold">{initials}</span>
+                        )}
                     </div>
                     <div className="flex flex-col gap-0.5 overflow-hidden">
                         {isLoading ? (
