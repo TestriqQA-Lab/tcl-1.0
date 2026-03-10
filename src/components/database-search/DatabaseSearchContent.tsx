@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SearchFilters } from "./SearchFilters";
 import { FilterDrawer } from "./FilterDrawer";
 import { CandidateCard, CandidateProps } from "./CandidateCard";
@@ -53,6 +53,37 @@ export function DatabaseSearchContent() {
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
     const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
     const [hasActiveFilters, setHasActiveFilters] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    
+    // API State
+    const [candidates, setCandidates] = useState<CandidateProps[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [totalResults, setTotalResults] = useState(0);
+
+    const fetchCandidates = async (filters: any) => {
+        setIsLoading(true);
+        try {
+            const res = await fetch("/api/employer/candidates/search", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(filters || {})
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setCandidates(data);
+                setTotalResults(data.length);
+            }
+        } catch (error) {
+            console.error("Error fetching candidates:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Initial fetch
+    useEffect(() => {
+        fetchCandidates({});
+    }, []);
 
     const handleSelectCandidate = (id: string) => {
         setSelectedCandidateIds(prev => 
@@ -60,11 +91,17 @@ export function DatabaseSearchContent() {
         );
     };
 
+    const handleTopSearch = (query: string) => {
+        setSearchQuery(query);
+        setHasActiveFilters(query.trim().length > 0);
+        fetchCandidates({ query });
+    };
+
     const handleExport = () => {
         if (selectedCandidateIds.length > 0) {
             alert(`Exporting ${selectedCandidateIds.length} selected candidate(s) to Google Sheets / CSV!`);
         } else if (hasActiveFilters) {
-            alert(`Exporting all ${mockCandidates.length} filtered candidate(s) to Google Sheets / CSV!`);
+            alert(`Exporting all ${candidates.length} filtered candidate(s) to Google Sheets / CSV!`);
         }
     };
 
@@ -75,10 +112,18 @@ export function DatabaseSearchContent() {
             {/* Desktop Left Sidebar Filters (FIXED to viewport) */}
             <div className="hidden lg:block w-[280px] bg-white border-r border-[#E2E8F0] shrink-0 sticky top-0 h-[calc(100vh-[140px])] overflow-y-auto">
                 <SearchFilters 
-                    onSearch={() => setHasActiveFilters(true)}
+                    initialQuery={searchQuery}
+                    onSearch={(filters) => {
+                        setHasActiveFilters(true);
+                        setSearchQuery(filters.query);
+                        fetchCandidates(filters);
+                        setSelectedCandidateIds([]);
+                    }}
                     onClear={() => {
                         setHasActiveFilters(false);
+                        setSearchQuery("");
                         setSelectedCandidateIds([]);
+                        fetchCandidates({});
                     }}
                 />
             </div>
@@ -93,8 +138,10 @@ export function DatabaseSearchContent() {
                 }}
                 onClear={() => {
                     setHasActiveFilters(false);
+                    setSearchQuery("");
                     setSelectedCandidateIds([]);
                     setIsFilterDrawerOpen(false);
+                    fetchCandidates({});
                 }}
             />
 
@@ -107,7 +154,7 @@ export function DatabaseSearchContent() {
                     <div className="hidden lg:flex items-center gap-4">
                         <h1 className="text-[24px] font-bold text-[#0e1b1a]">Database Search</h1>
                         <span className="px-3 py-1 bg-[#0f766d]/10 text-[#0f766d] text-[14px] font-bold rounded-full transition-all">
-                            {selectedCandidateIds.length > 0 ? `${selectedCandidateIds.length} selected` : '737,682 results'}
+                            {selectedCandidateIds.length > 0 ? `${selectedCandidateIds.length} selected` : `${totalResults.toLocaleString()} results`}
                         </span>
                     </div>
 
@@ -117,7 +164,7 @@ export function DatabaseSearchContent() {
                             <div className="flex items-center gap-2 md:gap-3 flex-shrink min-w-0">
                                 <h1 className="text-[18px] md:text-[20px] font-bold text-[#0e1b1a] truncate">Database Search</h1>
                                 <span className="px-2 py-1 bg-[#0f766d]/10 text-[#0f766d] text-[11px] md:text-[12px] font-bold rounded-full whitespace-nowrap transition-all hidden sm:inline-block">
-                                    {selectedCandidateIds.length > 0 ? `${selectedCandidateIds.length} selected` : '737,682 results'}
+                                    {selectedCandidateIds.length > 0 ? `${selectedCandidateIds.length} selected` : `${totalResults.toLocaleString()} results`}
                                 </span>
                             </div>
                             <button 
@@ -148,10 +195,12 @@ export function DatabaseSearchContent() {
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
                                 <input
                                     type="text"
+                                    value={searchQuery}
                                     placeholder="Search by title or skills"
-                                    onChange={(e) => {
-                                        if (e.target.value.trim().length > 0) {
-                                            setHasActiveFilters(true);
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            handleTopSearch(e.currentTarget.value);
                                         }
                                     }}
                                     className="w-full h-11 pl-10 pr-3 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg text-[13px] sm:text-[14px] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
@@ -178,10 +227,12 @@ export function DatabaseSearchContent() {
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
                                 <input
                                     type="text"
+                                    value={searchQuery}
                                     placeholder="Search candidates by title or skills"
-                                    onChange={(e) => {
-                                        if (e.target.value.trim().length > 0) {
-                                            setHasActiveFilters(true);
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            handleTopSearch(e.currentTarget.value);
                                         }
                                     }}
                                     className="w-full h-11 pl-10 pr-3 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg text-[14px] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
@@ -192,14 +243,34 @@ export function DatabaseSearchContent() {
 
                 {/* Candidate Results List */}
                 <div className="flex flex-col w-full">
-                    {mockCandidates.map((candidate) => (
-                        <CandidateCard 
-                            key={candidate.id} 
-                            candidate={candidate} 
-                            isSelected={selectedCandidateIds.includes(candidate.id)}
-                            onSelect={handleSelectCandidate}
-                        />
-                    ))}
+                    {isLoading ? (
+                        <div className="w-full py-12 flex justify-center items-center">
+                            <div className="animate-spin w-8 h-8 border-4 border-[#0f766d] border-t-transparent rounded-full" />
+                        </div>
+                    ) : candidates.length > 0 ? (
+                        candidates.map((candidate) => (
+                            <CandidateCard 
+                                key={candidate.id} 
+                                candidate={candidate} 
+                                isSelected={selectedCandidateIds.includes(candidate.id)}
+                                onSelect={handleSelectCandidate}
+                            />
+                        ))
+                    ) : (
+                        <div className="w-full py-12 flex flex-col justify-center items-center text-center">
+                            <h3 className="text-[18px] font-bold text-[#0e1b1a] mb-2">No Candidates Found</h3>
+                            <p className="text-[#64748B] text-[14px]">Try adjusting your filters or search query to find more results.</p>
+                            <button 
+                                onClick={() => {
+                                    setHasActiveFilters(false);
+                                    fetchCandidates({});
+                                }}
+                                className="mt-4 px-4 py-2 bg-[#0f766d]/10 text-[#0f766d] font-bold rounded-lg text-[14px]"
+                            >
+                                Clear all filters
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

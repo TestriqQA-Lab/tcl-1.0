@@ -65,23 +65,65 @@ const MOCK_INDUSTRIES = [
     "Wholesale", "It Services & Consulting"
 ];
 
-interface SearchFiltersProps {
-    onSearch?: () => void;
-    onClear?: () => void;
+export interface SearchFilterState {
+    query: string;
+    location: string;
+    company: string;
+    skills: string[];
+    experienceMin: number | "";
+    experienceMax: number | "";
+    industry: string;
+    educationLevel: string;
+    ageMin: number | "";
+    ageMax: number | "";
+    ctcMin: number | "";
+    ctcMax: number | "";
+    gender: string;
 }
 
-export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
-    // Location State
-    const [locationInput, setLocationInput] = useState("");
+interface SearchFiltersProps {
+    onSearch?: (filters: SearchFilterState) => void;
+    onClear?: () => void;
+    initialQuery?: string;
+}
+
+export function SearchFilters({ onSearch, onClear, initialQuery = "" }: SearchFiltersProps) {
+    // Collect all filter values in one state object for easy access
+    const [filters, setFilters] = useState<SearchFilterState>({
+        query: initialQuery,
+        location: "",
+        company: "",
+        skills: [],
+        experienceMin: "",
+        experienceMax: "",
+        industry: "",
+        educationLevel: "",
+        ageMin: "",
+        ageMax: "",
+        ctcMin: "",
+        ctcMax: "",
+        gender: "any"
+    });
+
+    // Sync internal query state with external prop (e.g. from top search bar)
+    useEffect(() => {
+        setFilters(prev => ({ ...prev, query: initialQuery }));
+    }, [initialQuery]);
+
+    // We'll keep the string/array states decoupled slightly for UI fluidity (like inputs vs badges)
+    // but synchronize them into `filters` on change.
+    const updateFilter = (key: keyof SearchFilterState, value: any) => {
+        setFilters(prev => ({ ...prev, [key]: value }));
+    };
+
+    // Location UI State
     const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
     
-    // Skills State
-    const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+    // Skills UI State
     const [skillInput, setSkillInput] = useState("");
     const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
 
-    // Industry State
-    const [industryInput, setIndustryInput] = useState("");
+    // Industry UI State
     const [showIndustrySuggestions, setShowIndustrySuggestions] = useState(false);
 
     // Refs for outside click handling
@@ -90,11 +132,11 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
     const industryRef = useRef<HTMLDivElement>(null);
 
     // Filter suggestions based on input
-    const filteredLocations = MOCK_LOCATIONS.filter(loc => loc.toLowerCase().includes(locationInput.toLowerCase()));
+    const filteredLocations = MOCK_LOCATIONS.filter(loc => loc.toLowerCase().includes(filters.location.toLowerCase()));
     const filteredSkills = MOCK_SKILLS.filter(
-        skill => skill.toLowerCase().includes(skillInput.toLowerCase()) && !selectedSkills.includes(skill)
+        skill => skill.toLowerCase().includes(skillInput.toLowerCase()) && !filters.skills.includes(skill)
     );
-    const filteredIndustries = MOCK_INDUSTRIES.filter(ind => ind.toLowerCase().includes(industryInput.toLowerCase()));
+    const filteredIndustries = MOCK_INDUSTRIES.filter(ind => ind.toLowerCase().includes(filters.industry.toLowerCase()));
 
     // Click outside handler
     useEffect(() => {
@@ -114,15 +156,15 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
     }, []);
 
     const handleAddSkill = (skill: string) => {
-        if (!selectedSkills.includes(skill)) {
-            setSelectedSkills([...selectedSkills, skill]);
+        if (!filters.skills.includes(skill)) {
+            updateFilter("skills", [...filters.skills, skill]);
         }
         setSkillInput("");
         setShowSkillSuggestions(false);
     };
 
     const handleRemoveSkill = (skillToRemove: string) => {
-        setSelectedSkills(selectedSkills.filter(skill => skill !== skillToRemove));
+        updateFilter("skills", filters.skills.filter(skill => skill !== skillToRemove));
     };
 
     const handleSkillKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -137,7 +179,20 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
             {/* Filter Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-[#E2E8F0] shrink-0">
                 <h2 className="text-[16px] font-bold text-[#0e1b1a]">Filters</h2>
-                <button type="button" onClick={onClear} className="text-[13px] text-[#64748B] underline hover:text-[#0e1b1a]">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                        setFilters({
+                            query: "", location: "", company: "", skills: [],
+                            experienceMin: "", experienceMax: "", industry: "",
+                            educationLevel: "", ageMin: "", ageMax: "",
+                            ctcMin: "", ctcMax: "", gender: "any"
+                        });
+                        setSkillInput("");
+                        if (onClear) onClear();
+                  }}
+                  className="text-[13px] text-[#64748B] underline hover:text-[#0e1b1a]"
+                >
                     Clear all
                 </button>
             </div>
@@ -150,6 +205,8 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                             <input
                                 type="text"
                                 placeholder="Enter job title"
+                                value={filters.query}
+                                onChange={(e) => updateFilter("query", e.target.value)}
                                 className="w-full h-[38px] px-3 border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                             />
                         </div>
@@ -161,22 +218,22 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                          <input
                             type="text"
                             placeholder="Enter location"
-                            value={locationInput}
+                            value={filters.location}
                             onChange={(e) => {
-                                setLocationInput(e.target.value);
+                                updateFilter("location", e.target.value);
                                 setShowLocationSuggestions(true);
                             }}
                             onFocus={() => setShowLocationSuggestions(true)}
                             className="w-full h-[38px] px-3 border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                          />
-                         {showLocationSuggestions && locationInput && filteredLocations.length > 0 && (
+                         {showLocationSuggestions && filters.location && filteredLocations.length > 0 && (
                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E2E8F0] rounded-md shadow-lg z-10 max-h-40 overflow-y-auto">
                                  {filteredLocations.map((loc) => (
                                      <button
                                          key={loc}
                                          className="w-full text-left px-3 py-2 text-[13px] text-[#0e1b1a] hover:bg-[#F1F5F9]"
                                          onClick={() => {
-                                             setLocationInput(loc);
+                                             updateFilter("location", loc);
                                              setShowLocationSuggestions(false);
                                          }}
                                      >
@@ -193,6 +250,8 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                             <input
                                 type="text"
                                 placeholder="Search company"
+                                value={filters.company}
+                                onChange={(e) => updateFilter("company", e.target.value)}
                                 className="w-full h-[38px] px-3 border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                             />
                     </div>
@@ -201,9 +260,9 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                 <FilterSection title="Skills" defaultOpen={true}>
                      <div className="flex flex-col gap-3" ref={skillsRef}>
                          {/* Selected Skills Tags */}
-                         {selectedSkills.length > 0 && (
+                         {filters.skills.length > 0 && (
                             <div className="flex flex-wrap gap-2">
-                                {selectedSkills.map(skill => (
+                                {filters.skills.map(skill => (
                                     <div key={skill} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#EFF6FF] border border-[#BFDBFE] rounded-full">
                                         <span className="text-[12px] font-medium text-[#1D4ED8]">{skill}</span>
                                         <button 
@@ -253,6 +312,8 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                                 type="number" 
                                 placeholder="Min"
                                 min={0}
+                                value={filters.experienceMin}
+                                onChange={(e) => updateFilter("experienceMin", e.target.value ? Number(e.target.value) : "")}
                                 className="w-full h-[38px] px-3 border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                              />
                          </div>
@@ -262,6 +323,8 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                                 type="number" 
                                 placeholder="Max"
                                 min={0}
+                                value={filters.experienceMax}
+                                onChange={(e) => updateFilter("experienceMax", e.target.value ? Number(e.target.value) : "")}
                                 className="w-full h-[38px] px-3 border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                              />
                          </div>
@@ -273,22 +336,22 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                             <input
                                 type="text"
                                 placeholder="Search industry"
-                                value={industryInput}
+                                value={filters.industry}
                                 onChange={(e) => {
-                                    setIndustryInput(e.target.value);
+                                    updateFilter("industry", e.target.value);
                                     setShowIndustrySuggestions(true);
                                 }}
                                 onFocus={() => setShowIndustrySuggestions(true)}
                                 className="w-full h-[38px] px-3 border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                             />
-                            {showIndustrySuggestions && industryInput && filteredIndustries.length > 0 && (
+                            {showIndustrySuggestions && filters.industry && filteredIndustries.length > 0 && (
                                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E2E8F0] rounded-md shadow-lg z-10 max-h-40 overflow-y-auto w-full max-w-[calc(100vw-48px)] lg:max-w-none">
                                     {filteredIndustries.map((ind) => (
                                         <button
                                             key={ind}
                                             className="w-full text-left px-3 py-2 text-[13px] text-[#0e1b1a] hover:bg-[#F1F5F9] whitespace-normal"
                                             onClick={() => {
-                                                setIndustryInput(ind);
+                                                updateFilter("industry", ind);
                                                 setShowIndustrySuggestions(false);
                                             }}
                                         >
@@ -304,7 +367,8 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                      <div className="relative">
                          <select 
                             className="w-full h-[38px] px-3 bg-white border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d] appearance-none"
-                            defaultValue=""
+                            value={filters.educationLevel}
+                            onChange={(e) => updateFilter("educationLevel", e.target.value)}
                          >
                              <option value="" disabled>Select education level</option>
                              <option value="12th">12th pass</option>
@@ -323,6 +387,8 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                                 type="number" 
                                 placeholder="Min"
                                 min={18}
+                                value={filters.ageMin}
+                                onChange={(e) => updateFilter("ageMin", e.target.value ? Number(e.target.value) : "")}
                                 className="w-full h-[38px] px-3 border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                              />
                          </div>
@@ -332,6 +398,8 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                                 type="number" 
                                 placeholder="Max"
                                 min={18}
+                                value={filters.ageMax}
+                                onChange={(e) => updateFilter("ageMax", e.target.value ? Number(e.target.value) : "")}
                                 className="w-full h-[38px] px-3 border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                              />
                          </div>
@@ -345,6 +413,8 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                                 type="number" 
                                 placeholder="Min"
                                 min={0}
+                                value={filters.ctcMin}
+                                onChange={(e) => updateFilter("ctcMin", e.target.value ? Number(e.target.value) : "")}
                                 className="w-full h-[38px] px-3 border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                              />
                          </div>
@@ -354,6 +424,8 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                                 type="number" 
                                 placeholder="Max"
                                 min={0}
+                                value={filters.ctcMax}
+                                onChange={(e) => updateFilter("ctcMax", e.target.value ? Number(e.target.value) : "")}
                                 className="w-full h-[38px] px-3 border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                              />
                          </div>
@@ -364,10 +436,10 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
                      <div className="relative">
                          <select 
                             className="w-full h-[38px] px-3 bg-white border border-[#E2E8F0] rounded-md text-[13px] text-[#0e1b1a] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d] appearance-none"
-                            defaultValue=""
+                            value={filters.gender}
+                            onChange={(e) => updateFilter("gender", e.target.value)}
                          >
-                             <option value="" disabled>Select gender</option>
-                             <option value="any">Any</option>
+                             <option value="any">Any gender</option>
                              <option value="male">Male</option>
                              <option value="female">Female</option>
                              <option value="other">Other</option>
@@ -381,7 +453,9 @@ export function SearchFilters({ onSearch, onClear }: SearchFiltersProps) {
             <div className="p-6 border-t border-[#E2E8F0] shrink-0 bg-white sticky bottom-0 z-10">
                 <button
                     type="button"
-                    onClick={onSearch}
+                    onClick={() => {
+                        if (onSearch) onSearch(filters);
+                    }}
                     className="flex justify-center items-center w-full h-11 bg-[#0f766d] hover:bg-[#0c5c55] text-white text-[15px] font-bold rounded-lg transition-colors"
                 >
                     Search
