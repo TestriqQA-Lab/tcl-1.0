@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { calculateAge } from '@/lib/profileUtils';
 
 interface EditBasicDetailsModalProps {
     isOpen: boolean;
@@ -13,6 +14,7 @@ interface EditBasicDetailsModalProps {
         currentLocation: string;
         currentIndustry: string;
         noticePeriod: string;
+        dateOfBirth?: string;
     };
     onSave?: (data: {
         fullName: string;
@@ -21,6 +23,7 @@ interface EditBasicDetailsModalProps {
         currentLocation: string;
         currentIndustry: string;
         noticePeriod: string;
+        dateOfBirth: string;
     }) => void;
 }
 
@@ -56,7 +59,10 @@ const EditBasicDetailsModal: React.FC<EditBasicDetailsModalProps> = ({
     const [currentLocation, setCurrentLocation] = useState(initialData.currentLocation || '');
     const [currentIndustry, setCurrentIndustry] = useState(initialData.currentIndustry || '');
     const [noticePeriod, setNoticePeriod] = useState(initialData.noticePeriod || '');
+    const [dateOfBirth, setDateOfBirth] = useState(initialData.dateOfBirth || '');
     const [saving, setSaving] = useState(false);
+
+    const age = dateOfBirth ? calculateAge(dateOfBirth) : null;
 
     useEffect(() => {
         if (isOpen) {
@@ -66,6 +72,7 @@ const EditBasicDetailsModal: React.FC<EditBasicDetailsModalProps> = ({
             setCurrentLocation(initialData.currentLocation || '');
             setCurrentIndustry(initialData.currentIndustry || '');
             setNoticePeriod(initialData.noticePeriod || '');
+            setDateOfBirth(initialData.dateOfBirth || '');
         }
     }, [isOpen, initialData]);
 
@@ -84,7 +91,8 @@ const EditBasicDetailsModal: React.FC<EditBasicDetailsModalProps> = ({
             gender,
             currentLocation,
             currentIndustry,
-            noticePeriod
+            noticePeriod,
+            dateOfBirth
         });
         setSaving(false);
         onClose();
@@ -142,6 +150,25 @@ const EditBasicDetailsModal: React.FC<EditBasicDetailsModalProps> = ({
                                 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0f766d]/20 focus:border-[#0f766d]
                                 transition-all duration-200"
                         />
+                    </div>
+
+                    {/* Date of Birth */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Date of Birth
+                        </label>
+                        <input
+                            type="date"
+                            value={dateOfBirth ? dateOfBirth.split('T')[0] : ''}
+                            onChange={(e) => setDateOfBirth(e.target.value)}
+                            max={new Date().toISOString().split('T')[0]}
+                            className="w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl
+                                placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0f766d]/20 focus:border-[#0f766d]
+                                transition-all duration-200"
+                        />
+                        {age !== null && (
+                            <p className="mt-1.5 text-xs font-semibold text-[#0f766d]">Age: {age} years</p>
+                        )}
                     </div>
 
                     {/* Gender */}

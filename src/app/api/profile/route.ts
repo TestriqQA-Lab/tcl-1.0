@@ -90,7 +90,14 @@ export async function PATCH(req: NextRequest) {
             if (key in body) (userFields as Record<string, unknown>)[key] = body[key];
         }
         for (const key of profileAllowedFields) {
-            if (key in body) (profileFields as Record<string, unknown>)[key] = body[key];
+            if (key in body) {
+                if (key === 'dateOfBirth') {
+                    // Handle dateOfBirth explicitly since it's a date field in DB
+                    (profileFields as Record<string, unknown>)[key] = body[key] ? new Date(body[key] as string) : null;
+                } else {
+                    (profileFields as Record<string, unknown>)[key] = body[key];
+                }
+            }
         }
 
         await db.transaction(async (tx) => {

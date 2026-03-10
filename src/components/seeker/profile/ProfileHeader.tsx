@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Mail, Phone, MapPin, CheckCircle, ShieldCheck, User } from 'lucide-react';
+import { Mail, Phone, MapPin, CheckCircle, ShieldCheck, User, Calendar } from 'lucide-react';
+import { calculateAge } from '@/lib/profileUtils';
 
 interface ProfileData {
     user: {
@@ -17,6 +18,7 @@ interface ProfileData {
         bio: string | null;
         noticePeriod: string | null;
         position: string | null;
+        dateOfBirth: string | null;
     } | null;
 }
 
@@ -72,6 +74,8 @@ const ProfileHeader = () => {
     const noticePeriod = data?.profile?.noticePeriod || '';
     const isVerified = data?.user?.isVerified || false;
     const position = data?.profile?.position || '';
+    const dateOfBirth = data?.profile?.dateOfBirth || null;
+    const age = dateOfBirth ? calculateAge(dateOfBirth) : null;
 
     if (loading) {
         return (
@@ -165,6 +169,12 @@ const ProfileHeader = () => {
                             <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
                                 <User className="w-3.5 h-3.5" />
                                 {gender.charAt(0) + gender.slice(1).toLowerCase().replace('_', ' ')}
+                            </div>
+                        )}
+                        {age !== null && (
+                            <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
+                                <Calendar className="w-3.5 h-3.5" />
+                                {age} yrs
                             </div>
                         )}
                         <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold border transition-all ${noticePeriod ? 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
