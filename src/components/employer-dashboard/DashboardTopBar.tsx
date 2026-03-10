@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Bell, Plus, Menu, X, LogOut } from "lucide-react";
+import { Search, Bell, Plus, Menu, X, LogOut, ShieldAlert } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { getEmployerProfile } from "@/actions/employer.actions";
@@ -20,6 +20,8 @@ export function DashboardTopBar({
     const [profileOpen, setProfileOpen] = useState(false);
     const [companyName, setCompanyName] = useState<string | null | undefined>(undefined);
     const [companyLogo, setCompanyLogo] = useState<string | null | undefined>(undefined);
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
 
     const userId = session?.user?.id;
     const userEmail = session?.user?.email ?? "";
@@ -27,8 +29,15 @@ export function DashboardTopBar({
     useEffect(() => {
         if (!userId) return;
         getEmployerProfile(userId).then((profile) => {
-            setCompanyName(profile.companyName ?? profile.fullName ?? null);
-            setCompanyLogo(profile.companyLogo ?? null);
+            if (profile) {
+                setCompanyName(profile.companyName ?? profile.fullName ?? null);
+                setCompanyLogo(profile.companyLogo ?? null);
+                setVerificationStatus(profile.verificationStatus ?? "UNVERIFIED");
+            } else {
+                setCompanyName(null);
+                setCompanyLogo(null);
+                setVerificationStatus("UNVERIFIED");
+            }
         });
     }, [userId]);
 
@@ -38,10 +47,17 @@ export function DashboardTopBar({
     // Generate initials (up to 2 chars)
     const initials = displayName
         .split(" ")
-        .map((w) => w[0])
+        .map((w: string) => w[0])
         .join("")
         .slice(0, 2)
         .toUpperCase();
+
+    const handlePostJobClick = (e: React.MouseEvent) => {
+        if (verificationStatus !== "VERIFIED") {
+            e.preventDefault();
+            setShowVerificationModal(true);
+        }
+    };
 
     // Time-based greeting
     const hour = new Date().getHours();
@@ -89,6 +105,7 @@ export function DashboardTopBar({
                         </button>
                         <Link
                             href="/employer-dashboard/post-job"
+                            onClick={handlePostJobClick}
                             className="flex items-center gap-1.5 h-[38px] px-4 bg-[#0f766d] hover:bg-[#0d635c] text-white text-sm font-semibold rounded-lg transition-colors"
                         >
                             <Plus size={16} />
@@ -231,6 +248,39 @@ export function DashboardTopBar({
                                 <LogOut size={16} />
                                 Log Out
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Verification Modal */}
+            {showVerificationModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowVerificationModal(false)} />
+                    <div className="relative bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl flex flex-col items-center gap-4 animate-[fadeIn_0.2s_ease]">
+                        <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-2">
+                            <ShieldAlert size={28} />
+                        </div>
+                        <h3 className="text-xl font-bold text-center text-[#0e1b1a]">Verification Required</h3>
+                        <p className="text-sm text-center text-[#64748B] mb-2">
+                            {verificationStatus === "PENDING"
+                                ? "Your account is currently under review. Once approved, you can start posting jobs."
+                                : "Please verify your account to start posting jobs. It only takes a minute."}
+                        </p>
+                        <div className="flex items-center gap-3 w-full">
+                            <button
+                                onClick={() => setShowVerificationModal(false)}
+                                className="flex-1 py-2.5 rounded-lg border border-[#E2E8F0] text-[#64748B] font-semibold hover:bg-[#F8FAFB] transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <Link
+                                href="/employer-dashboard/verification"
+                                onClick={() => setShowVerificationModal(false)}
+                                className="flex-1 py-2.5 rounded-lg bg-[#0f766d] hover:bg-[#0d635c] text-white font-semibold text-center transition-colors"
+                            >
+                                {verificationStatus === "PENDING" ? "Check Status" : "Verify Now"}
+                            </Link>
                         </div>
                     </div>
                 </div>

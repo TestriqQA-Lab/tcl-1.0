@@ -17,6 +17,7 @@ export default function PreferencesPage() {
     const [locationInput, setLocationInput] = useState("");
     const [salary, setSalary] = useState<string>("");
     const [gender, setGender] = useState<"MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | "">("");
+    const [position, setPosition] = useState("");
 
     // Fetch Data on Mount
     React.useEffect(() => {
@@ -27,12 +28,13 @@ export default function PreferencesPage() {
                     const result = await getPreferencesAction(session.user.id);
 
                     if (result.success && result.data) {
-                        const { headline, locations, salary, gender } = result.data;
+                        const { headline, locations, salary, gender, position } = result.data;
 
                         if (headline) setHeadline(headline);
                         if (locations) setLocations(locations);
                         if (salary) setSalary(salary.toString());
                         if (gender) setGender(gender);
+                        if (position) setPosition(position);
                     }
                 } catch (error) {
                     console.error("Failed to load preferences data", error);
@@ -77,8 +79,8 @@ export default function PreferencesPage() {
                 headline,
                 locations,
                 salary: parseInt(salary) || 0,
-                gender: gender as any,
-                // Add missing fields here when we implement them in the UI
+                gender: (gender || undefined) as any,
+                position: position.trim() || undefined,
             });
 
             if (result.success) {
@@ -136,6 +138,21 @@ export default function PreferencesPage() {
                             </p>
                         </div>
                     </div>
+                </div>
+
+                {/* Position */}
+                <div className="space-y-3">
+                    <label className="text-sm font-bold text-gray-900">Position / Role (Optional)</label>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={position}
+                            onChange={(e) => setPosition(e.target.value)}
+                            className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#0f766d] focus:border-transparent outline-none text-sm text-gray-900"
+                            placeholder="e.g. Full Stack, Frontend, Marketing..."
+                        />
+                    </div>
+                    <p className="text-[10px] text-gray-500">This will be highlighted on your profile</p>
                 </div>
 
                 {/* Preferred Work Locations */}

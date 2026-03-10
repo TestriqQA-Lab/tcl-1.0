@@ -83,7 +83,7 @@ export async function PATCH(req: NextRequest) {
             "bio", "careerGoals", "resumeUrl", "coverLetter", "portfolioUrl",
             "githubUrl", "linkedinUrl", "otherLinks", "expectedSalaryMin",
             "expectedSalaryMax", "preferredIndustry", "preferredCompanyType",
-            "shiftPreference",
+            "shiftPreference", "position"
         ] as const;
 
         for (const key of userAllowedFields) {

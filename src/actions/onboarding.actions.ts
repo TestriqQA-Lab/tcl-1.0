@@ -219,7 +219,8 @@ export async function updatePreferencesAction(
         headline: string;
         locations: string[];
         salary: number;
-        gender: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
+        gender?: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | null;
+        position?: string;
     }
 ) {
     try {
@@ -243,7 +244,8 @@ export async function updatePreferencesAction(
             bio: data.headline,
             preferredWorkLocation: data.locations,
             expectedSalaryMin: data.salary,
-            gender: data.gender,
+            gender: data.gender || undefined,
+            position: data.position,
             updatedAt: new Date(),
         };
 
@@ -380,6 +382,7 @@ export async function getPreferencesAction(userId: string) {
                 locations: profile.preferredWorkLocation,
                 salary: profile.expectedSalaryMin,
                 gender: profile.gender,
+                position: profile.position,
             }
         };
 

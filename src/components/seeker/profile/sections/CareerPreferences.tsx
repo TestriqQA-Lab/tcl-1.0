@@ -9,6 +9,7 @@ interface Preferences {
     jobTypes: string[];
     locations: string[];
     availability: string;
+    position: string;
 }
 
 // Map DB lookingFor enum to UI job types
@@ -61,6 +62,7 @@ const CareerPreferences = () => {
         jobTypes: [],
         locations: [],
         availability: '15 Days or less',
+        position: '',
     });
 
     useEffect(() => {
@@ -72,6 +74,7 @@ const CareerPreferences = () => {
                         jobTypes: mapLookingFor(json.profile.lookingFor),
                         locations: json.profile.preferredWorkLocation || [],
                         availability: mapNoticePeriod(json.profile.noticePeriod),
+                        position: json.profile.position || '',
                     });
                 }
             })
@@ -79,7 +82,7 @@ const CareerPreferences = () => {
             .finally(() => setLoading(false));
     }, []);
 
-    const handleSave = async (data: { jobTypes: string[]; availability: string; locations: string[] }) => {
+    const handleSave = async (data: { jobTypes: string[]; availability: string; locations: string[]; position: string }) => {
         setPreferences(data);
         await fetch('/api/profile', {
             method: 'PATCH',
@@ -88,8 +91,12 @@ const CareerPreferences = () => {
                 lookingFor: mapJobTypes(data.jobTypes),
                 noticePeriod: mapAvailability(data.availability),
                 preferredWorkLocation: data.locations,
+                position: data.position.trim() || null,
             }),
         });
+
+        // Dispatch event so ProfileHeader can refetch and update position UI
+        window.dispatchEvent(new Event('profile-updated'));
     };
 
     return (
@@ -110,7 +117,13 @@ const CareerPreferences = () => {
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Position</p>
+                            <p className="text-sm font-medium text-gray-900">
+                                {preferences.position || '—'}
+                            </p>
+                        </div>
                         <div>
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Job Type</p>
                             <p className="text-sm font-medium text-gray-900">
