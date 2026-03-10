@@ -130,16 +130,64 @@ export async function getEmployerProfile(userId: string) {
                 companyName: employerProfiles.companyName,
                 fullName: employerProfiles.fullName,
                 companyLogo: employerProfiles.companyLogo,
+                accountType: employerProfiles.accountType,
+                hiringFor: employerProfiles.hiringFor,
+                verificationStatus: employerProfiles.verificationStatus,
+                tempStaffingDocumentType: employerProfiles.tempStaffingDocumentType,
+                tempStaffingDocumentUrl: employerProfiles.tempStaffingDocumentUrl,
+                personalDocumentType: employerProfiles.personalDocumentType,
+                personalDocumentUrl: employerProfiles.personalDocumentUrl,
+                companyDocumentType: employerProfiles.companyDocumentType,
+                companyDocumentUrl: employerProfiles.companyDocumentUrl,
             })
             .from(employerProfiles)
             .where(eq(employerProfiles.userId, userId))
             .limit(1);
 
-        if (profile.length === 0) return { companyName: null, fullName: null, companyLogo: null };
+        if (profile.length === 0) return null;
         return profile[0];
     } catch (error) {
         console.error("Failed to fetch employer profile:", error);
-        return { companyName: null, fullName: null, companyLogo: null };
+        return null;
     }
 }
 
+interface SubmitVerificationInput {
+    userId: string;
+    accountType: "COMPANY" | "INDIVIDUAL";
+    tempStaffingDocumentType?: string;
+    tempStaffingDocumentUrl?: string; // Base64
+    personalDocumentType?: string;
+    personalDocumentUrl?: string; // Base64
+    companyDocumentType?: string;
+    companyDocumentUrl?: string; // Base64
+}
+
+export async function submitEmployerVerificationAction(input: SubmitVerificationInput) {
+    try {
+        const payload: Record<string, any> = {
+            verificationStatus: "PENDING",
+            updatedAt: new Date(),
+        };
+
+        if (input.accountType === "COMPANY") {
+            if (input.personalDocumentType) payload.personalDocumentType = input.personalDocumentType;
+            if (input.personalDocumentUrl) payload.personalDocumentUrl = input.personalDocumentUrl;
+            if (input.companyDocumentType) payload.companyDocumentType = input.companyDocumentType;
+            if (input.companyDocumentUrl) payload.companyDocumentUrl = input.companyDocumentUrl;
+        } else {
+            if (input.tempStaffingDocumentType) payload.tempStaffingDocumentType = input.tempStaffingDocumentType;
+            if (input.tempStaffingDocumentUrl) payload.tempStaffingDocumentUrl = input.tempStaffingDocumentUrl;
+        }
+
+        await db
+            .update(employerProfiles)
+            .set(payload)
+            .where(eq(employerProfiles.userId, input.userId));
+
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to submit employer verification:", error);
+        return { error: "Failed to submit verification. Please try again." };
+    }
+}

@@ -8,8 +8,9 @@ interface EditPreferencesModalProps {
         jobTypes: string[];
         availability: string;
         locations: string[];
+        position: string;
     };
-    onSave?: (data: { jobTypes: string[]; availability: string; locations: string[] }) => void;
+    onSave?: (data: { jobTypes: string[]; availability: string; locations: string[]; position: string }) => void;
 }
 
 import { useFormPersistence } from '@/hooks/useFormPersistence';
@@ -20,7 +21,8 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({
     initialData = {
         jobTypes: ['Jobs'],
         availability: '15 Days or less',
-        locations: ['Mumbai']
+        locations: ['Mumbai'],
+        position: ''
     },
     onSave
 }) => {
@@ -31,7 +33,7 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({
     );
 
     // Destructure for easier usage, but keep them reactive to the persistence hook
-    const { jobTypes, availability, locations } = preferences;
+    const { jobTypes, availability, locations, position } = preferences;
 
     const [locationInput, setLocationInput] = React.useState('');
     const [animateIn, setAnimateIn] = useState(false);
@@ -88,6 +90,13 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({
         }));
     };
 
+    const handleSetPosition = (position: string) => {
+        setPreferences(prev => ({
+            ...prev,
+            position
+        }));
+    };
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
             <div className={`bg-white rounded-2xl w-full max-w-[520px] max-h-[90vh] flex flex-col shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
@@ -125,6 +134,20 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({
                                 </button>
                             ))}
                         </div>
+                    </div>
+
+                    {/* Position */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
+                            Position / Role
+                        </label>
+                        <input
+                            type="text"
+                            value={position}
+                            onChange={(e) => handleSetPosition(e.target.value)}
+                            placeholder="e.g. Full Stack, Frontend, Marketing..."
+                            className="w-full p-3 border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500 transition-all bg-white outline-none text-sm text-gray-700 placeholder:text-gray-400"
+                        />
                     </div>
 
                     {/* Availability */}

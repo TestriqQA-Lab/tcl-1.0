@@ -46,7 +46,16 @@ export default function ClientRegistrationPage() {
     const [submitError, setSubmitError] = useState<string | null>(null);
 
     const isOtpValid = phone.length >= 10 && termsConsent;
-    const isBasicValid = fullName.trim().length > 0 && email.trim().length > 0 && password.length >= 6;
+    const isWorkEmail = (email: string) => {
+        const publicDomains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com", "rediffmail.com", "protonmail.com"];
+        const domain = email.split("@")[1];
+        return domain && !publicDomains.includes(domain.toLowerCase());
+    };
+
+    const isBasicValid = fullName.trim().length > 0 &&
+        email.trim().length > 0 &&
+        password.length >= 6 &&
+        (accountType === "individual" || isWorkEmail(email));
     const isCompanyValid = companyName.trim().length > 0 && designation.trim().length > 0;
 
     const handleSendOTP = () => {
@@ -330,7 +339,10 @@ export default function ClientRegistrationPage() {
                                     </div>
                                     <div className="flex flex-col gap-1.5">
                                         <label className={labelClass}>Official email ID</label>
-                                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email ID" className={inputClass} />
+                                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={accountType === "company" ? "Enter work email ID" : "Enter email ID"} className={inputClass} />
+                                        {accountType === "company" && email && !isWorkEmail(email) && (
+                                            <span className="text-[11px] text-red-500 font-medium">Please enter a valid work email. Gmail, Yahoo, etc. are not allowed for companies.</span>
+                                        )}
                                     </div>
                                     <div className="flex flex-col gap-1.5">
                                         <label className={labelClass}>Create password</label>
@@ -374,11 +386,11 @@ export default function ClientRegistrationPage() {
                                             </div>
                                             <span className={`text-[12px] md:text-[13px] font-medium font-inter ${hiringFor === "company" ? "text-[#0e1b1a]" : "text-[#71717A]"}`}>your company</span>
                                         </label>
-                                        <label className="flex items-center gap-2 cursor-pointer" onClick={() => setHiringFor("consultancy")}>
-                                            <div className={`w-[18px] h-[18px] lg:w-5 lg:h-5 rounded-full border-2 flex items-center justify-center ${hiringFor === "consultancy" ? "border-[#2563EB]" : "border-[#D4D4D8]"}`}>
-                                                {hiringFor === "consultancy" && <div className="w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full bg-[#2563EB]" />}
+                                        <label className="flex items-center gap-2 cursor-pointer" onClick={() => setHiringFor("individual_proprietor" as any)}>
+                                            <div className={`w-[18px] h-[18px] lg:w-5 lg:h-5 rounded-full border-2 flex items-center justify-center ${hiringFor === "individual_proprietor" as any ? "border-[#2563EB]" : "border-[#D4D4D8]"}`}>
+                                                {hiringFor === "individual_proprietor" as any && <div className="w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full bg-[#2563EB]" />}
                                             </div>
-                                            <span className={`text-[12px] md:text-[13px] font-medium font-inter ${hiringFor === "consultancy" ? "text-[#0e1b1a]" : "text-[#71717A]"}`}>a consultancy</span>
+                                            <span className={`text-[12px] md:text-[13px] font-medium font-inter ${hiringFor === "individual_proprietor" as any ? "text-[#0e1b1a]" : "text-[#71717A]"}`}>an individual proprietor</span>
                                         </label>
                                     </div>
                                 </div>

@@ -16,6 +16,7 @@ interface ProfileData {
         gender: string | null;
         bio: string | null;
         noticePeriod: string | null;
+        position: string | null;
     } | null;
 }
 
@@ -70,6 +71,7 @@ const ProfileHeader = () => {
     const gender = data?.profile?.gender || '';
     const noticePeriod = data?.profile?.noticePeriod || '';
     const isVerified = data?.user?.isVerified || false;
+    const position = data?.profile?.position || '';
 
     if (loading) {
         return (
@@ -126,6 +128,11 @@ const ProfileHeader = () => {
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1">
                         <h1 className="text-2xl font-bold text-gray-900 break-words text-center md:text-left">{name}</h1>
                         {isVerified && <CheckCircle className="w-5 h-5 text-blue-500 fill-blue-50 shrink-0" />}
+                        {position && (
+                            <span className="bg-[#e8f3f2] text-[#0f766e] text-xs font-bold px-2 py-0.5 rounded-md border border-[#cce3e3] ml-2">
+                                {position}
+                            </span>
+                        )}
                     </div>
 
                     <p className="text-sm text-gray-600 mb-4 font-medium">

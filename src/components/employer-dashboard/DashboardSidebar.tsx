@@ -13,6 +13,7 @@ import {
     BarChart3,
     Settings,
     LogOut,
+    ShieldAlert
 } from "lucide-react";
 
 const navItems = [
@@ -33,6 +34,11 @@ const navItems = [
         href: "/database-search",
     },
     { label: "Blogs", icon: BookOpen, href: "/employer-dashboard/blogs" },
+    {
+        label: "Verification",
+        icon: ShieldAlert,
+        href: "/employer-dashboard/verification",
+    },
     // { label: "Analytics", icon: BarChart3, href: "/employer-dashboard/analytics" },
     // {
     //     label: "Settings",
@@ -60,8 +66,10 @@ export function DashboardSidebar({
     useEffect(() => {
         if (!userId) return;
         getEmployerProfile(userId).then((profile) => {
-            setCompanyName(profile.companyName ?? profile.fullName ?? null);
-            setCompanyLogo(profile.companyLogo ?? null);
+            if (profile) {
+                setCompanyName(profile.companyName ?? profile.fullName ?? null);
+                setCompanyLogo(profile.companyLogo ?? null);
+            }
         });
     }, [userId]);
 

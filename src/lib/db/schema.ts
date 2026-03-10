@@ -12,8 +12,9 @@ export const applicationStatus = pgEnum("application_status", ["PENDING", "ACCEP
 
 // New Enums for Employer Profile
 export const employerAccountTypeEnum = pgEnum("employer_account_type", ["COMPANY", "INDIVIDUAL"]);
-export const hiringForEnum = pgEnum("hiring_for", ["COMPANY", "CONSULTANCY"]);
+export const hiringForEnum = pgEnum("hiring_for", ["COMPANY", "CONSULTANCY", "INDIVIDUAL_PROPRIETOR"]);
 export const companySizeEnum = pgEnum("company_size", ["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"]);
+export const verificationStatusEnum = pgEnum("verification_status", ["UNVERIFIED", "PENDING", "VERIFIED", "REJECTED"]);
 
 // New Enums for Seeker Profile
 export const genderEnum = pgEnum("gender", ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"]);
@@ -59,6 +60,7 @@ export const seekerProfiles = pgTable("seeker_profiles", {
 
     // Basic Info
     isPublic: boolean("is_public").default(true).notNull(), // Account Visibility
+    position: text("position"), // Optional preferred position like Frontend, Fullstack
 
     // Personal Details
     fullName: text("full_name").notNull(),
@@ -134,6 +136,15 @@ export const employerProfiles = pgTable("employer_profiles", {
     companySize: companySizeEnum("company_size"),
     companyIndustry: text("company_industry"),
     companyLocation: text("company_location"),
+
+    // Verification Fields
+    verificationStatus: verificationStatusEnum("verification_status").default("UNVERIFIED").notNull(),
+    tempStaffingDocumentType: text("temp_staffing_document_type"),
+    tempStaffingDocumentUrl: text("temp_staffing_document_url"),
+    personalDocumentType: text("personal_document_type"),
+    personalDocumentUrl: text("personal_document_url"),
+    companyDocumentType: text("company_document_type"),
+    companyDocumentUrl: text("company_document_url"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
