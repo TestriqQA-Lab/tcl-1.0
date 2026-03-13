@@ -22,11 +22,23 @@ interface UserDashboardClientProps {
     userImage: string | null;
 }
 
+interface RecommendedJob {
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    salary: string;
+    timeAgo: string;
+    logoUrl?: string;
+}
+
 export function UserDashboardClient({ userId, userName, userImage }: UserDashboardClientProps) {
     const [userProfile, setUserProfile] = useState<UserProfile>({ name: userName, image: userImage, location: null });
     const [completionPercentage, setCompletionPercentage] = useState(0);
     const [nextTip, setNextTip] = useState("Loading profile...");
+    const [recommendedJobs, setRecommendedJobs] = useState<RecommendedJob[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingJobs, setIsLoadingJobs] = useState(true);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -66,7 +78,24 @@ export function UserDashboardClient({ userId, userName, userImage }: UserDashboa
                 setIsLoading(false);
             }
         };
+
+        const fetchRecommendedJobs = async () => {
+            if (!userId) return;
+            try {
+                const { getRecommendedJobsAction } = await import("@/actions/job.actions");
+                const result = await getRecommendedJobsAction(userId);
+                if (result.success && result.jobs) {
+                    setRecommendedJobs(result.jobs);
+                }
+            } catch (error) {
+                console.error("Error fetching recommended jobs:", error);
+            } finally {
+                setIsLoadingJobs(false);
+            }
+        };
+
         fetchProfile();
+        fetchRecommendedJobs();
     }, [userId]);
 
     return (
@@ -111,50 +140,29 @@ export function UserDashboardClient({ userId, userName, userImage }: UserDashboa
 
                         {/* Job List (Desktop) */}
                         <div className="hidden lg:flex flex-col gap-4">
-                            {[
-                                {
-                                    title: "Fullstack Developer",
-                                    company: "GlobalStream Systems",
-                                    location: "Hybrid, Mumbai",
-                                    salary: "₹12L - ₹18L",
-                                    timeAgo: "2 days ago",
-                                    logoUrl: undefined
-                                },
-                                {
-                                    title: "Frontend Engineer",
-                                    company: "TechNova Solutions",
-                                    location: "Remote",
-                                    salary: "₹10L - ₹15L",
-                                    timeAgo: "1 day ago",
-                                    logoUrl: undefined
-                                },
-                                {
-                                    title: "Backend Developer (Node.js)",
-                                    company: "Apex Innovations",
-                                    location: "On-site, Bengaluru",
-                                    salary: "₹14L - ₹20L",
-                                    timeAgo: "5 hours ago",
-                                    logoUrl: undefined
-                                },
-                                {
-                                    title: "React Native Developer",
-                                    company: "MobileFirst Platforms",
-                                    location: "Hybrid, Pune",
-                                    salary: "₹8L - ₹14L",
-                                    timeAgo: "3 days ago",
-                                    logoUrl: undefined
-                                }
-                            ].map((job, index) => (
-                                <DashboardJobCard
-                                    key={index}
-                                    title={job.title}
-                                    company={job.company}
-                                    location={job.location}
-                                    salary={job.salary}
-                                    timeAgo={job.timeAgo}
-                                    logoUrl={job.logoUrl}
-                                />
-                            ))}
+                            {isLoadingJobs ? (
+                                <div className="bg-white rounded-3xl p-12 text-center border border-slate-100">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0f766d] mx-auto mb-4"></div>
+                                    <p className="text-slate-500">Finding best matches for you...</p>
+                                </div>
+                            ) : recommendedJobs.length > 0 ? (
+                                recommendedJobs.map((job) => (
+                                    <DashboardJobCard
+                                        key={job.id}
+                                        id={job.id}
+                                        title={job.title}
+                                        company={job.company}
+                                        location={job.location}
+                                        salary={job.salary}
+                                        timeAgo={job.timeAgo}
+                                        logoUrl={job.logoUrl}
+                                    />
+                                ))
+                            ) : (
+                                <div className="bg-white rounded-3xl p-12 text-center border border-slate-100">
+                                    <p className="text-slate-500">No jobs found matching your role yet. Update your profile to get better matches!</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Mobile Empty State */}

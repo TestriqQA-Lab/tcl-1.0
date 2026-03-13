@@ -42,15 +42,19 @@ const EditResumeModal: React.FC<EditResumeModalProps> = ({
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Mock upload
-            const newResume: ResumeData = {
-                id: Math.random().toString(36).substr(2, 9),
-                fileName: file.name,
-                fileUrl: URL.createObjectURL(file), // Mock URL
-                uploadDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), // e.g., Oct 12, 2023
-                size: `${(file.size / 1024 / 1024).toFixed(1)} MB`
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result as string;
+                const newResume: ResumeData = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    fileName: file.name,
+                    fileUrl: base64String, // Use actual base64 string for persistence
+                    uploadDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    size: `${(file.size / 1024 / 1024).toFixed(1)} MB`
+                };
+                setResume(newResume);
             };
-            setResume(newResume);
+            reader.readAsDataURL(file);
         }
     };
 
@@ -68,7 +72,7 @@ const EditResumeModal: React.FC<EditResumeModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
             <div className={`bg-white rounded-2xl w-full max-w-[550px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
                 <div className="p-8 pb-4 relative">

@@ -25,10 +25,15 @@ body {
   color: var(--foreground);
 }
 
-/* Brand color text selection highlight */
+/* Brand color text selection highlight - Force override */
 ::selection {
-  background-color: #0f766d;
-  color: #ffffff;
+  background-color: #0f766d !important;
+  color: #ffffff !important;
+}
+
+*::selection {
+  background-color: #0f766d !important;
+  color: #ffffff !important;
 }
 
 h1,

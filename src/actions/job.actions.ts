@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db/db";
-import { jobs, employerProfiles, users, applications } from "@/lib/db/schema";
+import { jobs, employerProfiles, users, applications, seekerProfiles } from "@/lib/db/schema";
 import { auth } from "@/auth";
 import { eq, ilike, or, and, inArray, desc, sql } from "drizzle-orm";
 import type { CreateJobPayload } from "@/types/job";
@@ -373,5 +373,259 @@ export async function updateJobAction(jobId: string, payload: CreateJobPayload) 
     } catch (error: any) {
         console.error("Error updating job:", error);
         return { error: error.message || "Failed to update job" };
+    }
+}
+
+const ROLE_CATEGORIES: Record<string, string[]> = {
+    "Software Development": ["frontend", "backend", "full stack", "fullstack", "ui ux", "ui/ux", "mobile", "ios", "android", "web", "software engineer", "developer"],
+    "Data Science": ["data analyst", "data science", "machine learning", "ml", "ai", "artificial intelligence", "data engineer"],
+    "Management": ["product manager", "project manager", "scrum master", "technical lead", "cto"],
+    "Design": ["graphic designer", "ui designer", "ux designer", "product designer", "illustrator"],
+    "Marketing": ["seo", "digital marketing", "content writer", "social media manager"],
+    "QA & Testing": ["qa", "tester", "quality assurance", "automation engineer"],
+    "Cyber Security": ["security analyst", "penetration tester", "cyber security"],
+};
+
+export async function applyToJobAction(jobId: string, customResumeBase64?: string) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { error: "You must be logged in to apply for a job." };
+        }
+
+        const userId = session.user.id;
+
+        // 1. Verify user is a seeker
+        const user = await db.query.users.findFirst({
+            where: eq(users.id, userId),
+        });
+
+        if (user?.userRole !== "SEEKER") {
+            return { error: "Only seekers can apply for jobs." };
+        }
+
+        // 2. Check if already applied
+        const existingApplication = await db.query.applications.findFirst({
+            where: and(
+                eq(applications.jobId, jobId),
+                eq(applications.applicantId, userId)
+            ),
+        });
+
+        if (existingApplication) {
+            return { error: "You have already applied for this job." };
+        }
+
+        // 3. Get job and seeker profile
+        const [job, seeker] = await Promise.all([
+            db.query.jobs.findFirst({ where: eq(jobs.id, jobId) }),
+            db.query.seekerProfiles.findFirst({ where: eq(seekerProfiles.userId, userId) })
+        ]);
+
+        if (!job) return { error: "Job not found." };
+        if (!seeker) return { error: "Seeker profile not found. Please complete your profile first." };
+
+        // 4. Resolve Resume
+        const resumeToUse = customResumeBase64 || seeker.resumeUrl;
+
+        if (!resumeToUse) {
+            return { error: "RESUME_REQUIRED", message: "A resume relates to your professional background is required to apply." };
+        }
+
+        // 5. Create application
+        await db.insert(applications).values({
+            jobId,
+            applicantId: userId,
+            applicationStatus: "PENDING",
+            resumeUrl: resumeToUse,
+            coverLetterUrl: seeker.coverLetter || "",
+        });
+
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath(`/job/${jobId}`);
+        revalidatePath("/user-applications");
+
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error applying for job:", error);
+        return { error: error.message || "An error occurred while applying for the job." };
+    }
+}
+
+export async function hasUserAppliedAction(jobId: string) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) return false;
+
+        const existing = await db.query.applications.findFirst({
+            where: and(
+                eq(applications.jobId, jobId),
+                eq(applications.applicantId, session.user.id)
+            ),
+        });
+
+        return !!existing;
+    } catch (error) {
+        return false;
+    }
+}
+
+export async function getRecommendedJobsAction(userId: string) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.id !== userId) {
+            return { error: "Unauthorized" };
+        }
+
+        // 1. Get user's position from seeker profile
+        const profileResult = await db
+            .select({ position: seekerProfiles.position })
+            .from(seekerProfiles)
+            .where(eq(seekerProfiles.userId, userId))
+            .limit(1);
+
+        const userPosition = profileResult[0]?.position?.toLowerCase() || "";
+        console.log("DEBUG: getRecommendedJobsAction - User Position:", userPosition);
+
+        // 2. Determine category keywords or handle mix fallback
+        let keywords: string[] = [];
+        if (userPosition) {
+            keywords.push(userPosition);
+            for (const [category, roles] of Object.entries(ROLE_CATEGORIES)) {
+                if (roles.some(role => userPosition.includes(role)) || category.toLowerCase().includes(userPosition)) {
+                    keywords = [...new Set([...keywords, ...roles])];
+                    break;
+                }
+            }
+        }
+        console.log("DEBUG: getRecommendedJobsAction - Identified Keywords:", keywords);
+
+        let recommendedJobs: any[] = [];
+
+        if (keywords.length > 0) {
+            console.log("DEBUG: getRecommendedJobsAction - Fetching roles-based jobs...");
+            // Recommendation based on role/category
+            const keywordConditions = keywords.map(kw => or(
+                ilike(jobs.title, `%${kw}%`),
+                ilike(jobs.description, `%${kw}%`)
+            ));
+
+            recommendedJobs = await db
+                .select({
+                    id: jobs.id,
+                    title: jobs.title,
+                    company: employerProfiles.companyName,
+                    companyLogo: employerProfiles.companyLogo,
+                    location: jobs.location,
+                    type: jobs.type,
+                    salaryMin: jobs.salaryMin,
+                    salaryMax: jobs.salaryMax,
+                    createdAt: jobs.createdAt,
+                })
+                .from(jobs)
+                .innerJoin(employerProfiles, eq(jobs.employerId, employerProfiles.userId))
+                .where(and(eq(jobs.status, "OPEN"), or(...keywordConditions)))
+                .orderBy(desc(jobs.createdAt))
+                .limit(10);
+
+            console.log(`DEBUG: getRecommendedJobsAction - Found ${recommendedJobs.length} role-based jobs.`);
+        }
+
+        // If no jobs found or no keywords, use mix fallback
+        if (recommendedJobs.length === 0) {
+            console.log("DEBUG: getRecommendedJobsAction - Triggering MIX FALLBACK...");
+            // MIX FALLBACK: Fetch 2 jobs from each category to ensure variety
+            const categoryResults = await Promise.all(
+                Object.values(ROLE_CATEGORIES).slice(0, 5).map(async (roles) => {
+                    const kw = roles[0]; // Take the primary role for each category
+                    try {
+                        return await db
+                            .select({
+                                id: jobs.id,
+                                title: jobs.title,
+                                company: employerProfiles.companyName,
+                                companyLogo: employerProfiles.companyLogo,
+                                location: jobs.location,
+                                type: jobs.type,
+                                salaryMin: jobs.salaryMin,
+                                salaryMax: jobs.salaryMax,
+                                createdAt: jobs.createdAt,
+                            })
+                            .from(jobs)
+                            .innerJoin(employerProfiles, eq(jobs.employerId, employerProfiles.userId))
+                            .where(and(eq(jobs.status, "OPEN"), ilike(jobs.title, `%${kw}%`)))
+                            .orderBy(desc(jobs.createdAt))
+                            .limit(2);
+                    } catch (e) {
+                        console.error(`DEBUG: getRecommendedJobsAction - Error fetching for category ${kw}:`, e);
+                        return [];
+                    }
+                })
+            );
+
+            recommendedJobs = categoryResults.flat();
+            console.log(`DEBUG: getRecommendedJobsAction - Mix fallback found ${recommendedJobs.length} jobs.`);
+
+            // Fill up with general recent jobs if needed (up to 10 total)
+            if (recommendedJobs.length < 10) {
+                const existingIds = recommendedJobs.map(j => j.id);
+                console.log("DEBUG: getRecommendedJobsAction - Filling with extra recent jobs...");
+
+                try {
+                    const extraJobs = await db
+                        .select({
+                            id: jobs.id,
+                            title: jobs.title,
+                            company: employerProfiles.companyName,
+                            companyLogo: employerProfiles.companyLogo,
+                            location: jobs.location,
+                            type: jobs.type,
+                            salaryMin: jobs.salaryMin,
+                            salaryMax: jobs.salaryMax,
+                            createdAt: jobs.createdAt,
+                        })
+                        .from(jobs)
+                        .innerJoin(employerProfiles, eq(jobs.employerId, employerProfiles.userId))
+                        .where(and(
+                            eq(jobs.status, "OPEN"),
+                            existingIds.length > 0 ? sql`${jobs.id} NOT IN (${sql.join(existingIds, sql`, `)})` : sql`TRUE`
+                        ))
+                        .orderBy(desc(jobs.createdAt))
+                        .limit(10 - recommendedJobs.length);
+
+                    recommendedJobs = [...recommendedJobs, ...extraJobs];
+                    console.log(`DEBUG: getRecommendedJobsAction - Total jobs after extra fill: ${recommendedJobs.length}`);
+                } catch (e) {
+                    console.error("DEBUG: getRecommendedJobsAction - Error during extra fill:", e);
+                }
+            }
+
+            // Randomize the mix slightly for better presentation
+            recommendedJobs = recommendedJobs.sort(() => Math.random() - 0.5);
+        }
+
+        return {
+            success: true,
+            jobs: recommendedJobs.map(job => {
+                const now = new Date();
+                const diffTime = Math.abs(now.getTime() - job.createdAt.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const timeAgo = diffDays === 1 ? "1 day ago" : `${diffDays} days ago`;
+
+                return {
+                    id: job.id,
+                    title: job.title,
+                    company: job.company || "Unknown Company",
+                    location: job.location,
+                    salary: `₹${(job.salaryMin / 1000).toFixed(0)}L - ₹${(job.salaryMax / 1000).toFixed(0)}L`,
+                    timeAgo,
+                    logoUrl: job.companyLogo || undefined
+                };
+            })
+        };
+
+    } catch (error: any) {
+        console.error("Error fetching recommended jobs:", error);
+        return { error: error.message || "Failed to fetch recommended jobs" };
     }
 }

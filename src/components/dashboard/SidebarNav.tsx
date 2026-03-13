@@ -19,7 +19,8 @@ export const SidebarNav = () => {
         { label: "Dashboard", href: "/seeker/dashboard", icon: LayoutDashboard },
         { label: "Profile", href: "/seeker/profile", icon: User },
         { label: "Applications", href: "/user-applications", icon: FileText },
-        { label: "Jobs", href: "/search", icon: Search },
+        { label: "Recommended Jobs", href: "/seeker/jobs", icon: Search },
+        { label: "Search Jobs", href: "/search", icon: Search },
         { label: "Companies", href: "/companies", icon: Building2 },
         { label: "Blogs", href: "/blogs", icon: BookOpen },
     ];

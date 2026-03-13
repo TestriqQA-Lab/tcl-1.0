@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getJobById, getSimilarJobs } from "@/actions/job.actions";
 import { notFound } from "next/navigation";
+import { JobApplyButton } from "@/components/job/JobApplyButton";
 
 export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -64,10 +65,8 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center space-x-5 hidden xl:block">
-                            <button className="bg-[#0f766d] hover:bg-[#0f766d]/90 text-white px-6 md:px-8 py-3 md:py-3.5 rounded-xl text-sm md:text-base font-bold shadow-lg shadow-[#0f766d]/20 transition-all flex-1 md:flex-none">
-                                Apply Now
-                            </button>
+                        <div className="hidden xl:flex items-center space-x-5">
+                            <JobApplyButton jobId={id} className="md:px-8 py-3.5 shadow-lg shadow-[#0f766d]/20" />
                             <button className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 p-3 md:p-3.5 rounded-xl transition-all">
                                 <span className="material-symbols-outlined block">share</span>
                             </button>
@@ -117,9 +116,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                                 Ready to Apply?
                             </h2>
                             <p className="text-gray-600 leading-relaxed mb-6 text-sm md:text-base">Click below to submit your application for this exciting role directly. Our team reviews applications periodically.</p>
-                            <button className="bg-[#0f766d] hover:bg-[#0f766d]/90 text-white px-8 py-3.5 rounded-xl text-sm md:text-base font-bold shadow-lg shadow-[#0f766d]/20 transition-all">
-                                Apply Now
-                            </button>
+                            <JobApplyButton jobId={id} className="px-8 py-3.5 shadow-lg shadow-[#0f766d]/20" />
                         </section>
 
                         {/* Similar Jobs - Bigger Cards */}
@@ -244,9 +241,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             {/* Mobile Sticky Apply Button */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40">
                 <div className="flex items-center gap-3">
-                    <button className="flex-1 bg-[#0f766d] hover:bg-[#0f766d]/90 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-[#0f766d]/20 transition-all">
-                        Apply Now
-                    </button>
+                    <JobApplyButton jobId={id} className="flex-1 py-3.5 shadow-lg shadow-[#0f766d]/20" />
                     <button className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 p-3.5 rounded-xl transition-all">
                         <span className="material-symbols-outlined block">mail</span>
                     </button>
