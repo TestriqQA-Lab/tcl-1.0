@@ -4,13 +4,21 @@ import React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export default function JobPostingDetailsContent() {
+interface JobPostingDetailsContentProps {
+    showApprovalControls?: boolean;
+    backUrl?: string;
+}
+
+export default function JobPostingDetailsContent({
+    showApprovalControls = false,
+    backUrl = "/admin-dashboard/jobs",
+}: JobPostingDetailsContentProps) {
     return (
         <div className="w-full min-h-full p-4 md:p-8 lg:py-10 lg:px-12 bg-[#F9FAFB] flex flex-col gap-5 md:gap-6 lg:gap-7">
             {/* ── Header ── */}
             <div className="flex flex-col gap-3 md:gap-4 lg:gap-4">
                 <Link
-                    href="/admin-dashboard/jobs"
+                    href={backUrl}
                     className="flex items-center gap-2 text-sm font-medium text-[#374151] hover:text-[#111827] bg-white w-fit px-3 py-2 rounded-lg border border-gray-200 shadow-sm transition-colors"
                 >
                     <ArrowLeft size={16} />
@@ -250,14 +258,16 @@ Responsibilities:
             </section>
 
             {/* ── Action Buttons ── */}
-            <div className="flex flex-row gap-2.5 md:gap-4 lg:gap-4 lg:mt-2 w-full md:w-fit">
-                <button className="flex-1 md:flex-none text-[13px] md:text-sm lg:text-[15px] font-semibold text-white bg-[#EF4444] px-4 md:px-8 lg:px-10 py-3 md:py-3 lg:py-3 rounded-lg lg:rounded-[10px] hover:bg-[#DC2626] transition-colors font-inter text-center">
-                    Reject Job Post
-                </button>
-                <button className="flex-1 md:flex-none text-[13px] md:text-sm lg:text-[15px] font-semibold text-white bg-[#10B981] px-4 md:px-8 lg:px-10 py-3 md:py-3 lg:py-3 rounded-lg lg:rounded-[10px] hover:bg-[#059669] transition-colors font-inter text-center">
-                    Approve Job Post
-                </button>
-            </div>
+            {showApprovalControls && (
+                <div className="flex flex-row gap-2.5 md:gap-4 lg:gap-4 lg:mt-2 w-full md:w-fit">
+                    <button className="flex-1 md:flex-none text-[13px] md:text-sm lg:text-[15px] font-semibold text-white bg-[#EF4444] px-4 md:px-8 lg:px-10 py-3 md:py-3 lg:py-3 rounded-lg lg:rounded-[10px] hover:bg-[#DC2626] transition-colors font-inter text-center">
+                        Reject Job Post
+                    </button>
+                    <button className="flex-1 md:flex-none text-[13px] md:text-sm lg:text-[15px] font-semibold text-white bg-[#10B981] px-4 md:px-8 lg:px-10 py-3 md:py-3 lg:py-3 rounded-lg lg:rounded-[10px] hover:bg-[#059669] transition-colors font-inter text-center">
+                        Approve Job Post
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
