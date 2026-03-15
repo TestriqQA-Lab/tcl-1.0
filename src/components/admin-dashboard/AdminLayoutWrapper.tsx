@@ -14,6 +14,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
         { name: "Dashboard", href: "/admin-dashboard" },
         { name: "Employer Profiles", href: "/admin-dashboard/employers-profile" },
         { name: "Seeker Profiles", href: "/admin-dashboard/seekers-profile" },
+        { name: "Job Approvals", href: "/admin-dashboard/job-approvals" },
         { name: "Job Postings", href: "/admin-dashboard/jobs" },
     ];
 
