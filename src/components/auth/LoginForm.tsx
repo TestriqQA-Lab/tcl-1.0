@@ -183,7 +183,7 @@ export const LoginForm = ({ onSwitchToRegister, onClose, role = "SEEKER", hideGo
                 type="submit"
                 variant="primary"
                 size="lg"
-                className="w-full !rounded-xl !py-3.5 !text-sm font-semibold shadow-lg shadow-[#0f766d]/20 hover:shadow-[#0f766d]/30 transition-all cursor-pointer"
+                className="w-full rounded-xl! py-3.5! text-sm! font-semibold shadow-lg shadow-[#0f766d]/20 hover:shadow-[#0f766d]/30 transition-all cursor-pointer"
                 disabled={!isFormValid || isSubmitting}
             >
                 {isSubmitting ? "Signing in..." : "Sign In"}

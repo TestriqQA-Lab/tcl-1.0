@@ -1,55 +1,74 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
+import { getAllEmployerProfilesAction } from "@/actions/admin.actions";
 
-// Dummy employer data
-const employers = [
-    {
-        id: 1,
-        name: "TechNova Solutions",
-        industry: "IT Services",
-        email: "contact@technova.com",
-        status: "Verified" as const,
-        logoColor: "#3B82F6",
-    },
-    {
-        id: 2,
-        name: "Global Finance Corp",
-        industry: "Financial Services",
-        email: "hr@globalfinance.com",
-        status: "Pending" as const,
-        logoColor: "#10B981",
-    },
-    {
-        id: 3,
-        name: "Green Energy Ltd",
-        industry: "Renewables",
-        email: "careers@greenenergy.com",
-        status: "Rejected" as const,
-        logoColor: "#8B5CF6",
-    },
-];
+interface Employer {
+    id: string;
+    userId: string;
+    name: string | null;
+    companyName: string | null;
+    companyIndustry: string | null;
+    email: string;
+    status: "UNVERIFIED" | "PENDING" | "VERIFIED" | "REJECTED";
+    logoUrl: string | null;
+    createdAt: Date;
+}
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
-    Verified: { bg: "#DCFCE7", text: "#16A34A" },
-    Pending: { bg: "#FEF9C3", text: "#CA8A04" },
-    Rejected: { bg: "#FEE2E2", text: "#DC2626" },
+    VERIFIED: { bg: "#DCFCE7", text: "#16A34A" },
+    PENDING: { bg: "#FEF9C3", text: "#CA8A04" },
+    REJECTED: { bg: "#FEE2E2", text: "#DC2626" },
+    UNVERIFIED: { bg: "#F3F4F6", text: "#6B7280" },
 };
 
 export default function EmployerProfilesContent() {
     const [searchQuery, setSearchQuery] = useState("");
+    const [employers, setEmployers] = useState<Employer[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function fetchEmployers() {
+            try {
+                const result = await getAllEmployerProfilesAction();
+                if (result.success && result.data) {
+                    setEmployers(result.data as Employer[]);
+                } else {
+                    setError(result.error || "Failed to fetch employers");
+                }
+            } catch (err) {
+                setError("An unexpected error occurred");
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchEmployers();
+    }, []);
 
     const filtered = employers.filter(
         (e) =>
-            e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            e.industry.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            e.email.toLowerCase().includes(searchQuery.toLowerCase())
+            (e.companyName?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
+            (e.companyIndustry?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
+            (e.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (e.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false)
     );
 
+    const getLogoColor = (name: string | null) => {
+        if (!name) return "#3B82F6";
+        const colors = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EF4444"];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+    };
+
     return (
-        <div className="w-full h-full p-5 md:p-8 lg:py-12 lg:px-14 bg-[#F9FAFB] flex flex-col gap-6 md:gap-8">
+        <div className="w-full min-h-full p-5 md:p-8 lg:py-12 lg:px-14 bg-[#F9FAFB] flex flex-col gap-6 md:gap-8 overflow-y-auto">
             {/* ── Header ── */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="flex flex-col gap-1">
@@ -77,139 +96,160 @@ export default function EmployerProfilesContent() {
                 </div>
             </div>
 
-            {/* ── Desktop Table ── */}
-            <div className="hidden lg:block bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
-                {/* Table Header */}
-                <div className="grid grid-cols-[2fr_1.5fr_2fr_1fr_1fr] bg-[#F9FAFB] px-5 py-4 border-b border-gray-100">
-                    <span className="text-xs font-semibold text-[#6B7280] font-inter uppercase tracking-wider">
-                        Company
-                    </span>
-                    <span className="text-xs font-semibold text-[#6B7280] font-inter uppercase tracking-wider">
-                        Industry
-                    </span>
-                    <span className="text-xs font-semibold text-[#6B7280] font-inter uppercase tracking-wider">
-                        Email
-                    </span>
-                    <span className="text-xs font-semibold text-[#6B7280] font-inter uppercase tracking-wider">
-                        Status
-                    </span>
-                    <span className="text-xs font-semibold text-[#6B7280] font-inter uppercase tracking-wider">
-                        Actions
-                    </span>
+            {/* ── Status Messages ── */}
+            {isLoading && (
+                <div className="flex items-center justify-center p-20">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                 </div>
+            )}
 
-                {/* Table Body */}
-                {filtered.length === 0 ? (
-                    <div className="px-5 py-10 text-center text-sm text-[#6B7280]">
-                        No employers found matching your search.
+            {error && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm font-medium">
+                    {error}
+                </div>
+            )}
+
+            {/* ── Desktop Table ── */}
+            {!isLoading && !error && (
+                <div className="hidden lg:block bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                    {/* Table Header */}
+                    <div className="grid grid-cols-[2fr_1.5fr_2fr_1fr_1fr] bg-[#F9FAFB] px-5 py-4 border-b border-gray-100">
+                        <span className="text-xs font-semibold text-[#6B7280] font-inter uppercase tracking-wider">
+                            Company
+                        </span>
+                        <span className="text-xs font-semibold text-[#6B7280] font-inter uppercase tracking-wider">
+                            Industry
+                        </span>
+                        <span className="text-xs font-semibold text-[#6B7280] font-inter uppercase tracking-wider">
+                            Email
+                        </span>
+                        <span className="text-xs font-semibold text-[#6B7280] font-inter uppercase tracking-wider">
+                            Status
+                        </span>
+                        <span className="text-xs font-semibold text-[#6B7280] font-inter uppercase tracking-wider">
+                            Actions
+                        </span>
                     </div>
-                ) : (
-                    filtered.map((employer) => (
-                        <div
-                            key={employer.id}
-                            className="grid grid-cols-[2fr_1.5fr_2fr_1fr_1fr] items-center px-5 py-4 border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
-                        >
-                            {/* Company */}
-                            <div className="flex items-center gap-3">
-                                <div
-                                    className="w-10 h-10 rounded-lg shrink-0"
-                                    style={{ backgroundColor: employer.logoColor }}
-                                />
-                                <span className="text-sm font-semibold text-[#111827] font-inter truncate">
-                                    {employer.name}
-                                </span>
-                            </div>
 
-                            {/* Industry */}
-                            <span className="text-sm text-[#4B5563] font-inter">
-                                {employer.industry}
-                            </span>
-
-                            {/* Email */}
-                            <span className="text-sm text-[#4B5563] font-inter truncate">
-                                {employer.email}
-                            </span>
-
-                            {/* Status Badge */}
-                            <div>
-                                <span
-                                    className="inline-block text-xs font-semibold px-2 py-1 rounded-full font-inter"
-                                    style={{
-                                        backgroundColor: statusStyles[employer.status].bg,
-                                        color: statusStyles[employer.status].text,
-                                    }}
-                                >
-                                    {employer.status}
-                                </span>
-                            </div>
-
-                            {/* Actions */}
-                            <div>
-                                <Link
-                                    href={`/admin-dashboard/employers-profile/${employer.id}`}
-                                    className="text-sm text-[#4B5563] hover:text-[#111827] font-medium font-inter border border-gray-200 rounded-md px-3 py-1.5 hover:bg-gray-50 transition-colors"
-                                >
-                                    View Profile
-                                </Link>
-                            </div>
+                    {/* Table Body */}
+                    {filtered.length === 0 ? (
+                        <div className="px-5 py-10 text-center text-sm text-[#6B7280]">
+                            No employers found matching your search.
                         </div>
-                    ))
-                )}
-            </div>
-
-            {/* ── Mobile / Tablet Card List ── */}
-            <div className="flex flex-col gap-4 lg:hidden">
-                {filtered.length === 0 ? (
-                    <div className="bg-white rounded-xl p-6 text-center text-sm text-[#6B7280]">
-                        No employers found matching your search.
-                    </div>
-                ) : (
-                    filtered.map((employer) => (
-                        <div
-                            key={employer.id}
-                            className="bg-white rounded-[10px] p-4 flex flex-col gap-4 shadow-sm border border-gray-100"
-                        >
-                            {/* Card Top: Logo + Name/Industry + Badge */}
-                            <div className="flex items-center gap-3">
-                                <div
-                                    className="w-10 h-10 rounded-lg shrink-0"
-                                    style={{ backgroundColor: employer.logoColor }}
-                                />
-                                <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                    ) : (
+                        filtered.map((employer) => (
+                            <div
+                                key={employer.id}
+                                className="grid grid-cols-[2fr_1.5fr_2fr_1fr_1fr] items-center px-5 py-4 border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                            >
+                                {/* Company */}
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-white font-bold"
+                                        style={{ backgroundColor: getLogoColor(employer.companyName || employer.name) }}
+                                    >
+                                        {(employer.companyName || employer.name || "E")[0].toUpperCase()}
+                                    </div>
                                     <span className="text-sm font-semibold text-[#111827] font-inter truncate">
-                                        {employer.name}
-                                    </span>
-                                    <span className="text-xs text-[#6B7280] font-inter">
-                                        {employer.industry}
+                                        {employer.companyName || employer.name || "Unnamed Employer"}
                                     </span>
                                 </div>
-                                <span
-                                    className="text-xs font-semibold px-2 py-1 rounded-full font-inter shrink-0"
-                                    style={{
-                                        backgroundColor: statusStyles[employer.status].bg,
-                                        color: statusStyles[employer.status].text,
-                                    }}
-                                >
-                                    {employer.status}
-                                </span>
-                            </div>
 
-                            {/* Card Bottom: Email + View Profile */}
-                            <div className="flex flex-col gap-3">
-                                <span className="text-[13px] text-[#4B5563] font-inter">
+                                {/* Industry */}
+                                <span className="text-sm text-[#4B5563] font-inter">
+                                    {employer.companyIndustry || "Not specified"}
+                                </span>
+
+                                {/* Email */}
+                                <span className="text-sm text-[#4B5563] font-inter truncate">
                                     {employer.email}
                                 </span>
-                                <Link
-                                    href={`/admin-dashboard/employers-profile/${employer.id}`}
-                                    className="text-sm text-[#4B5563] hover:text-[#111827] font-medium font-inter border border-gray-200 rounded-md px-3 py-2 hover:bg-gray-50 transition-colors w-fit"
-                                >
-                                    View Profile
-                                </Link>
+
+                                {/* Status Badge */}
+                                <div>
+                                    <span
+                                        className="inline-block text-xs font-semibold px-2 py-1 rounded-full font-inter"
+                                        style={{
+                                            backgroundColor: statusStyles[employer.status]?.bg || "#F3F4F6",
+                                            color: statusStyles[employer.status]?.text || "#6B7280",
+                                        }}
+                                    >
+                                        {employer.status}
+                                    </span>
+                                </div>
+
+                                {/* Actions */}
+                                <div>
+                                    <Link
+                                        href={`/admin-dashboard/employers-profile/${employer.id}`}
+                                        className="text-sm text-[#4B5563] hover:text-[#111827] font-medium font-inter border border-gray-200 rounded-md px-3 py-1.5 hover:bg-gray-50 transition-colors"
+                                    >
+                                        View Profile
+                                    </Link>
+                                </div>
                             </div>
+                        ))
+                    )}
+                </div>
+            )}
+
+            {/* ── Mobile / Tablet Card List ── */}
+            {!isLoading && !error && (
+                <div className="flex flex-col gap-4 lg:hidden">
+                    {filtered.length === 0 ? (
+                        <div className="bg-white rounded-xl p-6 text-center text-sm text-[#6B7280]">
+                            No employers found matching your search.
                         </div>
-                    ))
-                )}
-            </div>
+                    ) : (
+                        filtered.map((employer) => (
+                            <div
+                                key={employer.id}
+                                className="bg-white rounded-[10px] p-4 flex flex-col gap-4 shadow-sm border border-gray-100"
+                            >
+                                {/* Card Top: Logo + Name/Industry + Badge */}
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-white font-bold"
+                                        style={{ backgroundColor: getLogoColor(employer.companyName || employer.name) }}
+                                    >
+                                        {(employer.companyName || employer.name || "E")[0].toUpperCase()}
+                                    </div>
+                                    <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                                        <span className="text-sm font-semibold text-[#111827] font-inter truncate">
+                                            {employer.companyName || employer.name}
+                                        </span>
+                                        <span className="text-xs text-[#6B7280] font-inter">
+                                            {employer.companyIndustry || "Not specified"}
+                                        </span>
+                                    </div>
+                                    <span
+                                        className="text-xs font-semibold px-2 py-1 rounded-full font-inter shrink-0"
+                                        style={{
+                                            backgroundColor: statusStyles[employer.status]?.bg || "#F3F4F6",
+                                            color: statusStyles[employer.status]?.text || "#6B7280",
+                                        }}
+                                    >
+                                        {employer.status}
+                                    </span>
+                                </div>
+
+                                {/* Card Bottom: Email + View Profile */}
+                                <div className="flex flex-col gap-3">
+                                    <span className="text-[13px] text-[#4B5563] font-inter">
+                                        {employer.email}
+                                    </span>
+                                    <Link
+                                        href={`/admin-dashboard/employers-profile/${employer.id}`}
+                                        className="text-sm text-[#4B5563] hover:text-[#111827] font-medium font-inter border border-gray-200 rounded-md px-3 py-2 hover:bg-gray-50 transition-colors w-fit"
+                                    >
+                                        View Profile
+                                    </Link>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
         </div>
     );
 }

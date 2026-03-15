@@ -30,6 +30,7 @@ export async function getJobs(params: {
             .where(
                 and(
                     eq(jobs.status, "OPEN"),
+                    eq(jobs.approvalStatus, "APPROVED"),
                     params.keyword ? or(
                         ilike(jobs.title, `%${params.keyword}%`),
                         ilike(jobs.description, `%${params.keyword}%`),
@@ -123,6 +124,7 @@ export async function getSimilarJobs(jobId: string, limitCount = 3) {
             .where(
                 and(
                     eq(jobs.status, "OPEN"),
+                    eq(jobs.approvalStatus, "APPROVED"),
                     or(
                         eq(jobs.type, currentJob.type),
                         ilike(jobs.location, `%${currentJob.location}%`)
@@ -524,7 +526,7 @@ export async function getRecommendedJobsAction(userId: string) {
                 })
                 .from(jobs)
                 .innerJoin(employerProfiles, eq(jobs.employerId, employerProfiles.userId))
-                .where(and(eq(jobs.status, "OPEN"), or(...keywordConditions)))
+                .where(and(eq(jobs.status, "OPEN"), eq(jobs.approvalStatus, "APPROVED"), or(...keywordConditions)))
                 .orderBy(desc(jobs.createdAt))
                 .limit(10);
 
@@ -553,7 +555,7 @@ export async function getRecommendedJobsAction(userId: string) {
                             })
                             .from(jobs)
                             .innerJoin(employerProfiles, eq(jobs.employerId, employerProfiles.userId))
-                            .where(and(eq(jobs.status, "OPEN"), ilike(jobs.title, `%${kw}%`)))
+                            .where(and(eq(jobs.status, "OPEN"), eq(jobs.approvalStatus, "APPROVED"), ilike(jobs.title, `%${kw}%`)))
                             .orderBy(desc(jobs.createdAt))
                             .limit(2);
                     } catch (e) {
@@ -588,6 +590,7 @@ export async function getRecommendedJobsAction(userId: string) {
                         .innerJoin(employerProfiles, eq(jobs.employerId, employerProfiles.userId))
                         .where(and(
                             eq(jobs.status, "OPEN"),
+                            eq(jobs.approvalStatus, "APPROVED"),
                             existingIds.length > 0 ? sql`${jobs.id} NOT IN (${sql.join(existingIds, sql`, `)})` : sql`TRUE`
                         ))
                         .orderBy(desc(jobs.createdAt))

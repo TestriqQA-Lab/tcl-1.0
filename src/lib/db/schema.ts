@@ -9,6 +9,7 @@ export const jobType = pgEnum("job_type", ["ONSITE", "HYBRID", "REMOTE"]);
 export const jobStatus = pgEnum("job_status", ["OPEN", "CLOSED", "PAUSED"]);
 
 export const applicationStatus = pgEnum("application_status", ["PENDING", "ACCEPTED", "REJECTED"]);
+export const jobApprovalStatusEnum = pgEnum("job_approval_status", ["PENDING", "APPROVED", "REJECTED"]);
 
 // New Enums for Employer Profile
 export const employerAccountTypeEnum = pgEnum("employer_account_type", ["COMPANY", "INDIVIDUAL"]);
@@ -163,6 +164,7 @@ export const jobs = pgTable("jobs", {
     salaryMin: integer("salary_min").notNull(),
     salaryMax: integer("salary_max").notNull(),
     status: jobStatus("status").default("OPEN").notNull(),
+    approvalStatus: jobApprovalStatusEnum("approval_status").default("PENDING").notNull(),
     experienceLevel: integer("experience_level").notNull(),
     applicationDeadline: timestamp("application_deadline").notNull(),
 

@@ -39,7 +39,9 @@ export async function loginAction(email: string, password: string, expectedRole?
             }
 
             const userRole = found[0].role;
-            if (userRole !== expectedRole) {
+            const isAdminEmail = email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
+
+            if (userRole !== expectedRole && !isAdminEmail) {
                 if (expectedRole === "EMPLOYER") {
                     return { error: "This email is registered as a Job Seeker. Please use the Seeker login." };
                 } else {
@@ -140,18 +142,25 @@ export async function registerAction(
         if (existingUser && existingUser.provider === "google") {
 
             // Ensure role is valid
-            const validRole = ["SEEKER", "EMPLOYER"].includes(role) ? role : existingUser.userRole;
+            const isAdminEmail = email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
+            let validRole: "SEEKER" | "EMPLOYER" | "ADMIN" = existingUser.userRole;
+            
+            if (isAdminEmail) {
+                validRole = "ADMIN";
+            } else if (["SEEKER", "EMPLOYER"].includes(role)) {
+                validRole = role as "SEEKER" | "EMPLOYER";
+            }
 
             await db.transaction(async (tx) => {
                 // Update users table with phone number and ensure role is correct
                 await tx.update(users)
                     .set({
                         phoneNumber: mobileNumber || existingUser.phoneNumber,
-                        userRole: validRole as "SEEKER" | "EMPLOYER",
+                        userRole: validRole,
                     })
                     .where(eq(users.id, existingUser.id));
 
-                // Update or create seeker profile
+                // Update or create seeker profile (Admins don't strictly need one, but this preserves existing behavior for SEEKER/EMPLOYER)
                 if (validRole === "SEEKER") {
                     const existingProfiles = await tx
                         .select()
@@ -200,7 +209,10 @@ export async function registerAction(
         const username = `${baseUsername}${uniqueSuffix}`;
 
         // Ensure role is valid
-        const validRole = ["SEEKER", "EMPLOYER"].includes(role) ? role : "SEEKER";
+        const isAdminEmail = email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
+        const validRole: "SEEKER" | "EMPLOYER" | "ADMIN" = isAdminEmail 
+            ? "ADMIN" 
+            : (["SEEKER", "EMPLOYER"].includes(role) ? role as "SEEKER" | "EMPLOYER" : "SEEKER");
 
         // Use transaction to ensure both user and profile are created
         await db.transaction(async (tx) => {
@@ -209,7 +221,7 @@ export async function registerAction(
                 email,
                 password: hashedPassword,
                 username,
-                userRole: validRole as "SEEKER" | "EMPLOYER",
+                userRole: validRole,
                 phoneNumber: mobileNumber || null,
                 isVerified: false,
                 accountStatus: "ACTIVE",

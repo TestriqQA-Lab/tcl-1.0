@@ -1,29 +1,123 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, FileText, Eye } from "lucide-react";
+import { useParams } from "next/navigation";
+import { ArrowLeft, FileText, Eye, Loader2, Globe, Mail, Phone, Calendar, User, Briefcase, X, ExternalLink, Download } from "lucide-react";
+import { getEmployerProfileDetailAction, updateEmployerVerificationStatusAction } from "@/actions/admin.actions";
 
-// Dummy data for the detailed employer profile
-const employerData = {
-    id: 1,
-    name: "TechNova Solutions",
-    email: "contact@technova.com",
-    industry: "IT Services",
-    status: "Verified",
-    accountStatus: "Active",
-    joinDate: "Oct 12, 2023",
-    logoColor: "#3B82F6",
-    totalJobsPosted: 142,
-    activeJobs: 12,
-    applicationsReceived: 4829,
-    hireRate: "22%",
-    jobsBreakdown: "Active (12) · Paused (4) · Expired (126)",
-    documentName: "Registration_Doc.pdf",
-    documentSize: "2.4 MB • PDF Document",
-};
+interface EmployerDetail {
+    id: string;
+    userId: string;
+    fullName: string;
+    companyName: string | null;
+    companyIndustry: string | null;
+    companyLocation: string | null;
+    companyWebsite: string | null;
+    companySize: string | null;
+    companyDescription: string | null;
+    email: string;
+    phoneNumber: string | null;
+    status: "UNVERIFIED" | "PENDING" | "VERIFIED" | "REJECTED";
+    logoUrl: string | null;
+    createdAt: Date;
+    accountStatus: string;
+    // Verification docs
+    tempStaffingDocumentType: string | null;
+    tempStaffingDocumentUrl: string | null;
+    personalDocumentType: string | null;
+    personalDocumentUrl: string | null;
+    companyDocumentType: string | null;
+    companyDocumentUrl: string | null;
+    performance?: {
+        totalJobs: number;
+        activeJobs: number;
+        applications: number;
+        hireRate: number;
+    };
+}
 
 export default function DetailedEmployerProfileContent() {
+    const params = useParams();
+    const id = params.id as string;
+    
+    const [employer, setEmployer] = useState<EmployerDetail | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [selectedDoc, setSelectedDoc] = useState<{ url: string; name: string } | null>(null);
+
+    useEffect(() => {
+        if (!id) return;
+        
+        async function fetchEmployerDetail() {
+            try {
+                const result = await getEmployerProfileDetailAction(id);
+                if (result.success && result.data) {
+                    setEmployer(result.data as unknown as EmployerDetail);
+                } else {
+                    setError(result.error || "Failed to fetch employer details");
+                }
+            } catch (err) {
+                setError("An unexpected error occurred");
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchEmployerDetail();
+    }, [id]);
+
+    const handleStatusUpdate = async (newStatus: "VERIFIED" | "REJECTED") => {
+        if (!employer || isUpdating) return;
+        
+        setIsUpdating(true);
+        try {
+            const result = await updateEmployerVerificationStatusAction(employer.userId, newStatus);
+            if (result.success) {
+                setEmployer(prev => prev ? { ...prev, status: newStatus } : null);
+            } else {
+                alert(result.error || "Failed to update status");
+            }
+        } catch (err) {
+            alert("An unexpected error occurred");
+            console.error(err);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const getLogoColor = (name: string | null) => {
+        if (!name) return "#3B82F6";
+        const colors = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EF4444"];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+    };
+
+    if (isLoading) {
+        return (
+            <div className="w-full min-h-full flex items-center justify-center bg-[#F9FAFB] p-20">
+                <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+            </div>
+        );
+    }
+
+    if (error || !employer) {
+        return (
+            <div className="w-full min-h-full p-8 bg-[#F9FAFB]">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 font-medium">
+                    {error || "Employer not found"}
+                </div>
+                <Link href="/admin-dashboard/employers-profile" className="mt-4 inline-flex items-center text-blue-600 hover:underline">
+                    <ArrowLeft size={16} className="mr-2" /> Back to Employers
+                </Link>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full min-h-full p-5 md:p-8 lg:py-12 lg:px-14 bg-[#F9FAFB] flex flex-col gap-6 md:gap-8">
             {/* ── Back Navigation ── */}
@@ -43,164 +137,292 @@ export default function DetailedEmployerProfileContent() {
             <div className="bg-white rounded-xl md:rounded-2xl p-5 md:p-6 lg:p-8 flex flex-col gap-4 md:gap-5 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-4 md:gap-5 lg:gap-6">
                     <div
-                        className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-lg md:rounded-[10px] lg:rounded-xl shrink-0"
-                        style={{ backgroundColor: employerData.logoColor }}
-                    />
+                        className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-lg md:rounded-[10px] lg:rounded-xl shrink-0 flex items-center justify-center text-white text-2xl font-bold"
+                        style={{ backgroundColor: getLogoColor(employer.companyName || employer.fullName) }}
+                    >
+                        {(employer.companyName || employer.fullName || "E")[0].toUpperCase()}
+                    </div>
                     <div className="flex flex-col gap-1">
                         <h1 className="text-lg md:text-2xl lg:text-[28px] font-bold text-[#111827] font-inter">
-                            {employerData.name}
+                            {employer.companyName || employer.fullName}
                         </h1>
-                        <span className="text-[13px] md:text-sm lg:text-[15px] text-[#4B5563] font-inter">
-                            {employerData.email}
-                        </span>
+                        <div className="flex items-center gap-4 text-[13px] md:text-sm lg:text-[15px] text-[#4B5563] font-inter">
+                            <span className="flex items-center gap-1.5"><Mail size={14} /> {employer.email}</span>
+                            {employer.phoneNumber && <span className="flex items-center gap-1.5"><Phone size={14} /> {employer.phoneNumber}</span>}
+                        </div>
                     </div>
                 </div>
 
                 {/* Badges */}
                 <div className="flex items-center gap-2 md:gap-3">
-                    <span className="text-[11px] md:text-xs font-semibold text-[#166534] bg-[#DCFCE7] px-2 md:px-2.5 py-1 rounded-full font-inter">
-                        Verified Account
+                    <span className={`text-[11px] md:text-xs font-semibold px-2.5 py-1 rounded-full font-inter ${
+                        employer.status === 'VERIFIED' ? 'text-[#166534] bg-[#DCFCE7]' : 
+                        employer.status === 'PENDING' ? 'text-[#9A3412] bg-[#FFEDD5]' :
+                        'text-[#4B5563] bg-[#F3F4F6]'
+                    }`}>
+                        {employer.status}
                     </span>
-                    <span className="text-[11px] md:text-xs font-semibold text-[#1D4ED8] bg-[#DBEAFE] px-2 md:px-2.5 py-1 rounded-full font-inter">
-                        {employerData.industry}
-                    </span>
+                    {employer.companyIndustry && (
+                        <span className="text-[11px] md:text-xs font-semibold text-[#1D4ED8] bg-[#DBEAFE] px-2 md:px-2.5 py-1 rounded-full font-inter">
+                            {employer.companyIndustry}
+                        </span>
+                    )}
                 </div>
             </div>
 
             {/* ── Two Column Layout (Desktop/Tablet) / Stacked (Mobile) ── */}
-            <div className="flex flex-col lg:flex-row gap-6 md:gap-6 lg:gap-8">
-                {/* ── LEFT COLUMN: Verification & Trust (shown first on mobile) ── */}
-                <div className="order-1 lg:order-2 lg:w-[400px] lg:shrink-0">
-                    <div className="bg-white rounded-xl p-4 md:p-6 flex flex-col gap-5 md:gap-6 shadow-sm border border-gray-100">
-                        <h2 className="text-lg font-semibold text-[#111827] font-inter">
-                            Verification &amp; Trust
+            <div className="flex flex-col lg:flex-row gap-6 md:gap-6 lg:gap-8 relative">
+                {/* ── LEFT COLUMN: Verification & Trust ── */}
+                <div className="lg:w-[400px] lg:shrink-0">
+                    <div className="bg-white rounded-xl p-4 md:p-6 flex flex-col gap-5 md:gap-6 shadow-sm border border-gray-100 h-full">
+                        <h2 className="text-lg font-semibold text-[#111827] font-inter flex items-center gap-2">
+                             Verification &amp; Trust
                         </h2>
 
                         {/* Account Status */}
                         <div className="flex flex-col gap-2">
                             <span className="text-[13px] font-medium text-[#6B7280] font-inter">Account Status</span>
                             <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 bg-[#10B981] rounded-full" />
+                                <span className={`w-2 h-2 rounded-full ${employer.accountStatus === 'ACTIVE' ? 'bg-[#10B981]' : 'bg-[#EF4444]'}`} />
                                 <span className="text-sm font-semibold text-[#111827] font-inter">
-                                    {employerData.accountStatus}
+                                    {employer.accountStatus}
                                 </span>
                             </div>
                         </div>
 
                         {/* Join Date */}
                         <div className="flex flex-col gap-2">
-                            <span className="text-[13px] font-medium text-[#6B7280] font-inter">Join Date</span>
+                            <span className="text-[13px] font-medium text-[#6B7280] font-inter flex items-center gap-1.5"><Calendar size={14} /> Join Date</span>
                             <span className="text-sm font-medium text-[#111827] font-inter">
-                                {employerData.joinDate}
+                                {new Date(employer.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
                         </div>
 
                         {/* Business Documents */}
                         <div className="flex flex-col gap-2">
                             <span className="text-[13px] font-medium text-[#6B7280] font-inter">Business Documents</span>
-                            <div className="bg-[#F9FAFB] rounded-lg p-2.5 md:p-3 flex items-center gap-2.5 md:gap-3">
-                                <div className="w-8 h-8 bg-[#FEE2E2] rounded-md flex items-center justify-center shrink-0">
-                                    <FileText size={16} className="text-[#DC2626]" />
+                            {[
+                                { type: employer.companyDocumentType, url: employer.companyDocumentUrl, name: "Company Document" },
+                                { type: employer.personalDocumentType, url: employer.personalDocumentUrl, name: "Personal ID" },
+                                { type: employer.tempStaffingDocumentType, url: employer.tempStaffingDocumentUrl, name: "Temp Staffing License" }
+                            ].filter(doc => doc.url).map((doc, idx) => (
+                                <div key={idx} className="bg-[#F9FAFB] rounded-lg p-2.5 md:p-3 flex items-center gap-2.5 md:gap-3 group/doc">
+                                    <div className="w-8 h-8 bg-[#FEE2E2] rounded-md flex items-center justify-center shrink-0">
+                                        <FileText size={16} className="text-[#DC2626]" />
+                                    </div>
+                                    <div className="flex flex-col gap-0 flex-1 min-w-0">
+                                        <span className="text-sm font-medium text-[#111827] font-inter truncate">
+                                            {doc.name}
+                                        </span>
+                                        <span className="text-xs text-[#6B7280] font-inter">
+                                            {doc.type}
+                                        </span>
+                                    </div>
+                                    <button 
+                                        onClick={() => setSelectedDoc({ url: doc.url!, name: doc.name })}
+                                        className="bg-white p-1.5 rounded-md hover:bg-gray-100 transition-colors border border-gray-100 shadow-sm"
+                                    >
+                                        <Eye size={14} className="text-[#6B7280]" />
+                                    </button>
                                 </div>
-                                <div className="flex flex-col gap-0 flex-1 min-w-0">
-                                    <span className="text-sm font-medium text-[#111827] font-inter truncate">
-                                        {employerData.documentName}
-                                    </span>
-                                    <span className="text-xs text-[#6B7280] font-inter">
-                                        {employerData.documentSize}
-                                    </span>
-                                </div>
-                                <button className="bg-white p-1.5 rounded-md hover:bg-gray-100 transition-colors">
-                                    <Eye size={14} className="text-[#6B7280]" />
-                                </button>
-                            </div>
+                            ))}
+                            {!employer.companyDocumentUrl && !employer.personalDocumentUrl && !employer.tempStaffingDocumentUrl && (
+                                <span className="text-sm text-[#9CA3AF] italic">No documents uploaded.</span>
+                            )}
                         </div>
 
                         {/* Verification Decision */}
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-3 pt-2">
                             <span className="text-[13px] font-medium text-[#6B7280] font-inter">Verification Decision</span>
                             <div className="flex items-center gap-2">
-                                <button className="bg-[#10B981] text-white text-sm font-semibold px-3 md:px-4 py-2 rounded-md hover:bg-[#059669] transition-colors font-inter">
-                                    Approve
+                                <button 
+                                    onClick={() => handleStatusUpdate("VERIFIED")}
+                                    disabled={employer.status === 'VERIFIED' || isUpdating}
+                                    className="flex-1 bg-[#10B981] text-white text-sm font-semibold px-4 py-2.5 rounded-md hover:bg-[#059669] transition-colors font-inter disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]"
+                                >
+                                    {isUpdating ? <Loader2 size={14} className="animate-spin" /> : "Approve"}
                                 </button>
-                                <button className="bg-[#EF4444] text-white text-sm font-semibold px-3 md:px-4 py-2 rounded-md hover:bg-[#DC2626] transition-colors font-inter">
-                                    Reject
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Reason for Suspension */}
-                        <div className="flex flex-col gap-2">
-                            <span className="text-[13px] font-medium text-[#6B7280] font-inter">Reason for Suspension (if any)</span>
-                            <textarea
-                                placeholder="No issues reported yet..."
-                                className="w-full h-20 bg-[#F9FAFB] border border-gray-200 rounded-lg p-3 text-[13px] text-[#9CA3AF] placeholder:text-[#9CA3AF] font-inter resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                                readOnly
-                            />
-                        </div>
-
-                        {/* Account Moderation */}
-                        <div className="flex flex-col gap-3">
-                            <span className="text-[13px] font-medium text-[#6B7280] font-inter">Account Moderation</span>
-                            <div className="flex flex-col gap-2">
-                                <button className="text-sm font-semibold text-[#B45309] bg-[#FFFBEB] px-4 py-2.5 rounded-lg hover:bg-[#FEF3C7] transition-colors font-inter text-left">
-                                    Suspend Account
-                                </button>
-                                <button className="text-sm font-semibold text-[#B91C1C] bg-[#FEF2F2] px-4 py-2.5 rounded-lg hover:bg-[#FEE2E2] transition-colors font-inter text-left">
-                                    Delete Account
+                                <button 
+                                    onClick={() => handleStatusUpdate("REJECTED")}
+                                    disabled={employer.status === 'REJECTED' || isUpdating}
+                                    className="flex-1 bg-[#EF4444] text-white text-sm font-semibold px-4 py-2.5 rounded-md hover:bg-[#DC2626] transition-colors font-inter disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]"
+                                >
+                                    {isUpdating ? <Loader2 size={14} className="animate-spin" /> : "Reject"}
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* ── RIGHT COLUMN: Performance & Activity Metrics ── */}
-                <div className="order-2 lg:order-1 flex-1">
-                    <div className="bg-white rounded-xl p-4 md:p-6 flex flex-col gap-5 md:gap-6 shadow-sm border border-gray-100">
-                        <h2 className="text-lg font-semibold text-[#111827] font-inter">
-                            Performance &amp; Activity Metrics
-                        </h2>
-
-                        {/* Jobs Breakdown */}
-                        <span className="text-[13px] font-medium text-[#4B5563] font-inter">
-                            Jobs Breakdown: {employerData.jobsBreakdown}
-                        </span>
-
-                        {/* Metrics Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {/* Total Jobs Posted */}
-                            <div className="bg-[#F9FAFB] rounded-lg p-4 flex flex-col gap-2">
-                                <span className="text-[13px] text-[#6B7280] font-normal font-inter">Total Jobs Posted</span>
-                                <span className="text-[28px] font-bold text-[#111827] font-inter">
-                                    {employerData.totalJobsPosted}
-                                </span>
+                {/* ── Document Viewer Modal ── */}
+                {selectedDoc && (
+                    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 md:p-8 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="relative bg-white rounded-2xl w-full max-w-5xl h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                            {/* Modal Header */}
+                            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                                        <FileText className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <h3 className="text-lg font-bold text-gray-900 leading-none">{selectedDoc.name}</h3>
+                                        <span className="text-xs text-gray-500 mt-1 uppercase tracking-wider font-semibold">Business Verification Document</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <a 
+                                        href={selectedDoc.url} 
+                                        download={`document-${Date.now()}`}
+                                        className="p-2.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                        title="Download Document"
+                                    >
+                                        <Download className="w-5 h-5" />
+                                    </a>
+                                    <a 
+                                        href={selectedDoc.url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="p-2.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                        title="Open in New Tab"
+                                    >
+                                        <ExternalLink className="w-5 h-5" />
+                                    </a>
+                                    <div className="w-px h-6 bg-gray-200 mx-1" />
+                                    <button 
+                                        onClick={() => setSelectedDoc(null)}
+                                        className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                        title="Close"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Active Jobs */}
-                            <div className="bg-[#F9FAFB] rounded-lg p-4 flex flex-col gap-2">
-                                <span className="text-[13px] text-[#6B7280] font-normal font-inter">Active Jobs</span>
-                                <span className="text-[28px] font-bold text-[#3B82F6] font-inter">
-                                    {employerData.activeJobs}
-                                </span>
-                            </div>
+                            {/* Modal Content */}
+                            <div className="flex-1 overflow-auto bg-gray-50 flex items-center justify-center p-6 md:p-10">
+                                {(() => {
+                                    const isImage = selectedDoc.url.startsWith("data:image/") || selectedDoc.url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                                    const isPdf = selectedDoc.url.startsWith("data:application/pdf") || selectedDoc.url.endsWith(".pdf");
 
-                            {/* Applications Received */}
-                            <div className="bg-[#F9FAFB] rounded-lg p-4 flex flex-col gap-2">
-                                <span className="text-[13px] text-[#6B7280] font-normal font-inter">Applications Received</span>
-                                <span className="text-[28px] font-bold text-[#111827] font-inter">
-                                    {employerData.applicationsReceived.toLocaleString()}
-                                </span>
-                            </div>
+                                    if (isImage) {
+                                        return (
+                                            <img 
+                                                src={selectedDoc.url} 
+                                                alt={selectedDoc.name}
+                                                className="max-w-full max-h-full object-contain rounded-lg shadow-lg border border-gray-200"
+                                            />
+                                        );
+                                    }
 
-                            {/* Hire Rate */}
-                            <div className="bg-[#F9FAFB] rounded-lg p-4 flex flex-col gap-2">
-                                <span className="text-[13px] text-[#6B7280] font-normal font-inter">Hire Rate</span>
-                                <span className="text-[28px] font-bold text-[#10B981] font-inter">
-                                    {employerData.hireRate}
-                                </span>
+                                    if (isPdf) {
+                                        return (
+                                            <iframe 
+                                                src={selectedDoc.url} 
+                                                className="w-full h-full rounded-lg shadow-lg border border-gray-200 bg-white"
+                                                title={selectedDoc.name}
+                                            />
+                                        );
+                                    }
+
+                                    return (
+                                        <div className="text-center p-8 md:p-12 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center gap-6 max-w-md">
+                                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center">
+                                                <FileText className="w-8 h-8 text-gray-400" />
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <p className="text-gray-900 font-bold text-lg">Unable to Preview</p>
+                                                <p className="text-gray-500 text-sm leading-relaxed">
+                                                    We don't support online preview for this file format yet. Please download the document to view it on your device.
+                                                </p>
+                                            </div>
+                                            <a 
+                                                href={selectedDoc.url} 
+                                                download 
+                                                className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+                                            >
+                                                <Download className="w-5 h-5" /> Download Document
+                                            </a>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* ── RIGHT COLUMN: Content Metrics & Information ── */}
+                <div className="flex-1 flex flex-col gap-6">
+                    {/* Basic Info */}
+                    <div className="bg-white rounded-xl p-4 md:p-6 flex flex-col gap-5 md:gap-6 shadow-sm border border-gray-100">
+                        <h2 className="text-lg font-semibold text-[#111827] font-inter">Company Details</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="flex flex-col gap-1.5">
+                                <span className="text-[13px] text-[#6B7280] font-medium flex items-center gap-1.5"><User size={14} /> Full Name</span>
+                                <span className="text-sm font-semibold text-[#111827]">{employer.fullName}</span>
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                                <span className="text-[13px] text-[#6B7280] font-medium flex items-center gap-1.5"><Briefcase size={14} /> Company Size</span>
+                                <span className="text-sm font-semibold text-[#111827]">{employer.companySize || "N/A"}</span>
+                            </div>
+                            {employer.companyWebsite && (
+                                <div className="flex flex-col gap-1.5">
+                                    <span className="text-[13px] text-[#6B7280] font-medium flex items-center gap-1.5"><Globe size={14} /> Website</span>
+                                    <a href={employer.companyWebsite.startsWith('http') ? employer.companyWebsite : `https://${employer.companyWebsite}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-blue-600 hover:underline truncate">
+                                        {employer.companyWebsite}
+                                    </a>
+                                </div>
+                            )}
+                            {employer.companyLocation && (
+                                <div className="flex flex-col gap-1.5 md:col-span-2">
+                                    <span className="text-[13px] text-[#6B7280] font-medium">Location</span>
+                                    <span className="text-sm font-semibold text-[#111827]">{employer.companyLocation}</span>
+                                </div>
+                            )}
+                        </div>
+                        {employer.companyDescription && (
+                            <div className="flex flex-col gap-1.5">
+                                <span className="text-[13px] text-[#6B7280] font-medium">Description</span>
+                                <p className="text-sm text-[#4B5563] leading-relaxed italic">
+                                    "{employer.companyDescription}"
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Performance & Activity Metrics */}
+                    {employer.performance && (
+                        <div className="bg-white rounded-xl p-4 md:p-6 flex flex-col gap-5 md:gap-6 shadow-sm border border-gray-100">
+                            <h2 className="text-lg font-semibold text-[#111827] font-inter">
+                                Performance &amp; Activity
+                            </h2>
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="bg-[#F9FAFB] rounded-lg p-4 flex flex-col gap-1">
+                                    <span className="text-[11px] text-[#6B7280] uppercase tracking-wider font-bold">Total Jobs</span>
+                                    <span className="text-2xl font-bold text-[#111827]">
+                                        {employer.performance.totalJobs}
+                                    </span>
+                                </div>
+                                <div className="bg-[#F9FAFB] rounded-lg p-4 flex flex-col gap-1">
+                                    <span className="text-[11px] text-[#6B7280] uppercase tracking-wider font-bold">Active Jobs</span>
+                                    <span className="text-2xl font-bold text-[#3B82F6]">
+                                        {employer.performance.activeJobs}
+                                    </span>
+                                </div>
+                                <div className="bg-[#F9FAFB] rounded-lg p-4 flex flex-col gap-1">
+                                    <span className="text-[11px] text-[#6B7280] uppercase tracking-wider font-bold">Applications</span>
+                                    <span className="text-2xl font-bold text-[#111827]">
+                                        {employer.performance.applications}
+                                    </span>
+                                </div>
+                                <div className="bg-[#F9FAFB] rounded-lg p-4 flex flex-col gap-1">
+                                    <span className="text-[11px] text-[#6B7280] uppercase tracking-wider font-bold">Hire Rate</span>
+                                    <span className="text-2xl font-bold text-[#10B981]">
+                                        {employer.performance.hireRate}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
