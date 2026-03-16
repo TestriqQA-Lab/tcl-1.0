@@ -2,17 +2,18 @@
 
 import React from 'react';
 
-export type TabType = 'active' | 'paused' | 'closed';
+export type TabType = 'active' | 'paused' | 'closed' | 'under_review';
 
 interface StatusFilterStripProps {
     activeTab: TabType;
     onTabChange: (tab: TabType) => void;
-    counts: { active: number; paused: number; closed: number };
+    counts: { active: number; paused: number; closed: number; under_review: number };
 }
 
 const StatusFilterStrip: React.FC<StatusFilterStripProps> = ({ activeTab, onTabChange, counts }) => {
     const tabs = [
         { id: 'active', label: 'Active Jobs', count: counts.active },
+        { id: 'under_review', label: 'Under Review', count: counts.under_review },
         { id: 'paused', label: 'Paused', count: counts.paused },
         { id: 'closed', label: 'Closed', count: counts.closed },
     ];

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronDown, Plus, Check, X, Copy, Trash2, Bold, Italic, Underline, AlignLeft, List, Lightbulb, Info, Loader2 } from "lucide-react";
 import { updateJobAction, getJobByIdForEmployer } from "@/actions/job.actions";
+import type { CustomQuestion, QuestionType } from "@/types/job";
 
 interface EditJobModalProps {
     jobId: string;
@@ -53,14 +54,6 @@ export default function EditJobModal({ jobId, onClose }: EditJobModalProps) {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     // Custom Questions State
-    type QuestionType = "Single choice" | "Multiple choice" | "Short answer";
-    interface CustomQuestion {
-        id: string;
-        text: string;
-        type: QuestionType;
-        mandatory: boolean;
-        options: string[];
-    }
     const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
 
     const createEmptyQuestion = (text = ""): CustomQuestion => ({
@@ -250,6 +243,10 @@ export default function EditJobModal({ jobId, onClose }: EditJobModalProps) {
                 if (j.screeningEnglishLevel) { sq.push("english"); setEnglishLevel(j.screeningEnglishLevel); }
                 setSelectedQuestions(sq);
 
+                if (j.customScreeningQuestions) {
+                    setCustomQuestions(j.customScreeningQuestions as CustomQuestion[]);
+                }
+
                 setJobDescription(j.description || "");
                 setCompanyDescription(j.aboutCompany || "");
                 setAllowCalls(j.allowCalls ?? true);
@@ -314,6 +311,7 @@ export default function EditJobModal({ jobId, onClose }: EditJobModalProps) {
                 callTimeFrom: callStartTime,
                 callTimeTo: callEndTime,
                 callDays: callDays,
+                customScreeningQuestions: customQuestions,
             };
 
             const result = await updateJobAction(jobId, payload);
@@ -530,6 +528,44 @@ export default function EditJobModal({ jobId, onClose }: EditJobModalProps) {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Custom Questions rendering in Step 3 */}
+                                {customQuestions.map((cq, cqIdx) => (
+                                    <div key={cq.id} className={`p-5 rounded-xl border border-[#0f766d] bg-[#f0f9f8] shadow-sm transition-all`}>
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex gap-4 flex-1">
+                                                <div className="size-5 mt-0.5 rounded bg-[#0f766d] flex items-center justify-center shrink-0">
+                                                    <Check size={12} className="text-white" />
+                                                </div>
+                                                <div className="flex flex-col gap-2 flex-1">
+                                                    <span className="text-sm font-bold text-gray-800">{cq.text || `Custom Question ${cqIdx + 1}`}</span>
+                                                    <div className="flex items-center gap-3 flex-wrap">
+                                                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{cq.type}</span>
+                                                        {cq.mandatory && <span className="text-xs text-[#0f766d] font-bold">Mandatory</span>}
+                                                        {cq.type !== "Short answer" && cq.options.filter(o => o.trim()).length > 0 && (
+                                                            <span className="text-xs text-gray-500">{cq.options.filter(o => o.trim()).length} options</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3 shrink-0">
+                                                <button onClick={() => { setIsDrawerOpen(true); }} className="text-xs text-[#0f766d] font-bold hover:underline">Edit</button>
+                                                <button onClick={() => removeQuestion(cq.id)} className="text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Add Custom Question Button */}
+                                <button
+                                    onClick={openDrawerForNew}
+                                    className="flex items-center gap-2 mt-2 px-1 text-[#0f766d] hover:text-[#0c5e57] transition-colors w-fit group"
+                                >
+                                    <div className="size-6 rounded-full border border-[#0f766d] flex items-center justify-center group-hover:bg-[#f0f9f8]">
+                                        <Plus size={14} />
+                                    </div>
+                                    <span className="text-sm font-bold">Add a custom question</span>
+                                </button>
                             </div>
                         )}
 
@@ -607,6 +643,174 @@ export default function EditJobModal({ jobId, onClose }: EditJobModalProps) {
                         <button onClick={onClose} className="px-10 py-3 bg-[#0f766d] text-white rounded-xl font-bold shadow-lg">Back to Job Postings</button>
                     </div>
                 )}
+                {/* Drawer Overlay */}
+                {isDrawerOpen && (
+                    <div
+                        className="fixed inset-0 bg-black/40 z-[1100] transition-opacity animate-in fade-in duration-300"
+                        onClick={() => setIsDrawerOpen(false)}
+                    />
+                )}
+
+                {/* Custom Question Drawer */}
+                <div className={`fixed top-0 right-0 h-full w-full md:w-[600px] bg-white z-[1200] shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${isDrawerOpen ? "translate-x-0" : "translate-x-full"}`}>
+                    {/* Drawer Header */}
+                    <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+                        <h2 className="text-xl font-bold text-gray-900">Add questions</h2>
+                        <button
+                            onClick={() => setIsDrawerOpen(false)}
+                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                            <X size={22} className="text-gray-500" />
+                        </button>
+                    </div>
+
+                    {/* Drawer Content - Scrollable */}
+                    <div className="flex-1 overflow-y-auto px-6 py-6 pb-24">
+                        {/* Dynamic Question Blocks */}
+                        {customQuestions.map((cq, cqIdx) => (
+                            <div key={cq.id} className="flex flex-col gap-6 p-6 border border-gray-200 rounded-xl mb-6 shadow-sm">
+                                {/* Header: Question N + Mandatory toggle */}
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-bold text-gray-700">Question {cqIdx + 1}</span>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => updateQuestion(cq.id, { mandatory: !cq.mandatory })}
+                                            className="flex items-center gap-2 cursor-pointer"
+                                        >
+                                            <div className="relative inline-flex items-center">
+                                                <div className={`w-9 h-5 rounded-full transition-colors relative ${cq.mandatory ? "bg-[#0f766d]" : "bg-gray-200"}`}>
+                                                    <div className={`absolute top-[2px] h-4 w-4 bg-white border border-gray-300 rounded-full transition-transform ${cq.mandatory ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
+                                                </div>
+                                            </div>
+                                            <span className="text-xs font-bold text-gray-500">Mandatory</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Question text input */}
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Question text</label>
+                                    <input
+                                        type="text"
+                                        value={cq.text}
+                                        onChange={(e) => updateQuestion(cq.id, { text: e.target.value })}
+                                        placeholder="Enter your question here"
+                                        className="w-full h-11 bg-gray-50 border border-gray-200 rounded-lg px-4 focus:bg-white focus:border-[#0f766d] outline-none transition-all"
+                                    />
+                                </div>
+
+                                {/* Question type selector */}
+                                <div className="flex flex-col gap-3">
+                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Question type</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(["Single choice", "Multiple choice", "Short answer"] as QuestionType[]).map((type) => (
+                                            <button
+                                                key={type}
+                                                onClick={() => updateQuestion(cq.id, { type })}
+                                                className={`px-4 py-1.5 rounded-full border text-xs font-bold transition-all ${cq.type === type
+                                                    ? "border-[#0f766d] bg-[#f0f9f8] text-[#0f766d]"
+                                                    : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+                                                    }`}
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Options Section (only for choice types) */}
+                                {cq.type !== "Short answer" && (
+                                    <div className="flex flex-col gap-3">
+                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Options</span>
+                                        {cq.options.map((opt, optIdx) => (
+                                            <div key={optIdx} className="flex items-center gap-3">
+                                                <div className={`size-4 shrink-0 border border-gray-300 ${cq.type === "Single choice" ? "rounded-full" : "rounded"}`} />
+                                                <input
+                                                    type="text"
+                                                    value={opt}
+                                                    onChange={(e) => updateOption(cq.id, optIdx, e.target.value)}
+                                                    placeholder={`Option ${optIdx + 1}`}
+                                                    className="flex-1 h-10 bg-gray-50 border border-gray-200 rounded-lg px-4 focus:bg-white focus:border-[#0f766d] outline-none transition-all text-sm"
+                                                />
+                                                {cq.options.length > 2 && (
+                                                    <button onClick={() => removeOption(cq.id, optIdx)} className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-red-500 transition-colors">
+                                                        <X size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <button
+                                            onClick={() => addOption(cq.id)}
+                                            className="text-xs font-bold text-[#0f766d] hover:underline w-fit mt-1 ml-7"
+                                        >
+                                            + Add another option
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Duplicate/Remove Actions */}
+                                <div className="flex items-center justify-end gap-5 pt-4 border-t border-gray-100">
+                                    <button
+                                        onClick={() => duplicateQuestion(cq.id)}
+                                        className="flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-gray-700 transition-colors"
+                                    >
+                                        <Copy size={16} />
+                                        <span>DUPLICATE</span>
+                                    </button>
+                                    <button
+                                        onClick={() => removeQuestion(cq.id)}
+                                        className="flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-red-500 transition-colors"
+                                    >
+                                        <Trash2 size={16} />
+                                        <span>REMOVE</span>
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Add another Question Button */}
+                        <button
+                            onClick={() => setCustomQuestions((prev) => [...prev, createEmptyQuestion()])}
+                            className="w-full py-3 border-2 border-[#0f766d] border-dashed rounded-xl text-[#0f766d] font-bold text-sm hover:bg-[#f0f9f8] transition-all mb-8"
+                        >
+                            + Add another question
+                        </button>
+
+                        {/* Suggested Questions */}
+                        <div className="flex flex-col gap-4">
+                            <span className="text-sm font-bold text-gray-900">Suggested questions</span>
+                            <div className="flex flex-col gap-2">
+                                {suggestedQuestionTexts.map((q, i) => {
+                                    const alreadyAdded = customQuestions.some((cq) => cq.text === q);
+                                    return (
+                                        <button
+                                            key={i}
+                                            onClick={() => !alreadyAdded && addSuggestedQuestion(q)}
+                                            disabled={alreadyAdded}
+                                            className={`flex items-center gap-3 text-left p-3 border rounded-xl text-sm transition-all ${alreadyAdded
+                                                ? "border-[#0f766d] bg-[#f0f9f8] text-[#0f766d] cursor-default"
+                                                : "border-gray-200 text-gray-600 hover:border-[#0f766d] hover:bg-gray-50"
+                                                }`}
+                                        >
+                                            {alreadyAdded ? <Check size={16} className="text-[#0f766d] shrink-0" /> : <Plus size={16} className="text-[#0f766d] shrink-0" />}
+                                            <span className="font-medium">{q}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Drawer Footer */}
+                    <div className="p-6 border-t border-gray-100 bg-white sticky bottom-0 z-10">
+                        <button
+                            onClick={() => setIsDrawerOpen(false)}
+                            className="w-full h-12 bg-[#0f766d] hover:bg-[#0c5e57] text-white font-bold rounded-xl transition-all shadow-lg"
+                        >
+                            Confirm questions
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );

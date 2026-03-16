@@ -3,13 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-export type ApplicationStatus = "Shortlisted" | "In Review" | "Interview" | "Rejected";
+export type ApplicationStatus = "Shortlisted" | "In Review" | "Interview" | "Rejected" | "Accepted";
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
     Shortlisted: { bg: "bg-[#DCFCE7]", text: "text-[#16A34A]" },
     "In Review": { bg: "bg-[#FEF3C7]", text: "text-[#D97706]" },
     Interview: { bg: "bg-[#DBEAFE]", text: "text-[#2563EB]" },
     Rejected: { bg: "bg-[#FEE2E2]", text: "text-[#EF4444]" },
+    Accepted: { bg: "bg-[#E0F2FE]", text: "text-[#0369A1]" },
 };
 
 interface ApplicantStatusDropdownProps {
@@ -22,7 +23,7 @@ export function ApplicantStatusDropdown({ currentStatus, onStatusChange }: Appli
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const style = statusStyles[currentStatus] || { bg: "bg-gray-100", text: "text-gray-600" };
-    const options: ApplicationStatus[] = ["Shortlisted", "In Review", "Rejected"]; // Left out interview as requested by user or kept simple
+    const options: ApplicationStatus[] = ["In Review", "Shortlisted", "Rejected"];
 
     // Close on click outside
     useEffect(() => {

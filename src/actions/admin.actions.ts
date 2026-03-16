@@ -347,7 +347,8 @@ export async function getJobApprovalsAction(status: "PENDING" | "APPROVED" | "RE
  */
 export async function updateJobApprovalStatusAction(
     jobId: string,
-    newStatus: "PENDING" | "APPROVED" | "REJECTED"
+    newStatus: "PENDING" | "APPROVED" | "REJECTED",
+    rejectionReason?: string
 ) {
     try {
         const session = await auth();
@@ -361,6 +362,7 @@ export async function updateJobApprovalStatusAction(
             .update(jobs)
             .set({
                 approvalStatus: newStatus,
+                rejectionReason: newStatus === "REJECTED" ? rejectionReason : null,
                 updatedAt: new Date(),
             })
             .where(eq(jobs.id, jobId));
@@ -370,5 +372,44 @@ export async function updateJobApprovalStatusAction(
     } catch (error) {
         console.error("Failed to update job approval status:", error);
         return { error: "Failed to update job approval status. Please try again." };
+    }
+}
+
+/**
+ * Fetches full job details for admin review.
+ */
+export async function getJobDetailAction(jobId: string) {
+    try {
+        const session = await auth();
+        if (session?.user?.role !== "ADMIN") {
+            return { error: "Unauthorized. Admin access required." };
+        }
+
+        const jobDetail = await db
+            .select({
+                job: jobs,
+                employer: {
+                    companyName: employerProfiles.companyName,
+                    companyIndustry: employerProfiles.companyIndustry,
+                    companyLogo: employerProfiles.companyLogo,
+                    companyDescription: employerProfiles.companyDescription,
+                }
+            })
+            .from(jobs)
+            .innerJoin(employerProfiles, eq(jobs.employerId, employerProfiles.userId))
+            .where(eq(jobs.id, jobId))
+            .limit(1);
+
+        if (jobDetail.length === 0) {
+            return { error: "Job posting not found." };
+        }
+
+        return {
+            success: true,
+            data: jobDetail[0]
+        };
+    } catch (error) {
+        console.error("Failed to fetch job detail:", error);
+        return { error: "Failed to fetch job detail. Please try again." };
     }
 }

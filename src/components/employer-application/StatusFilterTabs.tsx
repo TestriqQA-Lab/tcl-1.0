@@ -1,16 +1,17 @@
-"use client";
-
-import { getStatusCount } from "./applicantsData";
-
-const statusLabels = ["All", "Shortlisted", "In Review", "Interview", "Rejected"];
+const statusLabels = ["All", "In Review", "Shortlisted", "Rejected"];
 
 interface StatusFilterTabsProps {
     activeStatus?: string;
     selectedJob?: string;
     onFilterChange?: (filter: string) => void;
+    counts?: Record<string, number>;
 }
 
-export function StatusFilterTabs({ activeStatus = "All", selectedJob = "all", onFilterChange }: StatusFilterTabsProps) {
+export function StatusFilterTabs({ 
+    activeStatus = "All", 
+    onFilterChange,
+    counts = { "All": 0, "In Review": 0, "Shortlisted": 0, "Rejected": 0 }
+}: StatusFilterTabsProps) {
     const handleClick = (label: string) => {
         onFilterChange?.(label);
     };
@@ -19,7 +20,7 @@ export function StatusFilterTabs({ activeStatus = "All", selectedJob = "all", on
         <div className="flex items-center w-full overflow-x-auto border-b border-[#E2E8F0] scrollbar-none">
             {statusLabels.map((label) => {
                 const isActive = label === activeStatus;
-                const count = getStatusCount(label, selectedJob);
+                const count = counts[label] ?? 0;
                 return (
                     <button
                         key={label}

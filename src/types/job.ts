@@ -1,3 +1,13 @@
+export type QuestionType = "Single choice" | "Multiple choice" | "Short answer";
+
+export interface CustomQuestion {
+    id: string;
+    text: string;
+    type: QuestionType;
+    mandatory: boolean;
+    options: string[];
+}
+
 export interface CreateJobPayload {
     title: string;
     workExperienceMin: number | null;
@@ -14,6 +24,8 @@ export interface CreateJobPayload {
     screeningExperienceMin: number | null;
     screeningEducationLevel: string;
     screeningEnglishLevel: string;
+
+    customScreeningQuestions?: CustomQuestion[];
 
     description: string;
     aboutCompany: string;

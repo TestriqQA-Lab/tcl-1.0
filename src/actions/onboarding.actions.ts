@@ -219,7 +219,7 @@ export async function updatePreferencesAction(
         headline: string;
         locations: string[];
         salary: number;
-        gender?: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | null;
+        gender?: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | "ANY" | null;
         position?: string;
     }
 ) {

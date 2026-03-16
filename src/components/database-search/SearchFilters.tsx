@@ -84,31 +84,36 @@ export interface SearchFilterState {
 interface SearchFiltersProps {
     onSearch?: (filters: SearchFilterState) => void;
     onClear?: () => void;
-    initialQuery?: string;
+    initialFilters?: Partial<SearchFilterState>;
 }
 
-export function SearchFilters({ onSearch, onClear, initialQuery = "" }: SearchFiltersProps) {
+export function SearchFilters({ onSearch, onClear, initialFilters }: SearchFiltersProps) {
     // Collect all filter values in one state object for easy access
     const [filters, setFilters] = useState<SearchFilterState>({
-        query: initialQuery,
-        location: "",
-        company: "",
-        skills: [],
-        experienceMin: "",
-        experienceMax: "",
-        industry: "",
-        educationLevel: "",
-        ageMin: "",
-        ageMax: "",
-        ctcMin: "",
-        ctcMax: "",
-        gender: "any"
+        query: initialFilters?.query || "",
+        location: initialFilters?.location || "",
+        company: initialFilters?.company || "",
+        skills: initialFilters?.skills || [],
+        experienceMin: initialFilters?.experienceMin || "",
+        experienceMax: initialFilters?.experienceMax || "",
+        industry: initialFilters?.industry || "",
+        educationLevel: initialFilters?.educationLevel || "",
+        ageMin: initialFilters?.ageMin || "",
+        ageMax: initialFilters?.ageMax || "",
+        ctcMin: initialFilters?.ctcMin || "",
+        ctcMax: initialFilters?.ctcMax || "",
+        gender: initialFilters?.gender || "any"
     });
 
-    // Sync internal query state with external prop (e.g. from top search bar)
+    // Sync internal state with external props if they change
     useEffect(() => {
-        setFilters(prev => ({ ...prev, query: initialQuery }));
-    }, [initialQuery]);
+        if (initialFilters) {
+            setFilters(prev => ({
+                ...prev,
+                ...initialFilters
+            }));
+        }
+    }, [initialFilters]);
 
     // We'll keep the string/array states decoupled slightly for UI fluidity (like inputs vs badges)
     // but synchronize them into `filters` on change.
@@ -174,8 +179,13 @@ export function SearchFilters({ onSearch, onClear, initialQuery = "" }: SearchFi
         }
     };
 
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (onSearch) onSearch(filters);
+    };
+
     return (
-        <div className="flex flex-col w-full h-full bg-white overflow-hidden">
+        <form onSubmit={handleSubmit} className="flex flex-col w-full h-full bg-white overflow-hidden">
             {/* Filter Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-[#E2E8F0] shrink-0">
                 <h2 className="text-[16px] font-bold text-[#0e1b1a]">Filters</h2>
@@ -231,6 +241,7 @@ export function SearchFilters({ onSearch, onClear, initialQuery = "" }: SearchFi
                                  {filteredLocations.map((loc) => (
                                      <button
                                          key={loc}
+                                         type="button"
                                          className="w-full text-left px-3 py-2 text-[13px] text-[#0e1b1a] hover:bg-[#F1F5F9]"
                                          onClick={() => {
                                              updateFilter("location", loc);
@@ -266,6 +277,7 @@ export function SearchFilters({ onSearch, onClear, initialQuery = "" }: SearchFi
                                     <div key={skill} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#EFF6FF] border border-[#BFDBFE] rounded-full">
                                         <span className="text-[12px] font-medium text-[#1D4ED8]">{skill}</span>
                                         <button 
+                                            type="button"
                                             onClick={() => handleRemoveSkill(skill)}
                                             className="text-[#3B82F6] hover:text-[#1D4ED8]"
                                         >
@@ -293,6 +305,7 @@ export function SearchFilters({ onSearch, onClear, initialQuery = "" }: SearchFi
                                          {filteredSkills.map((skill) => (
                                              <button
                                                  key={skill}
+                                                 type="button"
                                                  className="w-full text-left px-3 py-2 text-[13px] text-[#0e1b1a] hover:bg-[#F1F5F9]"
                                                  onClick={() => handleAddSkill(skill)}
                                              >
@@ -349,6 +362,7 @@ export function SearchFilters({ onSearch, onClear, initialQuery = "" }: SearchFi
                                     {filteredIndustries.map((ind) => (
                                         <button
                                             key={ind}
+                                            type="button"
                                             className="w-full text-left px-3 py-2 text-[13px] text-[#0e1b1a] hover:bg-[#F1F5F9] whitespace-normal"
                                             onClick={() => {
                                                 updateFilter("industry", ind);
@@ -450,17 +464,14 @@ export function SearchFilters({ onSearch, onClear, initialQuery = "" }: SearchFi
             </div>
 
             {/* Bottom Actions - Fixed to bottom of sidebar */}
-            <div className="p-6 border-t border-[#E2E8F0] shrink-0 bg-white sticky bottom-0 z-10">
+            <div className="p-6 border-t border-[#E2E8F0] shrink-0 bg-white sticky bottom-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                 <button
-                    type="button"
-                    onClick={() => {
-                        if (onSearch) onSearch(filters);
-                    }}
+                    type="submit"
                     className="flex justify-center items-center w-full h-11 bg-[#0f766d] hover:bg-[#0c5c55] text-white text-[15px] font-bold rounded-lg transition-colors"
                 >
                     Search
                 </button>
             </div>
-        </div>
+        </form>
     );
 }
