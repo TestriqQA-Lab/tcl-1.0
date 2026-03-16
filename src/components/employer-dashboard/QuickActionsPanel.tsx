@@ -48,7 +48,7 @@ export function QuickActionsPanel() {
     }, [userId]);
 
     const handleActionClick = (e: React.MouseEvent, label: string) => {
-        if (label === "Post New Job" && verificationStatus !== "VERIFIED") {
+        if (label === "Post New Job" && verificationStatus !== "APPROVED") {
             e.preventDefault();
             setShowVerificationModal(true);
         }

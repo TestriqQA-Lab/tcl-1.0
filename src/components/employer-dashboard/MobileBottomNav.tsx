@@ -86,7 +86,7 @@ export function MobileBottomNav({
     }, [userId]);
 
     const handlePostJobClick = (e: React.MouseEvent) => {
-        if (verificationStatus !== "VERIFIED") {
+        if (verificationStatus !== "APPROVED") {
             e.preventDefault();
             setShowVerificationModal(true);
         }
