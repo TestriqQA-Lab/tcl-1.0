@@ -16,6 +16,8 @@ export interface JobCardProps {
     shortlisted: number;
     postedDate: string;
     statusChangedDate?: string; // Paused on / Closed on date
+    approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+    rejectionReason?: string | null;
     onEditJob?: (jobId: string) => void;
 }
 
@@ -26,6 +28,8 @@ const JobCard: React.FC<JobCardProps> = ({
     type,
     department,
     status,
+    approvalStatus,
+    rejectionReason,
     applications,
     shortlisted,
     postedDate,
@@ -56,6 +60,13 @@ const JobCard: React.FC<JobCardProps> = ({
 
     // Status badge styling
     const getStatusStyles = () => {
+        if (approvalStatus === 'PENDING') {
+            return 'bg-[#FEF3C7] text-[#92400E] border-[#F59E0B40]';
+        }
+        if (approvalStatus === 'REJECTED') {
+            return 'bg-[#FEE2E2] text-[#B91C1C] border-[#EF444440]';
+        }
+
         switch (status) {
             case 'Active':
                 return 'bg-[#ecfdf5] text-[#047857] border-[#10b98140]';
@@ -126,8 +137,11 @@ const JobCard: React.FC<JobCardProps> = ({
             <div className="flex flex-col gap-3 md:gap-2 flex-grow">
                 {/* Status Badge — top-left above title */}
                 <div className={`self-start flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${statusStyle}`}>
-                    {status === 'Active' && <div className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />}
-                    <span className="font-inter text-[11px] md:text-xs font-semibold leading-none">{status}</span>
+                    {approvalStatus === 'PENDING' && <div className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />}
+                    {approvalStatus === 'APPROVED' && status === 'Active' && <div className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />}
+                    <span className="font-inter text-[11px] md:text-xs font-semibold leading-none">
+                        {approvalStatus === 'PENDING' ? 'Under Review' : approvalStatus === 'REJECTED' ? 'Rejected' : status}
+                    </span>
                 </div>
 
                 {/* Title */}
@@ -167,6 +181,15 @@ const JobCard: React.FC<JobCardProps> = ({
                         </div>
                     )}
                 </div>
+
+                {/* Rejection Reason */}
+                {approvalStatus === 'REJECTED' && rejectionReason && (
+                    <div className="mt-1 p-3 bg-red-50 border border-red-100 rounded-lg">
+                        <p className="text-[#B91C1C] font-inter text-xs leading-relaxed">
+                            <span className="font-bold">Reason for rejection:</span> {rejectionReason}
+                        </p>
+                    </div>
+                )}
             </div>
 
             {/* Mobile Divider */}
@@ -189,14 +212,18 @@ const JobCard: React.FC<JobCardProps> = ({
                     onClick={() => onEditJob?.(id)}
                     className="flex-1 md:flex-none flex justify-center items-center h-9 md:h-10 px-4 md:px-5 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFB] transition-colors"
                 >
-                    <span className="text-[#0e1b1a] font-inter text-[13px] md:text-sm font-semibold">Edit Job</span>
+                    <span className="text-[#0e1b1a] font-inter text-[13px] md:text-sm font-semibold">
+                        {approvalStatus === 'REJECTED' ? 'Edit & Resubmit' : 'Edit Job'}
+                    </span>
                 </button>
-                <Link
-                    href={`/employer-applications?jobId=${id}`}
-                    className="flex-1 md:flex-none flex justify-center items-center h-9 md:h-10 px-4 md:px-5 rounded-lg bg-[#0f766d] hover:bg-[#0c5e57] transition-colors"
-                >
-                    <span className="text-white font-inter text-[13px] md:text-sm font-semibold">View Applications</span>
-                </Link>
+                {approvalStatus === 'APPROVED' && (
+                    <Link
+                        href={`/employer-applications?jobId=${id}`}
+                        className="flex-1 md:flex-none flex justify-center items-center h-9 md:h-10 px-4 md:px-5 rounded-lg bg-[#0f766d] hover:bg-[#0c5e57] transition-colors"
+                    >
+                        <span className="text-white font-inter text-[13px] md:text-sm font-semibold">View Applications</span>
+                    </Link>
+                )}
             </div>
 
         </div>

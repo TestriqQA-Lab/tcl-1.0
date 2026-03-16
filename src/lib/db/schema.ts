@@ -18,7 +18,7 @@ export const companySizeEnum = pgEnum("company_size", ["1-10", "11-50", "51-200"
 export const verificationStatusEnum = pgEnum("verification_status", ["UNVERIFIED", "PENDING", "VERIFIED", "REJECTED"]);
 
 // New Enums for Seeker Profile
-export const genderEnum = pgEnum("gender", ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"]);
+export const genderEnum = pgEnum("gender", ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY", "ANY"]);
 export const workStatusEnum = pgEnum("work_status", ["FRESHER", "EXPERIENCED"]);
 export const lookingForEnum = pgEnum("looking_for", ["JOB", "INTERNSHIP", "BOTH"]);
 export const employmentStatusEnum = pgEnum("employment_status", ["UNEMPLOYED", "EMPLOYED", "STUDENT"]);
@@ -212,6 +212,7 @@ export const jobs = pgTable("jobs", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
     statusChangedAt: timestamp("status_changed_at"), // Set when job is paused or closed
+    rejectionReason: text("rejection_reason"),
 }, (t) => ({
     employerIdIndex: index("jobs_employer_id_idx").on(t.employerId),
 }));

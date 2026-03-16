@@ -8,15 +8,22 @@ interface JobPostsListProps {
 }
 
 const JobPostsList: React.FC<JobPostsListProps> = ({ jobs, selectedStatus, onEditJob }) => {
-    const filteredJobs = jobs.filter(job =>
-        job.status.toLowerCase() === selectedStatus.toLowerCase()
-    );
+    const filteredJobs = jobs.filter(job => {
+        if (selectedStatus === 'under_review') {
+            return (job as any).approvalStatus === 'PENDING' || (job as any).approvalStatus === 'REJECTED';
+        }
+        return (job as any).approvalStatus === 'APPROVED' && job.status.toLowerCase() === selectedStatus.toLowerCase();
+    });
 
     return (
         <div className="flex flex-col w-full gap-4 md:gap-5 mt-2 md:mt-4">
             {filteredJobs.length > 0 ? (
                 filteredJobs.map((job) => (
-                    <JobCard key={job.id} {...job} onEditJob={onEditJob || job.onEditJob} />
+                    <JobCard 
+                        key={job.id} 
+                        {...job} 
+                        onEditJob={onEditJob || (job as any).onEditJob} 
+                    />
                 ))
             ) : (
                 <div className="flex flex-col items-center justify-center py-12 px-4 bg-white rounded-xl border border-[#E2E8F0]">

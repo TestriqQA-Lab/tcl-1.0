@@ -16,7 +16,7 @@ export default function PreferencesPage() {
     const [locations, setLocations] = useState<string[]>([]);
     const [locationInput, setLocationInput] = useState("");
     const [salary, setSalary] = useState<string>("");
-    const [gender, setGender] = useState<"MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | "">("");
+    const [gender, setGender] = useState<"MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | "ANY" | "">("");
     const [position, setPosition] = useState("");
 
     // Fetch Data on Mount
