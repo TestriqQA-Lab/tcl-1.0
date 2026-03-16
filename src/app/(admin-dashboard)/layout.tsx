@@ -29,7 +29,7 @@ export default async function AdminDashboardLayout({
 
     return (
         <div className="fixed inset-0 z-[100] bg-[#F9FAFB] flex md:flex-row flex-col overflow-hidden">
-            <AdminLayoutWrapper>
+            <AdminLayoutWrapper user={{ name: session?.user?.name, email: session?.user?.email }}>
                 {children}
             </AdminLayoutWrapper>
         </div>
