@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     LayoutDashboard,
     Briefcase,
@@ -14,6 +14,9 @@ import {
     Settings,
     X,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { getEmployerProfile } from "@/actions/employer.actions";
+import { VerificationModal } from "./VerificationModal";
 
 const tabs = [
     {
@@ -64,7 +67,30 @@ interface MobileBottomNavProps {
 export function MobileBottomNav({
     activePage = "Home",
 }: MobileBottomNavProps) {
+    const { data: session } = useSession();
     const [moreOpen, setMoreOpen] = useState(false);
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+
+    const userId = session?.user?.id;
+
+    useEffect(() => {
+        if (!userId) return;
+        getEmployerProfile(userId).then((profile) => {
+            if (profile) {
+                setVerificationStatus(profile.verificationStatus ?? "UNVERIFIED");
+            } else {
+                setVerificationStatus("UNVERIFIED");
+            }
+        });
+    }, [userId]);
+
+    const handlePostJobClick = (e: React.MouseEvent) => {
+        if (verificationStatus !== "APPROVED") {
+            e.preventDefault();
+            setShowVerificationModal(true);
+        }
+    };
 
     return (
         <>
@@ -119,7 +145,8 @@ export function MobileBottomNav({
                             <Link
                                 key="fab"
                                 href={tab.href}
-                                className="flex flex-col items-center gap-0.5 w-14 -mt-4"
+                                onClick={handlePostJobClick}
+                                className="flex flex-col items-center gap-0.5 w-14 -mt-4 text-center no-underline"
                             >
                                 <div className="flex items-center justify-center size-10 bg-[#0f766d] rounded-full shadow-lg">
                                     <Plus size={20} className="text-white" />
@@ -175,6 +202,12 @@ export function MobileBottomNav({
                     );
                 })}
             </nav>
+
+            <VerificationModal 
+                isOpen={showVerificationModal}
+                onClose={() => setShowVerificationModal(false)}
+                verificationStatus={verificationStatus}
+            />
         </>
     );
 }

@@ -2,14 +2,24 @@
 
 import { useRef, useState, useEffect } from "react";
 import { Briefcase, ChevronLeft, ChevronRight } from "lucide-react";
-import { activeJobs, getJobCount } from "./applicantsData";
-
 interface ActiveJobsStripProps {
     selectedJob: string;
     onJobChange: (jobId: string) => void;
+    jobs: any[];
+    applicantsCount: number;
 }
 
-export function ActiveJobsStrip({ selectedJob, onJobChange }: ActiveJobsStripProps) {
+const JOB_COLORS = [
+    "bg-[#6366F1]",
+    "bg-[#0EA5E9]",
+    "bg-[#F59E0B]",
+    "bg-[#EF4444]",
+    "bg-[#8B5CF6]",
+    "bg-[#EC4899]",
+    "bg-[#14B8A6]",
+];
+
+export function ActiveJobsStrip({ selectedJob, onJobChange, jobs = [], applicantsCount }: ActiveJobsStripProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
@@ -32,7 +42,7 @@ export function ActiveJobsStrip({ selectedJob, onJobChange }: ActiveJobsStripPro
             el?.removeEventListener("scroll", checkScroll);
             window.removeEventListener("resize", checkScroll);
         };
-    }, []);
+    }, [jobs]); // Re-check when jobs change
 
     const scroll = (dir: "left" | "right") => {
         const el = scrollRef.current;
@@ -40,6 +50,12 @@ export function ActiveJobsStrip({ selectedJob, onJobChange }: ActiveJobsStripPro
         const amount = 220;
         el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
     };
+
+    // Combine "All" with fetched jobs
+    const allJobs = [
+        { id: "all", title: "All Applications", department: "" },
+        ...jobs
+    ];
 
     return (
         <div className="w-full">
@@ -51,7 +67,7 @@ export function ActiveJobsStrip({ selectedJob, onJobChange }: ActiveJobsStripPro
                         Filter by Job Post
                     </span>
                 </div>
-                <span className="text-[11px] text-[#94A3B8]">{activeJobs.length - 1} active jobs</span>
+                <span className="text-[11px] text-[#94A3B8]">{jobs.length} active jobs</span>
             </div>
 
             {/* Cards + Arrow Buttons */}
@@ -75,9 +91,10 @@ export function ActiveJobsStrip({ selectedJob, onJobChange }: ActiveJobsStripPro
                     className="flex gap-2.5 overflow-x-auto flex-1 -mx-1 px-1 [&::-webkit-scrollbar]:hidden"
                     style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
                 >
-                    {activeJobs.map((job) => {
+                    {allJobs.map((job, index) => {
                         const isSelected = job.id === selectedJob;
                         const isAll = job.id === "all";
+                        const color = isAll ? "bg-[#0f766d]" : JOB_COLORS[(index - 1) % JOB_COLORS.length];
 
                         return (
                             <button
@@ -91,7 +108,7 @@ export function ActiveJobsStrip({ selectedJob, onJobChange }: ActiveJobsStripPro
                             >
                                 {/* Top Row: Color dot + Title */}
                                 <div className="flex items-center gap-2">
-                                    <div className={`size-2.5 rounded-full shrink-0 ${job.color}`} />
+                                    <div className={`size-2.5 rounded-full shrink-0 ${color}`} />
                                     <span className={`text-[13px] font-semibold truncate ${isSelected ? "text-[#0f766d]" : "text-[#0e1b1a]"
                                         }`}>
                                         {job.title}
@@ -106,7 +123,7 @@ export function ActiveJobsStrip({ selectedJob, onJobChange }: ActiveJobsStripPro
                                         ? "bg-[#0f766d] text-white"
                                         : "bg-[#F1F5F9] text-[#64748B]"
                                         }`}>
-                                        {getJobCount(job.id)}
+                                        {isAll ? applicantsCount : "..." /* Count per job is harder without extra fetch */}
                                     </span>
                                 </div>
                             </button>
