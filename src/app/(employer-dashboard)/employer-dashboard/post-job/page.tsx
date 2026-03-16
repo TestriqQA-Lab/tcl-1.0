@@ -7,6 +7,7 @@ import { ArrowLeft, ChevronDown, Plus, Check, X, Copy, Trash2, Bold, Italic, Und
 import { DashboardTopBar } from "@/components/employer-dashboard/DashboardTopBar";
 import { TabletNavStrip } from "@/components/employer-dashboard/TabletNavStrip";
 import { createJobAction } from "@/actions/job.actions";
+import type { CustomQuestion, QuestionType } from "@/types/job";
 
 const steps = [
     "Job details",
@@ -53,14 +54,6 @@ export default function PostJobPage() {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     // Custom Questions State
-    type QuestionType = "Single choice" | "Multiple choice" | "Short answer";
-    interface CustomQuestion {
-        id: string;
-        text: string;
-        type: QuestionType;
-        mandatory: boolean;
-        options: string[];
-    }
     const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
 
     const createEmptyQuestion = (text = ""): CustomQuestion => ({
@@ -364,6 +357,7 @@ export default function PostJobPage() {
                     callTimeFrom: callStartTime,
                     callTimeTo: callEndTime,
                     callDays: callDays,
+                    customScreeningQuestions: customQuestions,
                 };
 
                 const result = await createJobAction(payload);

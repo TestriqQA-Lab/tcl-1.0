@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Eye, MoreHorizontal } from "lucide-react";
 import { ApplicantStatusDropdown, ApplicationStatus } from "./ApplicantStatusDropdown";
+import { ApplicantDetailsModal } from "./ApplicantDetailsModal";
 interface ApplicantsTableProps {
     applicants: any[];
     isLoading?: boolean;
@@ -23,6 +24,8 @@ export function ApplicantsTable({
     onSelectionChange 
 }: ApplicantsTableProps) {
     const [selected, setSelected] = useState<Set<string>>(new Set());
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [viewingApplicant, setViewingApplicant] = useState<any>(null);
 
     // Clear selections when job filter changes
     useEffect(() => {
@@ -35,9 +38,22 @@ export function ApplicantsTable({
         onSelectionChange?.(next.size);
     };
 
-    const handleStatusChange = (id: string, newStatus: ApplicationStatus) => {
-        // In a real app, this would call a server action
-        console.log("Status change:", id, newStatus);
+    const handleStatusChange = async (id: string, newStatus: ApplicationStatus) => {
+        try {
+            const { updateApplicationStatusAction } = await import("@/actions/employer.application.actions");
+            const result = await updateApplicationStatusAction(id, newStatus);
+            
+            if (result.success) {
+                // Update local state for immediate feedback
+                // Re-fetching is handled by the parent if we want, but local update is faster
+                window.location.reload(); // Simple way to ensure everything (counts, etc) is consistent
+            } else {
+                alert("Failed to update status: " + result.error);
+            }
+        } catch (error) {
+            console.error("Status change error:", error);
+            alert("An unexpected error occurred.");
+        }
     };
 
     const filtered = applicants; // Filtering is now done in the server action
@@ -92,7 +108,7 @@ export function ApplicantsTable({
     }
 
     return (
-        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+        <div className="bg-white rounded-xl border border-[#E2E8F0]">
             {/* Header Banner */}
             {(selected.size > 0 || selectedJob !== "all") && (
                 <div className="flex items-center justify-between px-5 md:px-6 py-2.5 bg-[#0f766d]/5 border-b border-[#E2E8F0]">
@@ -184,7 +200,13 @@ export function ApplicantsTable({
                             </div>
                             <span className="w-[110px] text-xs text-[#94A3B8]">{app.date}</span>
                             <div className="w-[80px] flex items-center gap-2">
-                                <button className="size-8 flex items-center justify-center rounded-md hover:bg-[#F1F5F9] transition-colors">
+                                <button 
+                                    onClick={() => {
+                                        setViewingApplicant(app);
+                                        setIsDetailsModalOpen(true);
+                                    }}
+                                    className="size-8 flex items-center justify-center rounded-md hover:bg-[#F1F5F9] transition-colors"
+                                >
                                     <Eye size={16} className="text-[#94A3B8]" />
                                 </button>
                                 <button className="size-8 flex items-center justify-center rounded-md hover:bg-[#F1F5F9] transition-colors">
@@ -230,10 +252,24 @@ export function ApplicantsTable({
                                         onChange={() => toggleOne(app.id)}
                                         className="size-4 rounded border-[#CBD5E1] accent-[#0f766d] cursor-pointer"
                                     />
-                                    <div className={`size-8 rounded-full flex items-center justify-center shrink-0 ${DEFAULT_AVATAR_COLOR}`}>
+                                    <div 
+                                        className={`size-8 rounded-full flex items-center justify-center shrink-0 cursor-pointer ${DEFAULT_AVATAR_COLOR}`}
+                                        onClick={() => {
+                                            setViewingApplicant(app);
+                                            setIsDetailsModalOpen(true);
+                                        }}
+                                    >
                                         <span className="text-white text-[10px] font-bold">{app.initials}</span>
                                     </div>
-                                    <span className="text-[13px] font-medium text-[#0e1b1a] truncate">{app.name}</span>
+                                    <span 
+                                        className="text-[13px] font-medium text-[#0e1b1a] truncate cursor-pointer"
+                                        onClick={() => {
+                                            setViewingApplicant(app);
+                                            setIsDetailsModalOpen(true);
+                                        }}
+                                    >
+                                        {app.name}
+                                    </span>
                                 </div>
                                 <span className="text-[13px] text-[#334155] truncate">{app.position}</span>
                             </div>
@@ -266,10 +302,22 @@ export function ApplicantsTable({
                                         onChange={() => toggleOne(app.id)}
                                         className="size-4 rounded border-[#CBD5E1] accent-[#0f766d] cursor-pointer mt-0.5"
                                     />
-                                    <div className={`size-10 rounded-full flex items-center justify-center shrink-0 ${DEFAULT_AVATAR_COLOR}`}>
+                                    <div 
+                                        className={`size-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer ${DEFAULT_AVATAR_COLOR}`}
+                                        onClick={() => {
+                                            setViewingApplicant(app);
+                                            setIsDetailsModalOpen(true);
+                                        }}
+                                    >
                                         <span className="text-white text-xs font-bold">{app.initials}</span>
                                     </div>
-                                    <div className="flex flex-col gap-0.5">
+                                    <div 
+                                        className="flex flex-col gap-0.5 cursor-pointer"
+                                        onClick={() => {
+                                            setViewingApplicant(app);
+                                            setIsDetailsModalOpen(true);
+                                        }}
+                                    >
                                         <span className="text-[14px] font-semibold text-[#0e1b1a]">{app.name}</span>
                                         <span className="text-[11px] text-[#94A3B8]">{app.email}</span>
                                     </div>
@@ -288,6 +336,13 @@ export function ApplicantsTable({
                     );
                 })}
             </div>
+
+            {/* Applicant Details Modal */}
+            <ApplicantDetailsModal 
+                isOpen={isDetailsModalOpen}
+                onClose={() => setIsDetailsModalOpen(false)}
+                applicant={viewingApplicant}
+            />
         </div>
     );
 }

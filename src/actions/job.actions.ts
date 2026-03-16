@@ -315,6 +315,7 @@ export async function createJobAction(payload: CreateJobPayload) {
             callTimeFrom: payload.callTimeFrom,
             callTimeTo: payload.callTimeTo,
             callDays: payload.callDays,
+            customScreeningQuestions: payload.customScreeningQuestions || [],
         }).returning({ id: jobs.id });
 
         return { success: true, jobId: newJob[0].id };
@@ -403,6 +404,7 @@ export async function updateJobAction(jobId: string, payload: CreateJobPayload) 
                 callTimeFrom: payload.callTimeFrom,
                 callTimeTo: payload.callTimeTo,
                 callDays: payload.callDays,
+                customScreeningQuestions: payload.customScreeningQuestions || [],
                 approvalStatus: 'PENDING',
                 rejectionReason: null,
                 updatedAt: new Date(),
