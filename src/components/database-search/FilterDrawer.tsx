@@ -1,17 +1,18 @@
 "use client";
 
 import { X } from "lucide-react";
-import { SearchFilters } from "./SearchFilters";
+import { SearchFilters, SearchFilterState } from "./SearchFilters";
 import { useEffect } from "react";
 
 interface FilterDrawerProps {
     isOpen: boolean;
     onClose: () => void;
-    onSearch?: () => void;
+    onSearch?: (filters: SearchFilterState) => void;
     onClear?: () => void;
+    initialFilters?: Partial<SearchFilterState>;
 }
 
-export function FilterDrawer({ isOpen, onClose, onSearch, onClear }: FilterDrawerProps) {
+export function FilterDrawer({ isOpen, onClose, onSearch, onClear, initialFilters }: FilterDrawerProps) {
     // Prevent body scrolling when drawer is open
     useEffect(() => {
         if (isOpen) {
@@ -52,9 +53,13 @@ export function FilterDrawer({ isOpen, onClose, onSearch, onClear }: FilterDrawe
                 </div>
 
                 {/* Filters Content Area */}
-                <div className="flex-1 overflow-y-auto">
-                    <SearchFilters onSearch={onSearch} onClear={onClear} />
-                </div>
+                <SearchFilters 
+                    onSearch={(filters) => {
+                        if (onSearch) onSearch(filters);
+                    }} 
+                    onClear={onClear} 
+                    initialFilters={initialFilters}
+                />
             </div>
         </>
     );

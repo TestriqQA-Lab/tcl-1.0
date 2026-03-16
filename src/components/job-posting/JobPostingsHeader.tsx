@@ -1,8 +1,37 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus, Search, Bell } from 'lucide-react';
+import { useSession } from "next-auth/react";
+import { getEmployerProfile } from "@/actions/employer.actions";
+import { VerificationModal } from '@/components/employer-dashboard/VerificationModal';
 
 const JobPostingsHeader = () => {
+    const { data: session } = useSession();
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+
+    const userId = session?.user?.id;
+
+    useEffect(() => {
+        if (!userId) return;
+        getEmployerProfile(userId).then((profile) => {
+            if (profile) {
+                setVerificationStatus(profile.verificationStatus ?? "UNVERIFIED");
+            } else {
+                setVerificationStatus("UNVERIFIED");
+            }
+        });
+    }, [userId]);
+
+    const handlePostJobClick = (e: React.MouseEvent) => {
+        if (verificationStatus !== "VERIFIED") {
+            e.preventDefault();
+            setShowVerificationModal(true);
+        }
+    };
+
     return (
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
             <div className="flex flex-col gap-1">
@@ -32,11 +61,21 @@ const JobPostingsHeader = () => {
                 </button>
 
                 {/* CTA Button */}
-                <Link href="/employer-dashboard/post-job" className="flex items-center gap-2 bg-[#0f766d] hover:bg-[#0c5e57] text-white px-4 md:px-5 pb-[1px] h-[38px] rounded-lg transition-colors w-full md:w-auto justify-center">
+                <Link 
+                    href="/employer-dashboard/post-job" 
+                    onClick={handlePostJobClick}
+                    className="flex items-center gap-2 bg-[#0f766d] hover:bg-[#0c5e57] text-white px-4 md:px-5 pb-[1px] h-[38px] rounded-lg transition-colors w-full md:w-auto justify-center"
+                >
                     <Plus className="w-4 h-4 text-white" />
                     <span className="font-inter text-sm font-semibold">Post a New Job</span>
                 </Link>
             </div>
+
+            <VerificationModal 
+                isOpen={showVerificationModal}
+                onClose={() => setShowVerificationModal(false)}
+                verificationStatus={verificationStatus}
+            />
         </div>
     );
 };

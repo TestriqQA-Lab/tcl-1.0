@@ -7,8 +7,8 @@ import { StatusFilterTabs } from "./StatusFilterTabs";
 import { ApplicantsTable } from "./ApplicantsTable";
 import { ApplicationsPagination } from "./ApplicationsPagination";
 import { FilterPanel } from "./FilterPanel";
-import { applicants } from "./applicantsData";
 import { Search, SlidersHorizontal, Download } from "lucide-react";
+import { getEmployerJobsAction, getEmployerApplicationsAction } from "@/actions/employer.application.actions";
 
 export function ApplicationsContent() {
     const [selectedJob, setSelectedJob] = useState("all");
@@ -16,13 +16,54 @@ export function ApplicationsContent() {
     const [filterOpen, setFilterOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeStatus, setActiveStatus] = useState("All");
+    
+    // Real Data State
+    const [applicants, setApplicants] = useState<any[]>([]);
+    const [jobsList, setJobsList] = useState<any[]>([]);
+    const [statusCounts, setStatusCounts] = useState<Record<string, number>>({
+        "All": 0, "Shortlisted": 0, "In Review": 0, "Interview": 0, "Rejected": 0
+    });
+    const [isLoading, setIsLoading] = useState(true);
 
     const searchParams = useSearchParams();
 
     useEffect(() => {
         const jobId = searchParams.get("jobId");
         setSelectedJob(jobId || "all");
+        
+        // Initial fetch for jobs
+        const fetchJobs = async () => {
+            const result = await getEmployerJobsAction();
+            if (result.data) {
+                setJobsList(result.data);
+            }
+        };
+        fetchJobs();
     }, [searchParams]);
+
+    useEffect(() => {
+        const fetchApps = async () => {
+            setIsLoading(true);
+            const result = await getEmployerApplicationsAction({
+                jobId: selectedJob,
+                status: activeStatus,
+                searchQuery
+            });
+            if (result.data) {
+                setApplicants(result.data);
+                if (result.counts) {
+                    setStatusCounts(result.counts);
+                }
+            }
+            setIsLoading(false);
+        };
+        
+        const timer = setTimeout(() => {
+            fetchApps();
+        }, 300); // Small debounce for search
+
+        return () => clearTimeout(timer);
+    }, [selectedJob, activeStatus, searchQuery]);
 
     return (
         <>
@@ -32,8 +73,8 @@ export function ApplicationsContent() {
                     <h1 className="text-[22px] font-bold text-[#0e1b1a] tracking-[-0.5px]">
                         Applications
                     </h1>
-                    <span className="px-2.5 py-1 bg-[#0f766d]/8 text-[#0f766d] text-xs font-semibold rounded-full">
-                        {applicants.length} total
+                    <span className="px-2.5 py-1 bg-[#0f766d]/8 text-[#0f766d] text-xs font-semibold rounded-full min-w-[60px] text-center">
+                        {isLoading ? "..." : applicants.length} total
                     </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -74,7 +115,7 @@ export function ApplicationsContent() {
                             Applications
                         </h1>
                         <span className="px-2.5 py-0.5 bg-[#0f766d]/8 text-[#0f766d] text-[11px] font-semibold rounded-full">
-                            {applicants.length}
+                            {isLoading ? "..." : applicants.length}
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -111,17 +152,34 @@ export function ApplicationsContent() {
 
             {/* Active Jobs Strip */}
             <div className="px-4 md:px-6 lg:px-10 pt-4 lg:pt-5">
-                <ActiveJobsStrip selectedJob={selectedJob} onJobChange={setSelectedJob} />
+                <ActiveJobsStrip 
+                    selectedJob={selectedJob} 
+                    onJobChange={setSelectedJob} 
+                    jobs={jobsList}
+                    applicantsCount={applicants.length}
+                />
             </div>
 
             {/* Status Filter Tabs */}
             <div className="px-4 md:px-6 lg:px-10 mt-3">
-                <StatusFilterTabs activeStatus={activeStatus} selectedJob={selectedJob} onFilterChange={setActiveStatus} />
+                <StatusFilterTabs 
+                    activeStatus={activeStatus} 
+                    selectedJob={selectedJob} 
+                    onFilterChange={setActiveStatus} 
+                    counts={statusCounts}
+                />
             </div>
 
             {/* Table + Pagination */}
             <div className="flex flex-col gap-4 px-4 md:px-6 lg:px-10 py-5 lg:py-6 pb-24 md:pb-6">
-                <ApplicantsTable selectedJob={selectedJob} searchQuery={searchQuery} activeStatus={activeStatus} onSelectionChange={setSelectedCount} />
+                <ApplicantsTable 
+                    applicants={applicants}
+                    isLoading={isLoading}
+                    selectedJob={selectedJob} 
+                    searchQuery={searchQuery} 
+                    activeStatus={activeStatus} 
+                    onSelectionChange={setSelectedCount} 
+                />
                 <ApplicationsPagination />
             </div>
 

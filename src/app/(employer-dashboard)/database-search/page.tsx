@@ -5,13 +5,18 @@ import { TabletNavStrip } from "@/components/employer-dashboard/TabletNavStrip";
 import { MobileBottomNav } from "@/components/employer-dashboard/MobileBottomNav";
 import { EmployerFooter } from "@/components/employer/EmployerFooter";
 import { DatabaseSearchContent } from "@/components/database-search/DatabaseSearchContent";
+import { getSeekerProfilesForEmployerAction } from "@/actions/employer.seeker.actions";
 
 export const metadata = {
     title: "Database Search | TopCareerLive Employer",
     description: "Search and filter through our extensive candidate database.",
 };
 
-export default function DatabaseSearchPage() {
+export default async function DatabaseSearchPage() {
+    // Initial fetch for first render (Server Component)
+    const result = await getSeekerProfilesForEmployerAction({});
+    const initialCandidates = result.data || [];
+
     return (
         <div className="flex flex-col min-h-screen w-full bg-[#F8FAFB]">
             {/* Main Content Area */}
@@ -29,7 +34,10 @@ export default function DatabaseSearchPage() {
 
                     {/* Database Search Content (Filters and Results) */}
                     <Suspense fallback={<div className="p-10 text-center">Loading database...</div>}>
-                         <DatabaseSearchContent />
+                         <DatabaseSearchContent 
+                            initialCandidates={initialCandidates} 
+                            initialTotalResults={initialCandidates.length}
+                        />
                     </Suspense>
                 </div>
             </div>
