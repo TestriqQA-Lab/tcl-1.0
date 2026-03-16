@@ -1,89 +1,101 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { SearchFilters } from "./SearchFilters";
+import { SearchFilters, SearchFilterState } from "./SearchFilters";
 import { FilterDrawer } from "./FilterDrawer";
 import { CandidateCard, CandidateProps } from "./CandidateCard";
 import { Search, Filter, Download } from "lucide-react";
 
-// Mock data based on the Pencil designs
-const mockCandidates: CandidateProps[] = [
-    {
-        id: "1",
-        name: "Jimmy Morris",
-        initials: "JM",
-        avatarColor: "#F59E0B",
-        title: "Project Manager - Project Manager at Majordome Digital",
-        company: "Majordome Digital",
-        location: "Paris, Ile-De-France, France",
-        education: "Burgundy School of Business - BSB",
-        skills: ["Primavera P6", "Construction", "AutoCAD", "FIDIC"],
-        companyInitials: "MD",
-        companyColor: "#475569"
-    },
-    {
-        id: "2",
-        name: "Robert Davis",
-        initials: "RD",
-        avatarColor: "#F97316",
-        title: "Project Manager, Project Manager at Marya construction",
-        company: "Marya construction",
-        location: "Latvia",
-        education: "Middle East Technical University",
-        skills: ["Primavera P6", "Construction", "AutoCAD", "FIDIC"],
-        companyInitials: "MC",
-        companyColor: "#EF4444"
-    },
-    {
-        id: "3",
-        name: "Hector Ramirez",
-        initials: "HR",
-        avatarColor: "#3B82F6",
-        title: "Project Manager at viastore SYSTEMS España",
-        company: "viastore SYSTEMS España",
-        location: "Madrid, ES",
-        education: "Universidad Europea",
-        skills: ["Primavera P6", "Construction", "AutoCAD", "FIDIC"],
-        companyInitials: "VSE",
-        companyColor: "#3B82F6"
-    }
-];
+import { getSeekerProfilesForEmployerAction } from "@/actions/employer.seeker.actions";
+import { ExportPreviewModal } from "./ExportPreviewModal";
 
-export function DatabaseSearchContent() {
+interface DatabaseSearchContentProps {
+    initialCandidates?: CandidateProps[];
+    initialTotalResults?: number;
+}
+
+const DEFAULT_FILTERS: SearchFilterState = {
+    query: "",
+    location: "",
+    company: "",
+    skills: [],
+    experienceMin: "",
+    experienceMax: "",
+    industry: "",
+    educationLevel: "",
+    ageMin: "",
+    ageMax: "",
+    ctcMin: "",
+    ctcMax: "",
+    gender: "any"
+};
+
+export function DatabaseSearchContent({ 
+    initialCandidates = [], 
+    initialTotalResults = 0 
+}: DatabaseSearchContentProps) {
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
     const [hasActiveFilters, setHasActiveFilters] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
+    
+    // Lifted Filter State
+    const [filters, setFilters] = useState<SearchFilterState>(DEFAULT_FILTERS);
+
+    const [debouncedFilters, setDebouncedFilters] = useState<SearchFilterState>(filters);
     
     // API State
-    const [candidates, setCandidates] = useState<CandidateProps[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [totalResults, setTotalResults] = useState(0);
+    const [candidates, setCandidates] = useState<CandidateProps[]>(initialCandidates);
+    const [isLoading, setIsLoading] = useState(false);
+    const [totalResults, setTotalResults] = useState(initialTotalResults);
 
-    const fetchCandidates = async (filters: any) => {
+    // Debounce effect: sync filters to debouncedFilters after a delay
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedFilters(filters);
+            
+            // Update active filter status
+            const isActive = filters.query.trim().length > 0 || 
+                            filters.location !== "" || 
+                            filters.company !== "" || 
+                            filters.skills.length > 0 || 
+                            filters.experienceMin !== "" || 
+                            filters.experienceMax !== "" || 
+                            filters.industry !== "" || 
+                            filters.educationLevel !== "" || 
+                            filters.ageMin !== "" || 
+                            filters.ageMax !== "" || 
+                            filters.ctcMin !== "" || 
+                            filters.ctcMax !== "" || 
+                            filters.gender !== "any";
+            setHasActiveFilters(isActive);
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(handler);
+    }, [filters]);
+
+    // Fetch when DEBOUNCED filters change
+    useEffect(() => {
+        // Skip initial fetch on mount since we have initialCandidates
+        if (debouncedFilters === DEFAULT_FILTERS && candidates === initialCandidates) return;
+        
+        fetchCandidates(debouncedFilters);
+    }, [debouncedFilters]);
+
+    const fetchCandidates = async (currentFilters: SearchFilterState) => {
         setIsLoading(true);
         try {
-            const res = await fetch("/api/employer/candidates/search", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(filters || {})
+            const result = await getSeekerProfilesForEmployerAction({
+                ...currentFilters,
             });
-            if (res.ok) {
-                const data = await res.json();
-                setCandidates(data);
-                setTotalResults(data.length);
-            }
+            setCandidates(result.data || []);
+            setTotalResults(result.totalCount || result.data?.length || 0);
         } catch (error) {
-            console.error("Error fetching candidates:", error);
+            console.error("Search failed:", error);
         } finally {
             setIsLoading(false);
         }
     };
-
-    // Initial fetch
-    useEffect(() => {
-        fetchCandidates({});
-    }, []);
 
     const handleSelectCandidate = (id: string) => {
         setSelectedCandidateIds(prev => 
@@ -92,39 +104,81 @@ export function DatabaseSearchContent() {
     };
 
     const handleTopSearch = (query: string) => {
-        setSearchQuery(query);
-        setHasActiveFilters(query.trim().length > 0);
-        fetchCandidates({ query });
+        setFilters(prev => ({ ...prev, query }));
     };
 
-    const handleExport = () => {
-        if (selectedCandidateIds.length > 0) {
-            alert(`Exporting ${selectedCandidateIds.length} selected candidate(s) to Google Sheets / CSV!`);
-        } else if (hasActiveFilters) {
-            alert(`Exporting all ${candidates.length} filtered candidate(s) to Google Sheets / CSV!`);
+    const handleFilterSearch = (newFilters: SearchFilterState) => {
+        setFilters(newFilters);
+        setSelectedCandidateIds([]);
+        setIsFilterDrawerOpen(false);
+    };
+
+    const handleClearFilters = () => {
+        setFilters(DEFAULT_FILTERS);
+        setSelectedCandidateIds([]);
+        setIsFilterDrawerOpen(false);
+    };
+
+    const handleSelectAll = () => {
+        if (selectedCandidateIds.length === candidates.length && candidates.length > 0) {
+            setSelectedCandidateIds([]);
+        } else {
+            setSelectedCandidateIds(candidates.map(c => c.id));
         }
     };
 
-    const canExport = selectedCandidateIds.length > 0 || hasActiveFilters;
+    const handleExport = () => {
+        if (candidates.length === 0) return;
+        setIsExportModalOpen(true);
+    };
+
+    const handleDownload = () => {
+        const candidatesToExport = selectedCandidateIds.length > 0
+            ? candidates.filter(c => selectedCandidateIds.includes(c.id))
+            : candidates;
+
+        if (candidatesToExport.length === 0) return;
+
+        // Generate CSV content
+        const headers = ["Name", "Company", "Role", "Location", "Education", "Skills"];
+        const rows = candidatesToExport.map(c => [
+            c.name,
+            c.company,
+            c.title.split(' at ')[0],
+            c.location,
+            c.education,
+            (c.skills || []).join("; ")
+        ]);
+
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(","))
+        ].join("\n");
+
+        // Trigger download
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `candidates_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setIsExportModalOpen(false);
+    };
+
+    const canExport = selectedCandidateIds.length > 0 || candidates.length > 0;
+    const isAllSelected = candidates.length > 0 && selectedCandidateIds.length === candidates.length;
 
     return (
         <div className="flex flex-col lg:flex-row w-full h-full min-h-[calc(100vh-140px)]">
             {/* Desktop Left Sidebar Filters (FIXED to viewport) */}
-            <div className="hidden lg:block w-[280px] bg-white border-r border-[#E2E8F0] shrink-0 sticky top-0 h-[calc(100vh-[140px])] overflow-y-auto">
+            <div className="hidden lg:block w-[280px] bg-white border-r border-[#E2E8F0] shrink-0 sticky top-0 h-screen overflow-hidden">
                 <SearchFilters 
-                    initialQuery={searchQuery}
-                    onSearch={(filters) => {
-                        setHasActiveFilters(true);
-                        setSearchQuery(filters.query);
-                        fetchCandidates(filters);
-                        setSelectedCandidateIds([]);
-                    }}
-                    onClear={() => {
-                        setHasActiveFilters(false);
-                        setSearchQuery("");
-                        setSelectedCandidateIds([]);
-                        fetchCandidates({});
-                    }}
+                    initialFilters={filters}
+                    onSearch={handleFilterSearch}
+                    onClear={handleClearFilters}
                 />
             </div>
 
@@ -132,17 +186,9 @@ export function DatabaseSearchContent() {
             <FilterDrawer 
                 isOpen={isFilterDrawerOpen} 
                 onClose={() => setIsFilterDrawerOpen(false)} 
-                onSearch={() => {
-                    setHasActiveFilters(true);
-                    setIsFilterDrawerOpen(false);
-                }}
-                onClear={() => {
-                    setHasActiveFilters(false);
-                    setSearchQuery("");
-                    setSelectedCandidateIds([]);
-                    setIsFilterDrawerOpen(false);
-                    fetchCandidates({});
-                }}
+                initialFilters={filters}
+                onSearch={handleFilterSearch}
+                onClear={handleClearFilters}
             />
 
             {/* Main Results Area (SCROLLABLE independently of sidebar) */}
@@ -167,18 +213,32 @@ export function DatabaseSearchContent() {
                                     {selectedCandidateIds.length > 0 ? `${selectedCandidateIds.length} selected` : `${totalResults.toLocaleString()} results`}
                                 </span>
                             </div>
-                            <button 
-                                onClick={handleExport}
-                                disabled={!canExport}
-                                className={`flex items-center gap-2 px-3 h-8 md:h-9 border rounded-lg text-[12px] md:text-[13px] font-medium shadow-sm shrink-0 transition-colors ${
-                                    canExport 
-                                        ? "bg-white border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#0e1b1a]" 
-                                        : "bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] cursor-not-allowed"
-                                }`}
-                            >
-                                <Download className={`w-3.5 h-3.5 ${canExport ? "text-[#0f766d]" : "text-[#94A3B8]"}`} />
-                                <span className="hidden xs:inline">Export</span>
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-1.5">
+                                    <input 
+                                        type="checkbox" 
+                                        id="select-all-mobile"
+                                        checked={isAllSelected}
+                                        onChange={handleSelectAll}
+                                        className="size-4 rounded border-[#E2E8F0] text-[#0f766d] focus:ring-[#0f766d] cursor-pointer"
+                                    />
+                                    <label htmlFor="select-all-mobile" className="text-[12px] font-medium text-[#64748B] cursor-pointer whitespace-nowrap hidden xs:inline">
+                                        All
+                                    </label>
+                                </div>
+                                <button 
+                                    onClick={handleExport}
+                                    disabled={!canExport}
+                                    className={`flex items-center gap-2 px-3 h-8 md:h-9 border rounded-lg text-[12px] md:text-[13px] font-medium shadow-sm shrink-0 transition-colors ${
+                                        canExport 
+                                            ? "bg-white border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#0e1b1a]" 
+                                            : "bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] cursor-not-allowed"
+                                    }`}
+                                >
+                                    <Download className={`w-3.5 h-3.5 ${canExport ? "text-[#0f766d]" : "text-[#94A3B8]"}`} />
+                                    <span className="hidden xs:inline">Export</span>
+                                </button>
+                            </div>
                         </div>
                         
                         <div className="flex items-center gap-2 w-full">
@@ -195,14 +255,9 @@ export function DatabaseSearchContent() {
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
                                 <input
                                     type="text"
-                                    value={searchQuery}
+                                    value={filters.query}
                                     placeholder="Search by title or skills"
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            handleTopSearch(e.currentTarget.value);
-                                        }
-                                    }}
+                                    onChange={(e) => setFilters({ ...filters, query: e.target.value })}
                                     className="w-full h-11 pl-10 pr-3 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg text-[13px] sm:text-[14px] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                                 />
                             </div>
@@ -211,6 +266,18 @@ export function DatabaseSearchContent() {
 
                     {/* Desktop Toolbar */}
                     <div className="hidden lg:flex items-center justify-end gap-3 flex-1">
+                           <div className="flex items-center gap-2 mr-4">
+                               <input 
+                                   type="checkbox" 
+                                   id="select-all"
+                                   checked={isAllSelected}
+                                   onChange={handleSelectAll}
+                                   className="size-4 rounded border-[#E2E8F0] text-[#0f766d] focus:ring-[#0f766d] cursor-pointer"
+                               />
+                               <label htmlFor="select-all" className="text-[14px] font-medium text-[#64748B] cursor-pointer whitespace-nowrap">
+                                   Select All
+                               </label>
+                           </div>
                            <button 
                                 onClick={handleExport}
                                 disabled={!canExport}
@@ -221,20 +288,15 @@ export function DatabaseSearchContent() {
                                 }`}
                            >
                                 <Download className={`w-4 h-4 ${canExport ? "text-[#0f766d]" : "text-[#94A3B8]"}`} />
-                                {selectedCandidateIds.length > 0 ? `Export ${selectedCandidateIds.length} to sheet` : 'Export to sheet'}
+                                {selectedCandidateIds.length > 0 ? `Export ${selectedCandidateIds.length} to sheet` : 'Export all to sheet'}
                            </button>
                            <div className="relative w-full max-w-[400px]">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
                                 <input
                                     type="text"
-                                    value={searchQuery}
+                                    value={filters.query}
                                     placeholder="Search candidates by title or skills"
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            handleTopSearch(e.currentTarget.value);
-                                        }
-                                    }}
+                                    onChange={(e) => setFilters({ ...filters, query: e.target.value })}
                                     className="w-full h-11 pl-10 pr-3 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg text-[14px] focus:outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d]"
                                 />
                          </div>
@@ -261,10 +323,7 @@ export function DatabaseSearchContent() {
                             <h3 className="text-[18px] font-bold text-[#0e1b1a] mb-2">No Candidates Found</h3>
                             <p className="text-[#64748B] text-[14px]">Try adjusting your filters or search query to find more results.</p>
                             <button 
-                                onClick={() => {
-                                    setHasActiveFilters(false);
-                                    fetchCandidates({});
-                                }}
+                                onClick={handleClearFilters}
                                 className="mt-4 px-4 py-2 bg-[#0f766d]/10 text-[#0f766d] font-bold rounded-lg text-[14px]"
                             >
                                 Clear all filters
@@ -273,6 +332,17 @@ export function DatabaseSearchContent() {
                     )}
                 </div>
             </div>
+
+            {/* Export Preview Modal */}
+            <ExportPreviewModal 
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                candidates={selectedCandidateIds.length > 0 
+                    ? candidates.filter(c => selectedCandidateIds.includes(c.id))
+                    : candidates
+                }
+                onDownload={handleDownload}
+            />
         </div>
     );
 }
