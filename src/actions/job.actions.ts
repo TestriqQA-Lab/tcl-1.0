@@ -175,24 +175,42 @@ export async function getEmployerJobs() {
                 status: jobs.status,
                 createdAt: jobs.createdAt,
                 statusChangedAt: jobs.statusChangedAt,
+                approvalStatus: jobs.approvalStatus,
+                rejectionReason: jobs.rejectionReason,
                 applications: sql<number>`count(distinct ${applications.id})::int`,
                 shortlisted: sql<number>`count(distinct case when ${applications.applicationStatus} = 'ACCEPTED' then ${applications.id} end)::int`,
             })
             .from(jobs)
             .leftJoin(applications, eq(jobs.id, applications.jobId))
             .where(eq(jobs.employerId, employerId))
-            .groupBy(jobs.id)
+            .groupBy(
+                jobs.id,
+                jobs.title,
+                jobs.location,
+                jobs.type,
+                jobs.status,
+                jobs.createdAt,
+                jobs.statusChangedAt,
+                jobs.approvalStatus,
+                jobs.rejectionReason
+            )
             .orderBy(desc(jobs.createdAt));
 
         return {
             success: true,
-            jobs: results.map(job => {
-                // Formatting date to '12 Oct 2023'
-                const dateOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
-                const formattedDate = job.createdAt.toLocaleDateString('en-GB', dateOptions);
-                const formattedStatusChangedDate = job.statusChangedAt
-                    ? job.statusChangedAt.toLocaleDateString('en-GB', dateOptions)
-                    : undefined;
+            jobs: results.map((job) => {
+                const resultsDate = job.createdAt ? new Date(job.createdAt) : new Date();
+                const formattedDate = resultsDate.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                const statusChangedDateObj = job.statusChangedAt ? new Date(job.statusChangedAt) : null;
+                const formattedStatusChangedDate = statusChangedDateObj ? statusChangedDateObj.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                }) : undefined;
 
                 let status: 'Active' | 'Paused' | 'Closed' = 'Closed';
                 if (job.status === 'OPEN') status = 'Active';
@@ -205,6 +223,8 @@ export async function getEmployerJobs() {
                     type: job.type.charAt(0) + job.type.slice(1).toLowerCase(),
                     department: 'Engineering', // Placeholder, map if added to DB
                     status,
+                    approvalStatus: job.approvalStatus,
+                    rejectionReason: job.rejectionReason,
                     applications: job.applications,
                     shortlisted: job.shortlisted,
                     postedDate: formattedDate,
@@ -227,11 +247,28 @@ export async function createJobAction(payload: CreateJobPayload) {
 
         const employerId = session.user.id;
 
-        // Ensure the gender matches our schema enum or is mapped back
-        let dbGender: any = null;
-        if (payload.preferredCandidateGender !== "ANY") {
-            dbGender = payload.preferredCandidateGender.toUpperCase();
+        // Backend Validation
+        if (!payload.title?.trim()) return { error: "Job title is required" };
+        if (!payload.description?.trim() || payload.description.length < 50) return { error: "Job description is too short (min 50 chars)" };
+        if (payload.workExperienceMin === undefined || payload.workExperienceMin === null || 
+            payload.workExperienceMax === undefined || payload.workExperienceMax === null) {
+            return { error: "Work experience is required" };
         }
+        if (payload.monthlySalaryMin === undefined || payload.monthlySalaryMin === null || 
+            payload.monthlySalaryMax === undefined || payload.monthlySalaryMax === null) {
+            return { error: "Salary range is required" };
+        }
+        if (payload.monthlySalaryMax < payload.monthlySalaryMin) return { error: "Max salary must be greater than min salary" };
+        if (!payload.candidateEducationLevel) return { error: "Education qualification is required" };
+        if (payload.allowCalls) {
+            if (!payload.recruiterName?.trim()) return { error: "Recruiter name is required" };
+            if (!payload.recruiterContact?.trim() || !/^\d{10}$/.test(payload.recruiterContact)) {
+                return { error: "Valid 10-digit mobile number is required" };
+            }
+        }
+
+        // Ensure the gender matches our schema enum
+        const dbGender = payload.preferredCandidateGender.toUpperCase() as any;
 
         // Just putting application deadline 30 days from now
         const deadline = new Date();
@@ -278,6 +315,7 @@ export async function createJobAction(payload: CreateJobPayload) {
             callTimeFrom: payload.callTimeFrom,
             callTimeTo: payload.callTimeTo,
             callDays: payload.callDays,
+            customScreeningQuestions: payload.customScreeningQuestions || [],
         }).returning({ id: jobs.id });
 
         return { success: true, jobId: newJob[0].id };
@@ -355,7 +393,7 @@ export async function updateJobAction(jobId: string, payload: CreateJobPayload) 
                 candidateLocationRequirement: payload.candidateLocationRequirement,
                 candidateEducationLevel: payload.candidateEducationLevel,
                 requiredSkills: payload.requiredSkills,
-                preferredCandidateGender: payload.preferredCandidateGender as any,
+                preferredCandidateGender: payload.preferredCandidateGender.toUpperCase() as any,
                 screeningExperienceMin: payload.screeningExperienceMin ?? undefined,
                 screeningEducationLevel: payload.screeningEducationLevel,
                 screeningEnglishLevel: payload.screeningEnglishLevel,
@@ -366,6 +404,9 @@ export async function updateJobAction(jobId: string, payload: CreateJobPayload) 
                 callTimeFrom: payload.callTimeFrom,
                 callTimeTo: payload.callTimeTo,
                 callDays: payload.callDays,
+                customScreeningQuestions: payload.customScreeningQuestions || [],
+                approvalStatus: 'PENDING',
+                rejectionReason: null,
                 updatedAt: new Date(),
             })
             .where(and(eq(jobs.id, jobId), eq(jobs.employerId, session.user.id)));

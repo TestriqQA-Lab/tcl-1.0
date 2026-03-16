@@ -171,7 +171,7 @@ export async function getSeekerProfilesForEmployerAction(filters: any = {}) {
             };
         });
 
-        return { success: true, data: candidates };
+        return { success: true, data: candidates, totalCount: candidates.length };
 
     } catch (error) {
         console.error("Error in getSeekerProfilesForEmployerAction:", error);

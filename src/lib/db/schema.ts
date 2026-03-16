@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, uuid, pgEnum, integer, boolean, date, index } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, pgEnum, integer, boolean, date, index, jsonb } from "drizzle-orm/pg-core";
 
 // Enums
 export const userRole = pgEnum("user_role", ["SEEKER", "EMPLOYER", "ADMIN"]);
@@ -18,7 +18,7 @@ export const companySizeEnum = pgEnum("company_size", ["1-10", "11-50", "51-200"
 export const verificationStatusEnum = pgEnum("verification_status", ["UNVERIFIED", "PENDING", "VERIFIED", "APPROVED", "REJECTED"]);
 
 // New Enums for Seeker Profile
-export const genderEnum = pgEnum("gender", ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"]);
+export const genderEnum = pgEnum("gender", ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY", "ANY"]);
 export const workStatusEnum = pgEnum("work_status", ["FRESHER", "EXPERIENCED"]);
 export const lookingForEnum = pgEnum("looking_for", ["JOB", "INTERNSHIP", "BOTH"]);
 export const employmentStatusEnum = pgEnum("employment_status", ["UNEMPLOYED", "EMPLOYED", "STUDENT"]);
@@ -208,6 +208,7 @@ export const jobs = pgTable("jobs", {
     callTimeFrom: text("call_time_from"), // e.g. "09:00 AM"
     callTimeTo: text("call_time_to"),   // e.g. "06:00 PM"
     callDays: text("call_days"),        // "Mon-Fri", "Mon-Sat", "Everyday"
+    customScreeningQuestions: jsonb("custom_screening_questions").default([]),
     rejectionReason: text("rejection_reason"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -226,6 +227,7 @@ export const applications = pgTable('applications', {
     applicationDate: timestamp("application_date").defaultNow().notNull(),
     resumeUrl: text("resume_url").default("").notNull(),
     coverLetterUrl: text("cover_letter_url").default("").notNull(),
+    answers: jsonb("answers").default([]),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull()
 }, (t) => ({

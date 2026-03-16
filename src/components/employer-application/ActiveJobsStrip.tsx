@@ -123,7 +123,7 @@ export function ActiveJobsStrip({ selectedJob, onJobChange, jobs = [], applicant
                                         ? "bg-[#0f766d] text-white"
                                         : "bg-[#F1F5F9] text-[#64748B]"
                                         }`}>
-                                        {isAll ? applicantsCount : "..." /* Count per job is harder without extra fetch */}
+                                        {isAll ? applicantsCount : job.applicantCount}
                                     </span>
                                 </div>
                             </button>

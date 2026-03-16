@@ -4,7 +4,7 @@ import { TabletNavStrip } from "@/components/employer-dashboard/TabletNavStrip";
 import { MetricsRow } from "@/components/employer-dashboard/MetricsRow";
 import { RecentApplicationsTable } from "@/components/employer-dashboard/RecentApplicationsTable";
 import { QuickActionsPanel } from "@/components/employer-dashboard/QuickActionsPanel";
-import { UpcomingInterviewsCard } from "@/components/employer-dashboard/UpcomingInterviewsCard";
+import { HiringTipsCard } from "@/components/employer-dashboard/HiringTipsCard";
 import { MobileBottomNav } from "@/components/employer-dashboard/MobileBottomNav";
 import { EmployerFooter } from "@/components/employer/EmployerFooter";
 
@@ -59,10 +59,10 @@ export default function EmployerDashboardPage() {
                             <RecentApplicationsTable />
                         </div>
 
-                        {/* Right Column (desktop only) */}
+                        {/* Right: Dashboard Sidebar Widgets */}
                         <div className="hidden lg:flex flex-col gap-5 w-[200px] xl:w-[320px] shrink-0">
                             <QuickActionsPanel />
-                            <UpcomingInterviewsCard />
+                            <HiringTipsCard />
                         </div>
                     </div>
                 </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Search, Bell, Plus, Menu, X, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { getEmployerProfile } from "@/actions/employer.actions";
 import { VerificationModal } from "./VerificationModal";
@@ -23,6 +24,8 @@ export function DashboardTopBar({
     const [companyLogo, setCompanyLogo] = useState<string | null | undefined>(undefined);
     const [showVerificationModal, setShowVerificationModal] = useState(false);
     const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+    const pathname = usePathname();
+    const isApplicationsPage = pathname === "/employer-applications";
 
     const userId = session?.user?.id;
     const userEmail = session?.user?.email ?? "";
@@ -92,14 +95,16 @@ export function DashboardTopBar({
 
                     {/* Right: Search + Bell + CTA */}
                     <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 w-[200px] h-[38px] px-3 bg-[#F1F5F9] rounded-lg border border-[#E2E8F0]">
-                            <Search size={16} className="text-[#94A3B8]" />
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                className="bg-transparent text-sm text-[#0e1b1a] placeholder-[#94A3B8] outline-none w-full"
-                            />
-                        </div>
+                        {!isApplicationsPage && (
+                            <div className="flex items-center gap-2 w-[200px] h-[38px] px-3 bg-[#F1F5F9] rounded-lg border border-[#E2E8F0]">
+                                <Search size={16} className="text-[#94A3B8]" />
+                                <input
+                                    type="text"
+                                    placeholder="Search..."
+                                    className="bg-transparent text-sm text-[#0e1b1a] placeholder-[#94A3B8] outline-none w-full"
+                                />
+                            </div>
+                        )}
                         <button onClick={() => setNotificationsOpen(!notificationsOpen)} className="size-[38px] flex items-center justify-center rounded-lg border border-[#E2E8F0] hover:bg-[#F1F5F9] transition-colors relative">
                             <Bell size={18} className="text-[#64748B]" />
                             <span className="absolute top-2 right-2 size-1.5 bg-[#EF4444] rounded-full"></span>
@@ -137,12 +142,14 @@ export function DashboardTopBar({
 
                 {/* Right Actions */}
                 <div className="flex items-center gap-2.5 relative">
-                    <button
-                        className="size-[38px] md:size-10 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/10 transition-colors"
-                        onClick={() => setSearchOpen(true)}
-                    >
-                        <Search size={18} className="text-white md:size-[20px]" />
-                    </button>
+                    {!isApplicationsPage && (
+                        <button
+                            className="size-[38px] md:size-10 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/10 transition-colors"
+                            onClick={() => setSearchOpen(true)}
+                        >
+                            <Search size={18} className="text-white md:size-[20px]" />
+                        </button>
+                    )}
                     <button
                         className="size-[38px] md:size-10 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/10 transition-colors relative"
                         onClick={() => setNotificationsOpen(true)}

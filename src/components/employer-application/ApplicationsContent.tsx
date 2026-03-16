@@ -21,7 +21,7 @@ export function ApplicationsContent() {
     const [applicants, setApplicants] = useState<any[]>([]);
     const [jobsList, setJobsList] = useState<any[]>([]);
     const [statusCounts, setStatusCounts] = useState<Record<string, number>>({
-        "All": 0, "Shortlisted": 0, "In Review": 0, "Interview": 0, "Rejected": 0
+        "All": 0, "In Review": 0, "Shortlisted": 0, "Rejected": 0
     });
     const [isLoading, setIsLoading] = useState(true);
 

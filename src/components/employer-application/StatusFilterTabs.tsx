@@ -1,4 +1,4 @@
-const statusLabels = ["All", "Shortlisted", "In Review", "Interview", "Rejected"];
+const statusLabels = ["All", "In Review", "Shortlisted", "Rejected"];
 
 interface StatusFilterTabsProps {
     activeStatus?: string;
@@ -10,7 +10,7 @@ interface StatusFilterTabsProps {
 export function StatusFilterTabs({ 
     activeStatus = "All", 
     onFilterChange,
-    counts = { "All": 0, "Shortlisted": 0, "In Review": 0, "Interview": 0, "Rejected": 0 }
+    counts = { "All": 0, "In Review": 0, "Shortlisted": 0, "Rejected": 0 }
 }: StatusFilterTabsProps) {
     const handleClick = (label: string) => {
         onFilterChange?.(label);

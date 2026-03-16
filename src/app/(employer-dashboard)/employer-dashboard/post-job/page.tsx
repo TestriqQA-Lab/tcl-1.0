@@ -7,6 +7,7 @@ import { ArrowLeft, ChevronDown, Plus, Check, X, Copy, Trash2, Bold, Italic, Und
 import { DashboardTopBar } from "@/components/employer-dashboard/DashboardTopBar";
 import { TabletNavStrip } from "@/components/employer-dashboard/TabletNavStrip";
 import { createJobAction } from "@/actions/job.actions";
+import type { CustomQuestion, QuestionType } from "@/types/job";
 
 const steps = [
     "Job details",
@@ -53,14 +54,6 @@ export default function PostJobPage() {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     // Custom Questions State
-    type QuestionType = "Single choice" | "Multiple choice" | "Short answer";
-    interface CustomQuestion {
-        id: string;
-        text: string;
-        type: QuestionType;
-        mandatory: boolean;
-        options: string[];
-    }
     const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
 
     const createEmptyQuestion = (text = ""): CustomQuestion => ({
@@ -256,6 +249,7 @@ export default function PostJobPage() {
     const [isDaysDropdownOpen, setIsDaysDropdownOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         if (isSuccess) {
@@ -289,7 +283,40 @@ export default function PostJobPage() {
         "Digital marketing",
     ];
 
+    const validateStep = (): boolean => {
+        const errors: Record<string, string> = {};
+
+        if (activeStepIndex === 0) {
+            if (!jobTitle.trim()) errors.jobTitle = "Job title is required";
+            if (minExp === "") errors.minExp = "Minimum experience is required";
+            if (maxExp === "") errors.maxExp = "Maximum experience is required";
+            if (!minSal.trim()) errors.minSal = "Minimum salary is required";
+            if (!maxSal.trim()) errors.maxSal = "Maximum salary is required";
+            if (isSalaryInvalid) errors.salaryRange = "Max salary must be greater than min salary";
+        } else if (activeStepIndex === 1) {
+            if (candidateLocType === "In a specific city" && !specificCity) {
+                errors.specificCity = "Please select a city";
+            }
+            if (!education) errors.education = "Education qualification is required";
+        } else if (activeStepIndex === 3) {
+            const length = getEditorTextLength();
+            if (length < 50) errors.jobDescription = `Job description is too short (min 50 chars, current: ${length})`;
+        } else if (activeStepIndex === 4) {
+            if (!recruiterName.trim()) errors.recruiterName = "Recruiter name is required";
+            if (!mobileNumber.trim()) {
+                errors.mobileNumber = "Mobile number is required";
+            } else if (!/^\d{10}$/.test(mobileNumber)) {
+                errors.mobileNumber = "Enter a valid 10-digit mobile number";
+            }
+        }
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
     const handleNext = async () => {
+        if (!validateStep()) return;
+
         if (activeStepIndex < steps.length - 1) {
             setActiveStepIndex(activeStepIndex + 1);
             window.scrollTo(0, 0);
@@ -330,6 +357,7 @@ export default function PostJobPage() {
                     callTimeFrom: callStartTime,
                     callTimeTo: callEndTime,
                     callDays: callDays,
+                    customScreeningQuestions: customQuestions,
                 };
 
                 const result = await createJobAction(payload);
@@ -466,23 +494,35 @@ export default function PostJobPage() {
 
                                 <div className="flex flex-col gap-6 lg:gap-8 w-full">
                                     <div className="flex flex-col gap-2 w-full">
-                                        <label className="text-[14px] font-semibold text-[#374151]">Job title</label>
-                                        <div className="flex items-center w-full h-11 bg-white border border-[#d1d5db] rounded-md px-4 focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] transition-all">
+                                        <label className="text-[14px] font-semibold text-[#374151]">Job title <span className="text-red-500">*</span></label>
+                                        <div className={`flex items-center w-full h-11 bg-white border rounded-md px-4 focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] transition-all ${fieldErrors.jobTitle ? "border-red-500" : "border-[#d1d5db]"}`}>
                                             <input
                                                 type="text"
                                                 value={jobTitle}
-                                                onChange={(e) => setJobTitle(e.target.value)}
+                                                onChange={(e) => {
+                                                    setJobTitle(e.target.value);
+                                                    if (fieldErrors.jobTitle) setFieldErrors(prev => ({ ...prev, jobTitle: "" }));
+                                                }}
                                                 placeholder="Ex. Sales manager"
                                                 className="w-full bg-transparent outline-none text-[14px] lg:text-[15px] text-[#111827] placeholder:text-[#9ca3af]"
                                             />
                                         </div>
+                                        {fieldErrors.jobTitle && <p className="text-[12px] text-red-500">{fieldErrors.jobTitle}</p>}
                                     </div>
 
                                     <div className="flex flex-col gap-2 w-full">
-                                        <label className="text-[14px] font-semibold text-[#374151]">Work experience</label>
+                                        <label className="text-[14px] font-semibold text-[#374151]">Work experience <span className="text-red-500">*</span></label>
                                         <div className="flex items-center gap-3 w-full">
                                             <div className="relative flex-1">
-                                                <select value={minExp} onChange={(e) => { setMinExp(e.target.value); setMaxExp(""); }} className="w-full h-11 bg-white border border-[#d1d5db] rounded-md pl-4 pr-10 text-[14px] lg:text-[15px] appearance-none outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d] transition-all cursor-pointer text-[#111827]">
+                                                <select
+                                                    value={minExp}
+                                                    onChange={(e) => {
+                                                        setMinExp(e.target.value);
+                                                        setMaxExp("");
+                                                        setFieldErrors(prev => ({ ...prev, minExp: "", maxExp: "" }));
+                                                    }}
+                                                    className={`w-full h-11 bg-white border rounded-md pl-4 pr-10 text-[14px] lg:text-[15px] appearance-none outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d] transition-all cursor-pointer text-[#111827] ${fieldErrors.minExp ? "border-red-500" : "border-[#d1d5db]"}`}
+                                                >
                                                     <option value="" disabled hidden>Min exp.</option>
                                                     {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((y) => (
                                                         <option key={y} value={String(y)}>{y} {y === 1 ? "year" : "years"}</option>
@@ -492,7 +532,15 @@ export default function PostJobPage() {
                                             </div>
                                             <span className="text-[14px] text-[#6b7280]">to</span>
                                             <div className="relative flex-1">
-                                                <select value={maxExp} onChange={(e) => setMaxExp(e.target.value)} disabled={minExpNum === null} className={`w-full h-11 bg-white border border-[#d1d5db] rounded-md pl-4 pr-10 text-[14px] lg:text-[15px] appearance-none outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d] transition-all cursor-pointer text-[#111827] ${minExpNum === null ? "opacity-50 cursor-not-allowed" : ""}`}>
+                                                <select
+                                                    value={maxExp}
+                                                    onChange={(e) => {
+                                                        setMaxExp(e.target.value);
+                                                        setFieldErrors(prev => ({ ...prev, maxExp: "" }));
+                                                    }}
+                                                    disabled={minExpNum === null}
+                                                    className={`w-full h-11 bg-white border rounded-md pl-4 pr-10 text-[14px] lg:text-[15px] appearance-none outline-none focus:border-[#0f766d] focus:ring-1 focus:ring-[#0f766d] transition-all cursor-pointer text-[#111827] ${minExpNum === null ? "opacity-50 cursor-not-allowed" : ""} ${fieldErrors.maxExp ? "border-red-500" : "border-[#d1d5db]"}`}
+                                                >
                                                     <option value="" disabled hidden>Max exp.</option>
                                                     {maxExpOptions.map((y) => (
                                                         <option key={y} value={String(y)}>{y} {y === 1 ? "year" : "years"}</option>
@@ -501,25 +549,46 @@ export default function PostJobPage() {
                                                 <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9ca3af] pointer-events-none" />
                                             </div>
                                         </div>
+                                        {(fieldErrors.minExp || fieldErrors.maxExp) && <p className="text-[12px] text-red-500">{fieldErrors.minExp || fieldErrors.maxExp}</p>}
                                     </div>
 
                                     <div className="flex flex-col gap-2 w-full">
-                                        <label className="text-[14px] font-semibold text-[#374151]">Salary per month</label>
+                                        <label className="text-[14px] font-semibold text-[#374151]">Salary per month <span className="text-red-500">*</span></label>
                                         <div className="flex items-center gap-2 lg:gap-4 w-full">
-                                            <div className={`flex items-center w-full h-11 bg-white border rounded-md px-3 lg:px-4 transition-colors focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] ${isSalaryInvalid ? "border-red-400" : "border-[#d1d5db]"}`}>
+                                            <div className={`flex items-center w-full h-11 bg-white border rounded-md px-3 lg:px-4 transition-colors focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] ${isSalaryInvalid || fieldErrors.minSal ? "border-red-400" : "border-[#d1d5db]"}`}>
                                                 <span className="text-[13px] text-[#9ca3af] font-medium">₹</span>
                                                 <div className="w-px h-5 bg-[#e5e7eb] mx-2"></div>
-                                                <input type="text" inputMode="numeric" placeholder="Min" value={minSal} onChange={handleMinSalChange} className="w-full outline-none text-[14px] text-[#111827] placeholder:text-[#9ca3af]" />
+                                                <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    placeholder="Min"
+                                                    value={minSal}
+                                                    onChange={(e) => {
+                                                        handleMinSalChange(e);
+                                                        setFieldErrors(prev => ({ ...prev, minSal: "", salaryRange: "" }));
+                                                    }}
+                                                    className="w-full outline-none text-[14px] text-[#111827] placeholder:text-[#9ca3af]"
+                                                />
                                             </div>
                                             <span className="text-[14px] text-[#6b7280]">to</span>
-                                            <div className={`flex items-center w-full h-11 bg-white border rounded-md px-3 lg:px-4 transition-colors focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] ${isSalaryInvalid ? "border-red-400" : "border-[#d1d5db]"}`}>
+                                            <div className={`flex items-center w-full h-11 bg-white border rounded-md px-3 lg:px-4 transition-colors focus-within:border-[#0f766d] focus-within:ring-1 focus-within:ring-[#0f766d] ${isSalaryInvalid || fieldErrors.maxSal ? "border-red-400" : "border-[#d1d5db]"}`}>
                                                 <span className="text-[13px] text-[#9ca3af] font-medium">₹</span>
                                                 <div className="w-px h-5 bg-[#e5e7eb] mx-2"></div>
-                                                <input type="text" inputMode="numeric" placeholder="Max" value={maxSal} onChange={handleMaxSalChange} className="w-full outline-none text-[14px] text-[#111827] placeholder:text-[#9ca3af]" />
+                                                <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    placeholder="Max"
+                                                    value={maxSal}
+                                                    onChange={(e) => {
+                                                        handleMaxSalChange(e);
+                                                        setFieldErrors(prev => ({ ...prev, maxSal: "", salaryRange: "" }));
+                                                    }}
+                                                    className="w-full outline-none text-[14px] text-[#111827] placeholder:text-[#9ca3af]"
+                                                />
                                             </div>
                                         </div>
-                                        {isSalaryInvalid && (
-                                            <p className="text-[12px] text-red-500 mt-1">Max salary must be greater than min salary</p>
+                                        {(isSalaryInvalid || fieldErrors.minSal || fieldErrors.maxSal || fieldErrors.salaryRange) && (
+                                            <p className="text-[12px] text-red-500 mt-1">{fieldErrors.minSal || fieldErrors.maxSal || fieldErrors.salaryRange || (isSalaryInvalid && "Max salary must be greater than min salary")}</p>
                                         )}
                                     </div>
 
@@ -614,8 +683,11 @@ export default function PostJobPage() {
                                             <div className="relative w-full lg:w-1/2">
                                                 <select
                                                     value={specificCity}
-                                                    onChange={(e) => setSpecificCity(e.target.value)}
-                                                    className="w-full h-11 bg-white border border-[#d1d5db] rounded-md pl-4 pr-10 text-[14px] appearance-none outline-none focus:border-[#0f766d]"
+                                                    onChange={(e) => {
+                                                        setSpecificCity(e.target.value);
+                                                        setFieldErrors(prev => ({ ...prev, specificCity: "" }));
+                                                    }}
+                                                    className={`w-full h-11 bg-white border rounded-md pl-4 pr-10 text-[14px] appearance-none outline-none focus:border-[#0f766d] ${fieldErrors.specificCity ? "border-red-500" : "border-[#d1d5db]"}`}
                                                 >
                                                     <option value="">Select City</option>
                                                     {indianCities.map((city) => (
@@ -624,6 +696,7 @@ export default function PostJobPage() {
                                                 </select>
                                                 <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9ca3af] pointer-events-none" />
                                             </div>
+                                            {fieldErrors.specificCity && <p className="text-[12px] text-red-500">{fieldErrors.specificCity}</p>}
                                             <label className="flex items-center gap-2 cursor-pointer mt-1">
                                                 <input
                                                     type="checkbox"
@@ -639,13 +712,16 @@ export default function PostJobPage() {
                                     {/* Educational Qualification */}
                                     <div className="flex flex-col gap-2 w-full">
                                         <label className="text-[14px] font-semibold text-[#374151]">
-                                            Educational qualification
+                                            Educational qualification <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative w-full lg:w-1/2">
                                             <select
                                                 value={education}
-                                                onChange={(e) => setEducation(e.target.value)}
-                                                className="w-full h-11 bg-white border border-[#d1d5db] rounded-md pl-4 pr-10 text-[14px] appearance-none outline-none focus:border-[#0f766d]"
+                                                onChange={(e) => {
+                                                    setEducation(e.target.value);
+                                                    setFieldErrors(prev => ({ ...prev, education: "" }));
+                                                }}
+                                                className={`w-full h-11 bg-white border rounded-md pl-4 pr-10 text-[14px] appearance-none outline-none focus:border-[#0f766d] ${fieldErrors.education ? "border-red-500" : "border-[#d1d5db]"}`}
                                             >
                                                 <option value="">Select qualification</option>
                                                 <option value="12th Pass">12th Pass</option>
@@ -655,6 +731,7 @@ export default function PostJobPage() {
                                             </select>
                                             <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9ca3af] pointer-events-none" />
                                         </div>
+                                        {fieldErrors.education && <p className="text-[12px] text-red-500">{fieldErrors.education}</p>}
                                     </div>
 
                                     {/* Skills */}
@@ -902,40 +979,47 @@ export default function PostJobPage() {
                                     </div>
 
                                     {/* Job Description Editor Card */}
-                                    <div className="flex flex-col border border-[#e5e7eb] rounded-xl overflow-hidden">
-                                        {/* Editor Toolbar */}
-                                        <div className="flex items-center px-4 py-3 bg-[#f9fafb] border-b border-[#e5e7eb]">
-                                            <div className="flex items-center gap-4">
-                                                <div className="flex items-center gap-1.5 border-r border-gray-300 pr-4">
-                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('bold')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Bold"><Bold size={16} /></button>
-                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('italic')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Italic"><Italic size={16} /></button>
-                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('underline')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Underline"><Underline size={16} /></button>
-                                                </div>
-                                                <div className="flex items-center gap-1.5">
-                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('justifyLeft')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Align Left"><AlignLeft size={16} /></button>
-                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('insertUnorderedList')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Bullet List"><List size={16} /></button>
+                                    <div className="flex flex-col border border-[#e5e7eb] rounded-xl overflow-hidden focus-within:border-[#0f766d]">
+                                        <div className={`flex flex-col ${fieldErrors.jobDescription ? "border border-red-500 rounded-xl" : ""}`}>
+                                            {/* Editor Toolbar */}
+                                            <div className="flex items-center px-4 py-3 bg-[#f9fafb] border-b border-[#e5e7eb]">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-1.5 border-r border-gray-300 pr-4">
+                                                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('bold')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Bold"><Bold size={16} /></button>
+                                                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('italic')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Italic"><Italic size={16} /></button>
+                                                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('underline')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Underline"><Underline size={16} /></button>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('justifyLeft')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Align Left"><AlignLeft size={16} /></button>
+                                                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => execFormatCommand('insertUnorderedList')} className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Bullet List"><List size={16} /></button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* ContentEditable Area */}
-                                        <div className="relative p-4 bg-white">
-                                            <div
-                                                ref={editorRef}
-                                                contentEditable
-                                                suppressContentEditableWarning
-                                                onInput={() => setJobDescription(editorRef.current?.innerHTML || "")}
-                                                onMouseUp={saveSelection}
-                                                onKeyUp={saveSelection}
-                                                className="w-full min-h-[220px] outline-none text-[15px] leading-relaxed text-[#111827] overflow-y-auto empty:before:content-[attr(data-placeholder)] empty:before:text-[#9ca3af]"
-                                                data-placeholder="Enter job responsibilities..."
-                                                style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-                                            />
-                                            <div className="absolute bottom-4 right-4 text-[12px] text-gray-400 font-medium">
-                                                {getEditorTextLength()}/1000
+                                            {/* ContentEditable Area */}
+                                            <div className="relative p-4 bg-white">
+                                                <div
+                                                    ref={editorRef}
+                                                    contentEditable
+                                                    suppressContentEditableWarning
+                                                    onInput={() => {
+                                                        const content = editorRef.current?.innerHTML || "";
+                                                        setJobDescription(content);
+                                                        if (fieldErrors.jobDescription) setFieldErrors(prev => ({ ...prev, jobDescription: "" }));
+                                                    }}
+                                                    onMouseUp={saveSelection}
+                                                    onKeyUp={saveSelection}
+                                                    className="w-full min-h-[220px] outline-none text-[15px] leading-relaxed text-[#111827] overflow-y-auto empty:before:content-[attr(data-placeholder)] empty:before:text-[#9ca3af]"
+                                                    data-placeholder="Enter job responsibilities..."
+                                                    style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+                                                />
+                                                <div className={`absolute bottom-4 right-4 text-[12px] font-medium ${getEditorTextLength() < 50 ? "text-red-400" : "text-gray-400"}`}>
+                                                    {getEditorTextLength()}/1000
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                    {fieldErrors.jobDescription && <p className="text-[12px] text-red-500">{fieldErrors.jobDescription}</p>}
 
                                     {/* About Company Section */}
                                     <div className="flex flex-col gap-4 mt-2">
@@ -991,27 +1075,38 @@ export default function PostJobPage() {
                                                 <h3 className="text-[16px] font-semibold text-[#111827]">Candidate will be calling</h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="flex flex-col gap-1.5">
-                                                        <div className="flex items-center h-11 border border-[#d1d5db] rounded-md px-4 focus-within:border-[#0f766d] transition-colors bg-white">
+                                                        <div className={`flex items-center h-11 border rounded-md px-4 focus-within:border-[#0f766d] transition-colors bg-white ${fieldErrors.recruiterName ? "border-red-500" : "border-[#d1d5db]"}`}>
                                                             <input
                                                                 type="text"
                                                                 value={recruiterName}
-                                                                onChange={(e) => setRecruiterName(e.target.value)}
+                                                                onChange={(e) => {
+                                                                    setRecruiterName(e.target.value);
+                                                                    if (fieldErrors.recruiterName) setFieldErrors(prev => ({ ...prev, recruiterName: "" }));
+                                                                }}
                                                                 placeholder="Recruiter name"
                                                                 className="w-full outline-none text-[14px] text-[#111827]"
                                                             />
                                                         </div>
+                                                        {fieldErrors.recruiterName && <p className="text-[12px] text-red-500">{fieldErrors.recruiterName}</p>}
                                                     </div>
-                                                    <div className="flex items-center h-11 border border-[#d1d5db] rounded-md overflow-hidden focus-within:border-[#0f766d] transition-colors bg-white">
-                                                        <div className="h-full px-3 border-r border-[#d1d5db] bg-gray-100 flex items-center justify-center text-[14px] text-[#374151] font-medium">
-                                                            +91
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <div className={`flex items-center h-11 border rounded-md overflow-hidden focus-within:border-[#0f766d] transition-colors bg-white ${fieldErrors.mobileNumber ? "border-red-500" : "border-[#d1d5db]"}`}>
+                                                            <div className="h-full px-3 border-r border-[#d1d5db] bg-gray-100 flex items-center justify-center text-[14px] text-[#374151] font-medium">
+                                                                +91
+                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                value={mobileNumber}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                                    setMobileNumber(val);
+                                                                    if (fieldErrors.mobileNumber) setFieldErrors(prev => ({ ...prev, mobileNumber: "" }));
+                                                                }}
+                                                                placeholder="Mobile Number"
+                                                                className="w-full h-full px-4 outline-none text-[14px] text-[#111827]"
+                                                            />
                                                         </div>
-                                                        <input
-                                                            type="text"
-                                                            value={mobileNumber}
-                                                            onChange={(e) => setMobileNumber(e.target.value)}
-                                                            placeholder="Mobile Number"
-                                                            className="w-full h-full px-4 outline-none text-[14px] text-[#111827]"
-                                                        />
+                                                        {fieldErrors.mobileNumber && <p className="text-[12px] text-red-500">{fieldErrors.mobileNumber}</p>}
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-[#6b7280]">
@@ -1345,9 +1440,9 @@ export default function PostJobPage() {
 
                             {/* Text Content */}
                             <h2 className="text-[24px] lg:text-[28px] font-bold text-[#111827] mb-3">Congratulations!</h2>
-                            <p className="text-[16px] lg:text-[18px] font-semibold text-[#0f766d] mb-4">Your job post is live now</p>
+                            <p className="text-[16px] lg:text-[18px] font-semibold text-[#0f766d] mb-4">Your job post is in review</p>
                             <p className="text-[14px] text-[#6b7280] leading-relaxed mb-8">
-                                We've successfully published your job posting. Candidates can now view and apply for the position.
+                                Your job post has been submitted and is currently being reviewed by our team. It will go live and become visible to candidates once it is approved.
                             </p>
 
                             {/* CTA Button */}

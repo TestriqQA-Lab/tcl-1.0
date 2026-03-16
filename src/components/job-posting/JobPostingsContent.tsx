@@ -15,9 +15,10 @@ const JobPostingsContent = ({ initialJobs }: JobPostingsContentProps) => {
     const [editingJobId, setEditingJobId] = useState<string | null>(null);
 
     const counts = {
-        active: initialJobs.filter(j => j.status === 'Active').length,
-        paused: initialJobs.filter(j => j.status === 'Paused').length,
-        closed: initialJobs.filter(j => j.status === 'Closed').length,
+        active: initialJobs.filter(j => j.approvalStatus === 'APPROVED' && j.status === 'Active').length,
+        under_review: initialJobs.filter(j => j.approvalStatus === 'PENDING' || j.approvalStatus === 'REJECTED').length,
+        paused: initialJobs.filter(j => j.approvalStatus === 'APPROVED' && j.status === 'Paused').length,
+        closed: initialJobs.filter(j => j.approvalStatus === 'APPROVED' && j.status === 'Closed').length,
     };
 
     return (
