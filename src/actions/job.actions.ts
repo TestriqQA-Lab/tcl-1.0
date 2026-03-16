@@ -70,6 +70,9 @@ export async function getJobById(jobId: string) {
                 salaryMin: jobs.salaryMin,
                 salaryMax: jobs.salaryMax,
                 requiredSkills: jobs.requiredSkills,
+                screeningExperienceMin: jobs.screeningExperienceMin,
+                screeningEducationLevel: jobs.screeningEducationLevel,
+                screeningEnglishLevel: jobs.screeningEnglishLevel,
                 createdAt: jobs.createdAt,
                 employerId: jobs.employerId,
                 company: {
@@ -388,7 +391,27 @@ const ROLE_CATEGORIES: Record<string, string[]> = {
     "Cyber Security": ["security analyst", "penetration tester", "cyber security"],
 };
 
-export async function applyToJobAction(jobId: string, customResumeBase64?: string) {
+export async function getJobScreeningQuestions(jobId: string) {
+    try {
+        const result = await db
+            .select({
+                screeningExperienceMin: jobs.screeningExperienceMin,
+                screeningEducationLevel: jobs.screeningEducationLevel,
+                screeningEnglishLevel: jobs.screeningEnglishLevel,
+            })
+            .from(jobs)
+            .where(eq(jobs.id, jobId))
+            .limit(1);
+
+        if (!result.length) return null;
+        return result[0];
+    } catch (error) {
+        console.error("Error fetching screening questions:", error);
+        return null;
+    }
+}
+
+export async function applyToJobAction(jobId: string, customResumeBase64?: string, screeningAnswers?: string) {
     try {
         const session = await auth();
         if (!session?.user?.id) {
@@ -441,6 +464,7 @@ export async function applyToJobAction(jobId: string, customResumeBase64?: strin
             applicationStatus: "PENDING",
             resumeUrl: resumeToUse,
             coverLetterUrl: seeker.coverLetter || "",
+            screeningAnswers: screeningAnswers || null,
         });
 
         const { revalidatePath } = await import("next/cache");

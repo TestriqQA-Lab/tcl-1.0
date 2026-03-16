@@ -69,7 +69,7 @@ export function Footer({ session }: FooterProps) {
                     <div>
                         <h4 className="text-white text-sm font-semibold mb-5 uppercase tracking-wider">Company</h4>
                         <ul className="space-y-3 text-sm">
-                            <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
+                            <li><Link href="/about-us" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
                             <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">Careers</Link></li>
                             <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">Press & Media</Link></li>
                             <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">Contact</Link></li>

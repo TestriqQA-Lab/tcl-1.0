@@ -8,14 +8,14 @@ export const userAccountStatus = pgEnum("account_status", ["ACTIVE", "INACTIVE",
 export const jobType = pgEnum("job_type", ["ONSITE", "HYBRID", "REMOTE"]);
 export const jobStatus = pgEnum("job_status", ["OPEN", "CLOSED", "PAUSED"]);
 
-export const applicationStatus = pgEnum("application_status", ["PENDING", "ACCEPTED", "REJECTED"]);
+export const applicationStatus = pgEnum("application_status", ["PENDING", "ACCEPTED", "SHORTLISTED", "IN_REVIEW", "INTERVIEW", "REJECTED"]);
 export const jobApprovalStatusEnum = pgEnum("job_approval_status", ["PENDING", "APPROVED", "REJECTED"]);
 
 // New Enums for Employer Profile
 export const employerAccountTypeEnum = pgEnum("employer_account_type", ["COMPANY", "INDIVIDUAL"]);
 export const hiringForEnum = pgEnum("hiring_for", ["COMPANY", "CONSULTANCY", "INDIVIDUAL_PROPRIETOR"]);
 export const companySizeEnum = pgEnum("company_size", ["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"]);
-export const verificationStatusEnum = pgEnum("verification_status", ["UNVERIFIED", "PENDING", "VERIFIED", "REJECTED"]);
+export const verificationStatusEnum = pgEnum("verification_status", ["UNVERIFIED", "PENDING", "VERIFIED", "APPROVED", "REJECTED"]);
 
 // New Enums for Seeker Profile
 export const genderEnum = pgEnum("gender", ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"]);
@@ -225,6 +225,7 @@ export const applications = pgTable('applications', {
     applicationDate: timestamp("application_date").defaultNow().notNull(),
     resumeUrl: text("resume_url").default("").notNull(),
     coverLetterUrl: text("cover_letter_url").default("").notNull(),
+    screeningAnswers: text("screening_answers"), // Storing JSON stringified answers temporarily
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull()
 }, (t) => ({
