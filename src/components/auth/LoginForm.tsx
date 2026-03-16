@@ -77,7 +77,9 @@ export const LoginForm = ({ onSwitchToRegister, onClose, role = "SEEKER", hideGo
             } else {
                 // Success - close modal and redirect based on role
                 onClose?.();
-                if (role === "EMPLOYER") {
+                if (result.isAdmin) {
+                    window.location.href = "/admin-dashboard";
+                } else if (role === "EMPLOYER") {
                     // Full-page navigation so the fresh session cookie is picked
                     // up by SessionProvider on the dashboard (router.push would
                     // perform a client-side transition where useSession hasn't
