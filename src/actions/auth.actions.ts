@@ -58,7 +58,8 @@ export async function loginAction(email: string, password: string, expectedRole?
         });
 
         // If we reach here without error, login was successful
-        return { success: true };
+        const isAdmin = process.env.ADMIN_EMAIL && email.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
+        return { success: true, isAdmin };
     } catch (error) {
         // Auth.js throws AuthError for invalid credentials
         if (error instanceof AuthError) {
