@@ -227,7 +227,7 @@ export const applications = pgTable('applications', {
     applicationDate: timestamp("application_date").defaultNow().notNull(),
     resumeUrl: text("resume_url").default("").notNull(),
     coverLetterUrl: text("cover_letter_url").default("").notNull(),
-    answers: jsonb("answers").default([]),
+    screeningAnswers: text("screening_answers"), // Storing JSON stringified answers temporarily
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull()
 }, (t) => ({

@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { applyToJobAction, hasUserAppliedAction } from "@/actions/job.actions";
+import { hasUserAppliedAction, getJobScreeningQuestions } from "@/actions/job.actions";
 import { useSession } from "next-auth/react";
 import { Loader2, CheckCircle2 } from "lucide-react";
+import { JobApplicationModal } from "./JobApplicationModal";
 
 interface JobApplyButtonProps {
     jobId: string;
@@ -13,53 +14,47 @@ interface JobApplyButtonProps {
 export const JobApplyButton = ({ jobId, className = "" }: JobApplyButtonProps) => {
     const { data: session } = useSession();
     const [isApplied, setIsApplied] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
     const [isChecking, setIsChecking] = useState(true);
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    const [hasResume, setHasResume] = useState(false);
+    const [screeningData, setScreeningData] = useState<{
+        screeningExperienceMin: number | null;
+        screeningEducationLevel: string | null;
+        screeningEnglishLevel: string | null;
+    } | null>(null);
 
     useEffect(() => {
         async function checkStatus() {
             if (session?.user?.id) {
                 const applied = await hasUserAppliedAction(jobId);
                 setIsApplied(applied);
+
+                // Fetch only screening questions (lightweight, no nested arrays)
+                const screening = await getJobScreeningQuestions(jobId);
+                setScreeningData(screening);
+                
+                try {
+                    const res = await fetch('/api/seeker/profile');
+                    if (res.ok) {
+                        const profile = await res.json();
+                        setHasResume(!!profile?.resumeUrl);
+                    }
+                } catch(e) {
+                     console.error("Failed to check resume status", e);
+                }
             }
             setIsChecking(false);
         }
         checkStatus();
     }, [jobId, session]);
 
-    const handleApply = async (customResume?: string) => {
+    const handleApplyClick = () => {
         if (!session) {
             alert("Please log in to apply.");
             return;
         }
-
-        setIsLoading(true);
-        const result = await applyToJobAction(jobId, customResume);
-        setIsLoading(false);
-
-        if (result.success) {
-            setIsApplied(true);
-        } else if (result.error === "RESUME_REQUIRED") {
-            // Trigger file picker if resume is missing
-            if (fileInputRef.current) {
-                fileInputRef.current.click();
-            }
-        } else {
-            alert(result.error || "Failed to apply.");
-        }
-    };
-
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-                const base64String = reader.result as string;
-                await handleApply(base64String);
-            };
-            reader.readAsDataURL(file);
-        }
+        setIsModalOpen(true);
     };
 
     if (isChecking) {
@@ -82,27 +77,26 @@ export const JobApplyButton = ({ jobId, className = "" }: JobApplyButtonProps) =
 
     return (
         <>
-            <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileChange}
-            />
             <button
-                onClick={() => handleApply()}
-                disabled={isLoading}
-                className={`bg-[#0f766d] hover:bg-[#0d6b63] text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${className}`}
+                onClick={handleApplyClick}
+                className={`bg-[#0f766d] hover:bg-[#0d6b63] text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${className}`}
             >
-                {isLoading ? (
-                    <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Applying...
-                    </>
-                ) : (
-                    "Apply Now"
-                )}
+                Apply Now
             </button>
+
+            {isModalOpen && screeningData && (
+                <JobApplicationModal
+                    jobId={jobId}
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onApplied={() => setIsApplied(true)}
+                    hasResume={hasResume}
+                    screeningExperienceMin={screeningData.screeningExperienceMin}
+                    screeningEducationLevel={screeningData.screeningEducationLevel}
+                    screeningEnglishLevel={screeningData.screeningEnglishLevel}
+                />
+            )}
         </>
     );
 };
+
