@@ -57,7 +57,7 @@ export function DashboardTopBar({
         .toUpperCase();
 
     const handlePostJobClick = (e: React.MouseEvent) => {
-        if (verificationStatus !== "APPROVED") {
+        if (verificationStatus !== "VERIFIED" && verificationStatus !== "APPROVED") {
             e.preventDefault();
             setShowVerificationModal(true);
         }

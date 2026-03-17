@@ -91,7 +91,7 @@ export async function getEmployerApplicationsAction(params: {
                 screeningEducationLevel: jobs.screeningEducationLevel,
                 screeningEnglishLevel: jobs.screeningEnglishLevel,
                 customScreeningQuestions: jobs.customScreeningQuestions,
-                answers: applications.answers,
+                answers: applications.screeningAnswers,
             })
             .from(applications)
             .innerJoin(jobs, eq(applications.jobId, jobs.id))
@@ -219,7 +219,8 @@ export async function getEmployerApplicationsAction(params: {
                         answer: englishProficiency
                     }] : []),
                     ...((app.customScreeningQuestions as any[]) || []).map((cq: any) => {
-                        const answerObj = ((app.answers as any[]) || []).find((a: any) => a.id === cq.id);
+                        const parsedAnswers = app.answers ? JSON.parse(app.answers as string) : [];
+                        const answerObj = (parsedAnswers as any[]).find((a: any) => a.id === cq.id);
                         return {
                             question: cq.text,
                             required: cq.mandatory ? "Mandatory" : "Optional",
