@@ -1,12 +1,13 @@
 import { HeroSection } from "@/components/home/HeroSection";
 import { TrustedCompanies } from "@/components/home/TrustedCompanies";
-import { CategorySection } from "@/components/home/CategorySection";
+import { IndustrySection } from "@/components/home/IndustrySection";
 import { JobOpeningsSection } from "@/components/home/JobOpeningsSection";
 import { RecruiterCTA } from "@/components/home/RecruiterCTA";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ nav?: string }> }) {
+  const { nav } = await searchParams;
   const session = await auth();
 
   // If user is already logged in, redirect them to their respective dashboard
@@ -32,13 +33,15 @@ export default async function Home() {
         const { phoneNumber, provider } = dbUser[0];
 
         // Only intercept Google users who haven't completed the registration form yet
-        // (phoneNumber is the field set during the registration form for Google users)
         if (provider === "google" && !phoneNumber) {
           redirect("/register?google=success");
         }
       }
 
-      redirect("/seeker/dashboard");
+      // Only redirect to dashboard if not coming from nav Home button
+      if (nav !== "true") {
+        redirect("/seeker/dashboard");
+      }
     }
   }
 
@@ -46,7 +49,7 @@ export default async function Home() {
     <>
       <HeroSection />
       <TrustedCompanies />
-      <CategorySection />
+      <IndustrySection />
       <JobOpeningsSection />
       <RecruiterCTA />
     </>

@@ -40,9 +40,6 @@ export function BuiltForEveryEmployerSection() {
                             </div>
                             <h3 className="text-xl font-bold mb-3 text-slate-900">{type.title}</h3>
                             <p className="text-slate-500 leading-relaxed font-medium text-sm mb-8 flex-1">{type.desc}</p>
-                            <Link href="#" className={`text-sm font-bold ${type.color} flex items-center gap-1 hover:gap-2 transition-all`}>
-                                Learn More <span className="material-symbols-outlined text-[1rem]">arrow_forward</span>
-                            </Link>
                         </div>
                     ))}
                 </div>

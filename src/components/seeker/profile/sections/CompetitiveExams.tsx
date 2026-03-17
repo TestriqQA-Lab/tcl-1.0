@@ -10,6 +10,9 @@ function dbToUi(row: any): CompetitiveExamData & { dbId: string } {
         dbId: row.id,
         id: row.id,
         examName: row.title || '',
+        score: row.score || '',
+        totalScore: row.totalScore || '',
+        year: row.date ? new Date(row.date).getFullYear().toString() : '',
     };
 }
 
@@ -33,7 +36,14 @@ const CompetitiveExams = () => {
         const editingItem = editingIndex !== null ? exams[editingIndex] : null;
         const dbId = (editingItem as any)?.dbId;
 
-        const payload = { type: 'EXAM', title: data.examName, examName: data.examName };
+        const payload = {
+            type: 'EXAM',
+            title: data.examName,
+            examName: data.examName,
+            score: data.score || null,
+            totalScore: data.totalScore || null,
+            year: data.year ? parseInt(data.year) : null,
+        };
 
         if (dbId) {
             const res = await fetch('/api/profile/achievements', {
@@ -89,9 +99,13 @@ const CompetitiveExams = () => {
                         <div key={exam.id} className="border border-gray-100 rounded-xl p-4 flex justify-between items-center bg-white hover:border-emerald-100 transition-colors group">
                             <div>
                                 <p className="text-xs font-bold text-gray-500 uppercase">{exam.examName}</p>
-                                <p className="text-lg font-bold text-gray-900">-<span className="text-xs font-normal text-gray-400">/--</span></p>
+                                <p className="text-lg font-bold text-gray-900">
+                                    {exam.score || '-'}
+                                    <span className="text-xs font-normal text-gray-400">/{exam.totalScore || '--'}</span>
+                                </p>
+                                {exam.year && <p className="text-[10px] text-gray-400 mt-0.5">Year: {exam.year}</p>}
                             </div>
-                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex gap-2">
                                 <button
                                     onClick={() => openEditModal(index)}
                                     className="text-gray-400 hover:text-emerald-600 transition-colors"

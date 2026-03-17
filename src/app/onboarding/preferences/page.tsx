@@ -126,18 +126,6 @@ export default function PreferencesPage() {
                         maxLength={250}
                     />
 
-                    {/* AI Suggestion */}
-                    <div className="bg-[#E8F3F2]/50 border border-dashed border-[#0f766d]/30 rounded-xl p-4 flex gap-3">
-                        <div className="mt-1">
-                            <Sparkles className="w-5 h-5 text-[#0f766d]" />
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs font-bold text-[#0f766d] uppercase tracking-wide">AI Suggestion</p>
-                            <p className="text-sm text-gray-600 italic">
-                                &quot;Dynamic Full Stack Engineer specializing in modern JavaScript frameworks and cloud infrastructure.&quot;
-                            </p>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Position */}

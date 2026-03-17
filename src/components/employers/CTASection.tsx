@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function CTASection() {
     return (
         <section className="py-10 w-full">
@@ -14,12 +16,9 @@ export function CTASection() {
                     Join thousands of companies scaling their teams with TopCareerLive.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4 relative z-10">
-                    <button className="bg-white text-[#0f766d] hover:bg-slate-50 md:px-10 px-4 py-5 rounded-xl text-lg font-bold shadow-xl  transition-all">
+                    <Link href="/employers/client-registration" className="bg-white text-[#0f766d] hover:bg-slate-50 md:px-10 px-4 py-5 rounded-xl text-lg font-bold shadow-xl transition-all">
                         Get Started Now
-                    </button>
-                    <button className="border-2 border-white/20 hover:border-white text-white md:px-10 px-4 py-5 rounded-xl text-lg font-bold transition-all">
-                        Talk to Sales
-                    </button>
+                    </Link>
                 </div>
             </div>
         </section>

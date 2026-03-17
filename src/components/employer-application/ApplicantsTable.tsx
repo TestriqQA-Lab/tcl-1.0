@@ -209,9 +209,6 @@ export function ApplicantsTable({
                                 >
                                     <Eye size={16} className="text-[#94A3B8]" />
                                 </button>
-                                <button className="size-8 flex items-center justify-center rounded-md hover:bg-[#F1F5F9] transition-colors">
-                                    <MoreHorizontal size={16} className="text-[#94A3B8]" />
-                                </button>
                             </div>
                         </div>
                     );

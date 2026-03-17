@@ -50,7 +50,7 @@ const noticePeriodOptions = [
 const EditBasicDetailsModal: React.FC<EditBasicDetailsModalProps> = ({
     isOpen,
     onClose,
-    initialData = { fullName: '', phoneNumber: '', gender: '', currentLocation: '' },
+    initialData = { fullName: '', phoneNumber: '', gender: '', currentLocation: '', currentIndustry: '', noticePeriod: '', dateOfBirth: '' },
     onSave,
 }) => {
     const [fullName, setFullName] = useState(initialData.fullName || '');
@@ -101,12 +101,12 @@ const EditBasicDetailsModal: React.FC<EditBasicDetailsModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-[40px] sm:pb-0">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
             {/* Modal */}
-            <div className="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col animate-in slide-in-from-bottom duration-300">
+            <div className="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col animate-in slide-in-from-bottom duration-300">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <h3 className="text-lg font-bold text-gray-900">Edit Basic Details</h3>
@@ -254,7 +254,7 @@ const EditBasicDetailsModal: React.FC<EditBasicDetailsModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
+                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 shrink-0">
                     <button
                         onClick={onClose}
                         className="px-5 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-colors"

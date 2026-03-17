@@ -73,10 +73,10 @@ const EditAwardModal: React.FC<EditAwardModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
-            <div className={`bg-white rounded-2xl w-full max-w-[500px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
+            <div className={`bg-white rounded-2xl w-full max-w-[500px] shadow-2xl transform transition-all duration-300 max-h-[90vh] flex flex-col ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
-                <div className="p-8 pb-4 relative">
+                <div className="p-8 pb-4 relative shrink-0">
                     <button
                         onClick={onClose}
                         className="absolute right-6 top-6 text-gray-400 hover:text-gray-600 transition-colors"
@@ -89,7 +89,7 @@ const EditAwardModal: React.FC<EditAwardModalProps> = ({
                     </p>
                 </div>
 
-                <div className="px-8 pb-8 space-y-6">
+                <div className="px-8 pb-2 space-y-6 overflow-y-auto">
                     <div>
                         <label className="block text-xs font-bold text-gray-700 mb-2">
                             Award Title <span className="text-red-500">*</span>
@@ -164,22 +164,22 @@ const EditAwardModal: React.FC<EditAwardModalProps> = ({
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Footer Buttons */}
-                    <div className="pt-2 flex justify-end gap-3 items-center">
-                        <button
-                            onClick={onClose}
-                            className="text-sm font-bold text-[#117a7a] hover:text-[#0e6666] transition-colors px-4"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            className="bg-[#117a7a] hover:bg-[#0e6666] text-white text-sm font-bold py-2.5 px-8 rounded-lg transition-all shadow-lg shadow-emerald-900/10"
-                        >
-                            Save
-                        </button>
-                    </div>
+                {/* Footer Buttons */}
+                <div className="px-8 pb-8 pt-6 flex justify-end gap-3 items-center shrink-0 border-t border-gray-100 mt-2">
+                    <button
+                        onClick={onClose}
+                        className="text-sm font-bold text-[#117a7a] hover:text-[#0e6666] transition-colors px-4"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        className="bg-[#117a7a] hover:bg-[#0e6666] text-white text-sm font-bold py-2.5 px-8 rounded-lg transition-all shadow-lg shadow-emerald-900/10"
+                    >
+                        Save
+                    </button>
                 </div>
             </div>
         </div>

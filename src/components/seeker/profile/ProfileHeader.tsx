@@ -222,23 +222,7 @@ const ProfileHeader = () => {
                 </button>
             </div>
 
-            {/* Mobile/Tablet: Fix Now Card */}
-            <div className="xl:hidden w-full shrink-0 bg-[#f0f9f9] rounded-2xl p-5 border border-[#cce3e3] flex items-center justify-between gap-4">
-                <div className="flex items-start gap-3">
-                    <div className="text-[#117a7a] mt-0.5">
-                        <ShieldCheck className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <p className="text-sm font-medium text-[#0f766d] leading-snug">
-                            Complete your profile to unlock premium matches
-                        </p>
-                    </div>
-                </div>
 
-                <button className="bg-[#0f766d] hover:bg-[#0d655d] text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors shadow-sm whitespace-nowrap uppercase">
-                    Fix Now
-                </button>
-            </div>
         </div>
     );
 };

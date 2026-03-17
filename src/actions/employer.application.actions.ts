@@ -43,7 +43,7 @@ export async function getEmployerApplicationsAction(params: {
         let conditions = [eq(jobs.employerId, session.user.id)];
 
         if (params.jobId && params.jobId !== "all") {
-            conditions.push(eq(applications.jobId, params.jobId));
+            conditions.push(eq(jobs.id, params.jobId));
         }
 
         if (params.status && params.status !== "All") {
@@ -219,8 +219,14 @@ export async function getEmployerApplicationsAction(params: {
                         answer: englishProficiency
                     }] : []),
                     ...((app.customScreeningQuestions as any[]) || []).map((cq: any) => {
-                        const parsedAnswers = app.answers ? JSON.parse(app.answers as string) : [];
-                        const answerObj = (parsedAnswers as any[]).find((a: any) => a.id === cq.id);
+                        let parsedAnswers = [];
+                        try {
+                            const parsed = app.answers ? JSON.parse(app.answers as string) : [];
+                            if (Array.isArray(parsed)) parsedAnswers = parsed;
+                        } catch (e) {
+                            // Ignore parsing errors, default to empty array
+                        }
+                        const answerObj = parsedAnswers.find((a: any) => a.id === cq.id);
                         return {
                             question: cq.text,
                             required: cq.mandatory ? "Mandatory" : "Optional",

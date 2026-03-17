@@ -135,11 +135,10 @@ export function UserDashboardClient({ userId, userName, userImage }: UserDashboa
                         {/* Recommended Jobs Header */}
                         <div className="flex items-center justify-between pt-2 lg:pt-0 mb-4 lg:mb-0">
                             <h2 className="text-xl font-bold text-gray-900">Recommended Jobs</h2>
-                            <button className="text-sm font-semibold text-[#0f766d] hover:underline">View all</button>
                         </div>
 
-                        {/* Job List (Desktop) */}
-                        <div className="hidden lg:flex flex-col gap-4">
+                        {/* Job List */}
+                        <div className="flex flex-col gap-4">
                             {isLoadingJobs ? (
                                 <div className="bg-white rounded-3xl p-12 text-center border border-slate-100">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0f766d] mx-auto mb-4"></div>
@@ -163,11 +162,6 @@ export function UserDashboardClient({ userId, userName, userImage }: UserDashboa
                                     <p className="text-slate-500">No jobs found matching your role yet. Update your profile to get better matches!</p>
                                 </div>
                             )}
-                        </div>
-
-                        {/* Mobile Empty State */}
-                        <div className="lg:hidden">
-                            <MobileEmptyState />
                         </div>
 
                         {/* Mobile Safety Advisory (Mobile Only) */}

@@ -7,6 +7,11 @@ export const metadata: Metadata = {
     description: "Verify and approve or reject job postings.",
 };
 
-export default function JobPostingDetailsPage() {
-    return <JobPostingDetailsContent />;
+export default async function JobPostingDetailsPage({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const { id } = await params;
+    return <JobPostingDetailsContent jobId={id} />;
 }

@@ -27,9 +27,10 @@ export function ApplicationsContent() {
 
     const searchParams = useSearchParams();
 
+    const urlJobId = searchParams.get("jobId");
+
     useEffect(() => {
-        const jobId = searchParams.get("jobId");
-        setSelectedJob(jobId || "all");
+        setSelectedJob(urlJobId || "all");
         
         // Initial fetch for jobs
         const fetchJobs = async () => {
@@ -39,7 +40,7 @@ export function ApplicationsContent() {
             }
         };
         fetchJobs();
-    }, [searchParams]);
+    }, [urlJobId]);
 
     useEffect(() => {
         const fetchApps = async () => {
@@ -180,7 +181,7 @@ export function ApplicationsContent() {
                     activeStatus={activeStatus} 
                     onSelectionChange={setSelectedCount} 
                 />
-                <ApplicationsPagination />
+                {applicants.length > 20 && <ApplicationsPagination />}
             </div>
 
             {/* Filter Panel */}

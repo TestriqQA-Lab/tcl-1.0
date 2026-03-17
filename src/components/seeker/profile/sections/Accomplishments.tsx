@@ -31,15 +31,15 @@ function dbToCert(row: any): CertificationData & { dbId: string } {
 }
 
 function dbToAward(row: any): AwardData & { dbId: string } {
-    const startDate = row.startDate ? new Date(row.startDate) : null;
+    const issueDate = row.date ? new Date(row.date) : null;
 
     return {
         dbId: row.id,
         id: row.id,
         title: row.title || '',
         issuer: row.organization || '',
-        issueMonth: startDate ? MONTH_NAMES[startDate.getMonth()] : '',
-        issueYear: startDate ? String(startDate.getFullYear()) : '',
+        issueMonth: issueDate ? MONTH_NAMES[issueDate.getMonth()] : '',
+        issueYear: issueDate ? String(issueDate.getFullYear()) : '',
         description: row.description || ''
     };
 }
@@ -125,7 +125,20 @@ const Accomplishments = () => {
 
     const handleSaveAward = async (data: AwardData) => {
         const dbId = editingIndex !== null ? (awards[editingIndex] as any)?.dbId : undefined;
-        const saved = await saveAchievement('AWARD', { title: 'Award', description: data.description }, dbId);
+        let dateObj = null;
+        if (data.issueYear) {
+            const mIdx = MONTH_NAMES.indexOf(data.issueMonth);
+            const mStr = mIdx >= 0 ? String(mIdx + 1).padStart(2, '0') : '01';
+            dateObj = `${data.issueYear}-${mStr}-01`;
+        }
+        
+        const saved = await saveAchievement('AWARD', { 
+            title: data.title, 
+            organization: data.issuer,
+            description: data.description,
+            date: dateObj
+        }, dbId);
+        
         const mapped = dbToAward(saved);
         if (editingIndex !== null) {
             setAwards(prev => { const n = [...prev]; n[editingIndex] = mapped; return n; });
@@ -198,7 +211,7 @@ const Accomplishments = () => {
                                             <p className="text-sm font-bold text-gray-900 truncate">{cert.name}</p>
                                             <p className="text-xs text-gray-500 truncate">{cert.startYear} {cert.doesNotExpire ? '- No Expiration' : ''}</p>
                                         </div>
-                                        <div className="ml-auto flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="ml-auto flex gap-2">
                                             <button onClick={() => openModal('cert', i)} className="text-gray-400 hover:text-[#117a7a]"><Pencil size={14} /></button>
                                             <button onClick={() => handleDeleteCert(i)} className="text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
                                         </div>
@@ -225,8 +238,20 @@ const Accomplishments = () => {
                                 {awards.map((award, i) => (
                                     <div key={award.id} className="flex items-start gap-3 p-3 bg-emerald-50/30 rounded-lg hover:bg-emerald-50 transition-colors group border border-transparent hover:border-emerald-100">
                                         <div className="text-[#117a7a] mt-0.5 min-w-[20px]"><Trophy size={20} /></div>
-                                        <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">{award.description}</p>
-                                        <div className="ml-auto flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="overflow-hidden flex-1">
+                                            <p className="text-sm font-bold text-gray-900 truncate">{award.title}</p>
+                                            {(award.issuer || award.issueMonth || award.issueYear) && (
+                                                <p className="text-xs text-gray-500 mb-1 truncate">
+                                                    {award.issuer && <span className="font-medium text-gray-700">{award.issuer}</span>}
+                                                    {award.issuer && (award.issueMonth || award.issueYear) && <span className="mx-1">•</span>}
+                                                    {award.issueMonth && `${award.issueMonth} `}{award.issueYear}
+                                                </p>
+                                            )}
+                                            {award.description && (
+                                                <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed mt-1">{award.description}</p>
+                                            )}
+                                        </div>
+                                        <div className="ml-auto flex gap-2 whitespace-nowrap">
                                             <button onClick={() => openModal('award', i)} className="text-gray-400 hover:text-[#117a7a]"><Pencil size={14} /></button>
                                             <button onClick={() => handleDeleteAward(i)} className="text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
                                         </div>
@@ -257,7 +282,7 @@ const Accomplishments = () => {
                                             <p className="text-sm font-bold text-gray-900 truncate">{club.position} <span className="font-normal text-gray-500">at {club.clubName}</span></p>
                                             <p className="text-xs text-gray-500 truncate">{club.startYear} - {club.isCurrent ? 'Present' : club.endYear}</p>
                                         </div>
-                                        <div className="ml-auto flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="ml-auto flex gap-2">
                                             <button onClick={() => openModal('club', i)} className="text-gray-400 hover:text-[#117a7a]"><Pencil size={14} /></button>
                                             <button onClick={() => handleDeleteClub(i)} className="text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
                                         </div>

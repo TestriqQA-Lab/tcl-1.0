@@ -32,7 +32,7 @@ const tabs = [
     {
         label: "Jobs",
         icon: Briefcase,
-        href: "/employer-dashboard/job-postings",
+        href: "/job-postings",
     },
     {
         label: "Post a Job",
@@ -54,9 +54,6 @@ const tabs = [
 ];
 
 const moreLinks = [
-    { label: "Database Search", icon: Search, href: "/employer-dashboard/database-search" },
-    { label: "Blogs", icon: BookOpen, href: "/employer-dashboard/blogs" },
-    { label: "Analytics", icon: BarChart3, href: "/employer-dashboard/analytics" },
     { label: "Settings", icon: Settings, href: "/employer-dashboard/settings" },
 ];
 
