@@ -43,22 +43,31 @@ export function HeroSection() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 mt-2">
-                    <button className="w-full sm:w-auto bg-[#2563eb] hover:bg-blue-700 text-white px-8 py-4 rounded-xl text-base font-bold shadow-lg shadow-blue-500/20 transition-all text-center">
+                    <Link
+                        href="/employers/client-registration"
+                        className="w-full sm:w-auto bg-[#2563eb] hover:bg-blue-700 text-white px-8 py-4 rounded-xl text-base font-bold shadow-lg shadow-blue-500/20 transition-all text-center active:scale-[0.98]"
+                    >
                         Get Started Now
-                    </button>
+                    </Link>
                     <div className="flex items-center gap-4 text-sm font-semibold text-slate-500 mt-4 sm:mt-0">
                         <div className="flex -space-x-3">
-                            {/* Dummy Avatars to match exactly */}
-                            {[1, 2].map((i) => (
-                                <div key={i} className="w-10 h-10 rounded-full border-[3px] border-white bg-slate-200 relative overflow-hidden shadow-sm">
-                                    <Image
-                                        src={`https://ui-avatars.com/api/?name=User+${i}&background=random`}
-                                        alt={`User ${i}`}
-                                        fill
-                                        className="object-cover"
-                                    />
-                                </div>
-                            ))}
+                            {/* Updated custom AI avatars */}
+                            <div className="w-10 h-10 rounded-full border-[3px] border-white bg-slate-200 relative overflow-hidden shadow-sm">
+                                <Image
+                                    src="/images/avatar-1.png"
+                                    alt="HR Professional 1"
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
+                            <div className="w-10 h-10 rounded-full border-[3px] border-white bg-slate-200 relative overflow-hidden shadow-sm">
+                                <Image
+                                    src="/images/avatar-2.png"
+                                    alt="HR Professional 2"
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
                             <div className="w-10 h-10 rounded-full border-[3px] border-white bg-slate-100 flex items-center justify-center text-[11px] font-bold text-slate-600 shadow-sm z-10">
                                 500+
                             </div>
@@ -68,9 +77,8 @@ export function HeroSection() {
                 </div>
             </div>
 
-            {/* Right Column: Form Card */}
+            {/* Right Column: Form Card (Restored) */}
             <div className="relative w-full max-w-md mx-auto lg:mx-0 lg:ml-auto md:col-span-6 lg:col-span-5 xl:col-span-4">
-
                 <div className="bg-white p-8 rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-100">
                     <h3 className="text-2xl font-bold mb-2">Start Hiring Today</h3>
                     <p className="text-slate-500 text-sm mb-8 font-medium">Reach millions of top talent instantly.</p>
@@ -100,12 +108,12 @@ export function HeroSection() {
                                 className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0f766d]/20 focus:border-[#0f766d] transition-all font-medium placeholder:text-slate-400"
                             />
                         </div>
-                        <button
-                            type="button"
-                            className="w-full bg-[#0f766d] hover:bg-[#0d635c] text-white py-4 rounded-xl font-semibold mt-2 shadow-lg shadow-[#0f766d]/30 transition-all active:scale-[0.98]"
+                        <Link
+                            href="/employers/client-registration"
+                            className="block w-full text-center bg-[#0f766d] hover:bg-[#0d635c] text-white py-4 rounded-xl font-semibold mt-2 shadow-lg shadow-[#0f766d]/30 transition-all active:scale-[0.98]"
                         >
                             Create Employer Account
-                        </button>
+                        </Link>
                         <p className="text-xs text-center text-slate-500 font-medium mt-2">
                             By registering you agree to our <Link href="#" className="underline hover:text-slate-800">Terms</Link> & <Link href="#" className="underline hover:text-slate-800">Conditions</Link>.
                         </p>

@@ -77,7 +77,7 @@ export function DashboardTopBar({
         <>
             {/* Desktop Top Bar */}
             {!hideDesktopBar && (
-                <div className="hidden lg:flex items-center justify-between w-full h-[72px] px-10 bg-white border-b border-[#E2E8F0] relative z-[90]">
+                <div className="hidden lg:flex items-center justify-between w-full h-[88px] px-10 bg-white border-b border-[#E2E8F0] relative z-[90]">
                     {/* Left: Greeting */}
                     <div className="flex flex-col">
                         <h1 className="text-xl font-bold text-[#0e1b1a] tracking-tight">
