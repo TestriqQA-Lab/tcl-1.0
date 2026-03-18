@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, FileText, Eye, Loader2, Globe, Mail, Phone, Calendar, User, Briefcase, X, ExternalLink, Download } from "lucide-react";
-import { getEmployerProfileDetailAction, updateEmployerVerificationStatusAction } from "@/actions/admin.actions";
+import { ArrowLeft, FileText, Eye, Loader2, Globe, Mail, Phone, Calendar, User, Briefcase, X, ExternalLink, Download, Trash2, AlertTriangle } from "lucide-react";
+import { getEmployerProfileDetailAction, updateEmployerVerificationStatusAction, deleteEmployerAction } from "@/actions/admin.actions";
+import { useRouter } from "next/navigation";
 
 interface EmployerDetail {
     id: string;
@@ -46,6 +47,10 @@ export default function DetailedEmployerProfileContent() {
     const [error, setError] = useState<string | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState<{ url: string; name: string } | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         if (!id) return;
@@ -137,10 +142,14 @@ export default function DetailedEmployerProfileContent() {
             <div className="bg-white rounded-xl md:rounded-2xl p-5 md:p-6 lg:p-8 flex flex-col gap-4 md:gap-5 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-4 md:gap-5 lg:gap-6">
                     <div
-                        className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-lg md:rounded-[10px] lg:rounded-xl shrink-0 flex items-center justify-center text-white text-2xl font-bold"
-                        style={{ backgroundColor: getLogoColor(employer.companyName || employer.fullName) }}
+                        className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-lg md:rounded-[10px] lg:rounded-xl shrink-0 flex items-center justify-center text-white text-2xl font-bold overflow-hidden"
+                        style={{ backgroundColor: employer.logoUrl ? '#F9FAFB' : getLogoColor(employer.companyName || employer.fullName) }}
                     >
-                        {(employer.companyName || employer.fullName || "E")[0].toUpperCase()}
+                        {employer.logoUrl ? (
+                            <img src={employer.logoUrl} alt={employer.companyName || employer.fullName} className="w-full h-full object-contain p-1" />
+                        ) : (
+                            (employer.companyName || employer.fullName || "E")[0].toUpperCase()
+                        )}
                     </div>
                     <div className="flex flex-col gap-1">
                         <h1 className="text-lg md:text-2xl lg:text-[28px] font-bold text-[#111827] font-inter">
@@ -250,6 +259,18 @@ export default function DetailedEmployerProfileContent() {
                                     {isUpdating ? <Loader2 size={14} className="animate-spin" /> : "Reject"}
                                 </button>
                             </div>
+                        </div>
+
+                        {/* Delete Employer */}
+                        <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-gray-100">
+                            <span className="text-[13px] font-medium text-[#6B7280] font-inter">Danger Zone</span>
+                            <button
+                                onClick={() => setShowDeleteModal(true)}
+                                className="w-full flex items-center justify-center gap-2 bg-white text-[#EF4444] text-sm font-semibold px-4 py-2.5 rounded-md border-2 border-[#FCA5A5] hover:bg-[#FEF2F2] hover:border-[#EF4444] transition-colors font-inter active:scale-[0.98]"
+                            >
+                                <Trash2 size={14} />
+                                Delete Employer
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -425,6 +446,64 @@ export default function DetailedEmployerProfileContent() {
                     )}
                 </div>
             </div>
+
+            {/* ── Delete Confirmation Modal ── */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                        <div className="px-6 py-5 flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-[#FEE2E2] flex items-center justify-center shrink-0 mt-0.5">
+                                <AlertTriangle className="w-5 h-5 text-[#EF4444]" />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <h3 className="text-lg font-bold text-[#111827]">Delete Employer</h3>
+                                <p className="text-sm text-[#6B7280] leading-relaxed">
+                                    This will <strong className="text-[#EF4444]">permanently delete</strong> the employer account, all their job postings, and all associated applications. This action cannot be undone.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="px-6 pb-2">
+                            <label className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5 block">
+                                Type <strong className="text-[#111827]">{employer.companyName || employer.fullName}</strong> to confirm
+                            </label>
+                            <input
+                                type="text"
+                                value={deleteConfirmText}
+                                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                placeholder={employer.companyName || employer.fullName}
+                                className="w-full h-10 rounded-lg border-[1.5px] border-[#E2E8F0] px-3 text-sm font-inter outline-none focus:border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]/20"
+                            />
+                        </div>
+                        <div className="px-6 py-4 flex items-center gap-3">
+                            <button
+                                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); }}
+                                className="flex-1 h-10 rounded-lg border border-[#E2E8F0] text-sm font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    if (!employer) return;
+                                    setIsDeleting(true);
+                                    const result = await deleteEmployerAction(employer.userId);
+                                    setIsDeleting(false);
+                                    if (result.success) {
+                                        router.push("/admin-dashboard/employers-profile");
+                                    } else {
+                                        alert(result.error || "Failed to delete employer");
+                                        setShowDeleteModal(false);
+                                        setDeleteConfirmText("");
+                                    }
+                                }}
+                                disabled={deleteConfirmText !== (employer.companyName || employer.fullName) || isDeleting}
+                                className="flex-1 h-10 rounded-lg bg-[#EF4444] text-white text-sm font-semibold hover:bg-[#DC2626] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                {isDeleting ? <><Loader2 size={14} className="animate-spin" /> Deleting...</> : <><Trash2 size={14} /> Delete</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

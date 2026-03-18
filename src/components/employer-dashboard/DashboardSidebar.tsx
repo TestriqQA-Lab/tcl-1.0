@@ -13,7 +13,8 @@ import {
     BarChart3,
     Settings,
     LogOut,
-    ShieldAlert
+    ShieldAlert,
+    User
 } from "lucide-react";
 
 const navItems = [
@@ -38,6 +39,11 @@ const navItems = [
         label: "Verification",
         icon: ShieldAlert,
         href: "/employer-dashboard/verification",
+    },
+    {
+        label: "Profile",
+        icon: User,
+        href: "/employer-dashboard/profile",
     },
     // { label: "Analytics", icon: BarChart3, href: "/employer-dashboard/analytics" },
     // {

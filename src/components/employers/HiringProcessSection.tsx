@@ -24,7 +24,7 @@ export function HiringProcessSection() {
     ];
 
     return (
-        <section className="bg-[#F8FAFC] py-10 border-y border-slate-100">
+        <section id="how-it-works" className="bg-[#F8FAFC] py-10 border-y border-slate-100">
             <div className="w-full">
                 <div className="text-center mb-16 space-y-4">
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">The 3-Step Hiring Process</h2>

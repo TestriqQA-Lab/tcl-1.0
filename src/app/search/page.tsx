@@ -167,8 +167,8 @@ function SearchContent() {
                                         className="w-full accent-[#0f766d]"
                                     />
                                     <div className="flex justify-between text-xs text-slate-500">
-                                        <span className="font-bold text-[#0f766d]">${minSalary}k</span>
-                                        <span>$200k+</span>
+                                        <span className="font-bold text-[#0f766d]">₹{minSalary}L</span>
+                                        <span>₹200L+</span>
                                     </div>
                                 </div>
                             </div>
@@ -268,8 +268,8 @@ function SearchContent() {
                                     className="w-full accent-[#0f766d]"
                                 />
                                 <div className="flex justify-between text-xs text-slate-500">
-                                    <span className="font-bold text-[#0f766d]">${minSalary}k</span>
-                                    <span>$200k+</span>
+                                    <span className="font-bold text-[#0f766d]">₹{minSalary}L</span>
+                                    <span>₹200L+</span>
                                 </div>
                             </div>
                         </div>

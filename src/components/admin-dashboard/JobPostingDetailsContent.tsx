@@ -306,16 +306,18 @@ export default function JobPostingDetailsContent({
                     Job Description
                 </h2>
                 <div className="flex flex-col gap-4 md:gap-5">
-                    <p className="text-xs md:text-[13px] lg:text-[14px] text-[#374151] font-inter leading-relaxed whitespace-pre-wrap">
-                        {job.jobResponsibilitiesText || job.description}
-                    </p>
-                    <div className="flex flex-col gap-1 md:gap-1.5">
+                    <div 
+                        className="text-xs md:text-[13px] lg:text-[14px] text-[#374151] font-inter leading-relaxed whitespace-pre-wrap [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:mb-1 [&_p]:mb-2"
+                        dangerouslySetInnerHTML={{ __html: job.jobResponsibilitiesText || job.description || "N/A" }}
+                    />
+                    <div className="flex flex-col gap-1 md:gap-1.5 mt-4">
                         <span className="text-[10px] md:text-[11px] lg:text-xs font-semibold text-[#6B7280] font-inter uppercase tracking-wide">
                             About Company
                         </span>
-                        <p className="text-xs md:text-[13px] lg:text-[14px] text-[#374151] font-inter leading-relaxed whitespace-pre-wrap">
-                            {job.aboutCompany || employer.companyDescription || "N/A"}
-                        </p>
+                        <div 
+                            className="text-xs md:text-[13px] lg:text-[14px] text-[#374151] font-inter leading-relaxed whitespace-pre-wrap [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:mb-1 [&_p]:mb-2"
+                            dangerouslySetInnerHTML={{ __html: job.aboutCompany || employer.companyDescription || "N/A" }}
+                        />
                     </div>
                 </div>
             </section>

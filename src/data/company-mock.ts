@@ -76,7 +76,7 @@ export const COMPANY_DATA: Company = {
             icon_bg: "bg-indigo-500/10",
             icon_color: "text-indigo-600",
             title: "Growth",
-            description: "Dedicated mentorship programs and a $5k annual professional development budget for all."
+            description: "Dedicated mentorship programs and a ₹50,000 annual professional development budget for all."
         }
     ],
     roles: [

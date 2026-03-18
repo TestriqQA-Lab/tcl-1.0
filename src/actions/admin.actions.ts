@@ -413,3 +413,29 @@ export async function getJobDetailAction(jobId: string) {
         return { error: "Failed to fetch job detail. Please try again." };
     }
 }
+
+/**
+ * Permanently deletes an employer and all associated data (profile, jobs, applications).
+ * The DB has onDelete: cascade on employerProfiles.userId → users.id,
+ * so deleting the user cascades to everything.
+ */
+export async function deleteEmployerAction(userId: string) {
+    try {
+        const session = await auth();
+        if (session?.user?.role !== "ADMIN") {
+            return { error: "Unauthorized. Admin access required." };
+        }
+
+        if (!userId) {
+            return { error: "User ID is required." };
+        }
+
+        // Delete the user — cascades to employer_profiles, jobs, applications
+        await db.delete(users).where(eq(users.id, userId));
+
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to delete employer:", error);
+        return { error: "Failed to delete employer. Please try again." };
+    }
+}
