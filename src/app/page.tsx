@@ -12,7 +12,7 @@ export default async function Home() {
   // If user is already logged in, redirect them to their respective dashboard
   if (session?.user) {
     if (session.user.role === "EMPLOYER") {
-      redirect("/employer-dashboard");
+      redirect("/employer/dashboard");
     }
 
     // For SEEKERs: check if their profile is incomplete (new Google user who hasn't filled the form)
@@ -38,7 +38,7 @@ export default async function Home() {
         }
       }
 
-      redirect("/user-dashboard");
+      redirect("/seeker/dashboard");
     }
   }
 

@@ -1,25 +1,25 @@
 import React from 'react';
 import Link from 'next/link';
 import { LayoutDashboard, FileText, Search, Building2, BookOpen } from 'lucide-react';
-import UserProfileLayout from '@/components/user-profile/UserProfileLayout';
-import Sidebar from '@/components/user-profile/Sidebar';
+import UserProfileLayout from '@/components/seeker/profile/UserProfileLayout';
+import Sidebar from '@/components/seeker/profile/Sidebar';
 
-import ProfileHeader from '@/components/user-profile/ProfileHeader';
+import ProfileHeader from '@/components/seeker/profile/ProfileHeader';
 
 // Placeholder imports for sections - to be created next
-import BasicDetails from '../../components/user-profile/sections/BasicDetails';
-import CareerPreferences from '../../components/user-profile/sections/CareerPreferences';
-import Education from '../../components/user-profile/sections/Education';
-import KeySkills from '../../components/user-profile/sections/KeySkills';
-import Languages from '../../components/user-profile/sections/Languages';
-import Internships from '../../components/user-profile/sections/Internships';
-import Projects from '../../components/user-profile/sections/Projects';
-import ProfileSummary from '../../components/user-profile/sections/ProfileSummary';
-import Accomplishments from '../../components/user-profile/sections/Accomplishments';
-import CompetitiveExams from '../../components/user-profile/sections/CompetitiveExams';
-import Employment from '../../components/user-profile/sections/Employment';
-import AcademicAchievements from '../../components/user-profile/sections/AcademicAchievements';
-import Resume from '../../components/user-profile/sections/Resume';
+import BasicDetails from '../../../components/seeker/profile/sections/BasicDetails';
+import CareerPreferences from '../../../components/seeker/profile/sections/CareerPreferences';
+import Education from '../../../components/seeker/profile/sections/Education';
+import KeySkills from '../../../components/seeker/profile/sections/KeySkills';
+import Languages from '../../../components/seeker/profile/sections/Languages';
+import Internships from '../../../components/seeker/profile/sections/Internships';
+import Projects from '../../../components/seeker/profile/sections/Projects';
+import ProfileSummary from '../../../components/seeker/profile/sections/ProfileSummary';
+import Accomplishments from '../../../components/seeker/profile/sections/Accomplishments';
+import CompetitiveExams from '../../../components/seeker/profile/sections/CompetitiveExams';
+import Employment from '../../../components/seeker/profile/sections/Employment';
+import AcademicAchievements from '../../../components/seeker/profile/sections/AcademicAchievements';
+import Resume from '../../../components/seeker/profile/sections/Resume';
 
 // Header Section containing Profile Card, Tabs, and Visibility Strip
 const ProfileHeaderSection = () => (
@@ -37,7 +37,7 @@ const ProfileHeaderSection = () => (
             {/* Right: Quick Navigation */}
             <div className="hidden lg:flex items-center gap-1.5 ml-auto">
                 {[
-                    { label: "Dashboard", href: "/user-dashboard", icon: LayoutDashboard },
+                    { label: "Dashboard", href: "/seeker/dashboard", icon: LayoutDashboard },
                     { label: "Applications", href: "/user-applications", icon: FileText },
                     { label: "Jobs", href: "/search", icon: Search },
                     { label: "Companies", href: "/companies", icon: Building2 },

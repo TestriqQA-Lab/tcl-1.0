@@ -140,6 +140,12 @@ export const jobs = pgTable("jobs", {
     requiredLanguages: text("required_languages").array().default([]), // ["English", "Hindi"]
     requiredCertifications: text("required_certifications").array().default([]), // ["AWS Certified"]
 
+    // Job Detail Page Fields (matching UI)
+    overview: text("overview").array().default([]), // Array of paragraphs describing the role
+    responsibilities: text("responsibilities").array().default([]), // Array of bullet responsibilities
+    requirements: text("requirements").array().default([]), // Array of bullet requirements/qualifications
+    howToApply: text("how_to_apply"), // Application instructions text
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -303,6 +309,15 @@ export const achievements = pgTable("achievements", {
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// 14. Password Reset Tokens Table
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 
 // II] Relations
 
@@ -321,6 +336,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     languages: many(languages),
     projects: many(projects),
     achievements: many(achievements),
+    passwordResetTokens: many(passwordResetTokens),
 }));
 
 // 1.2 Seeker Profiles Relations
@@ -416,9 +432,16 @@ export const achievementsRelations = relations(achievements, ({ one }) => ({
     }),
 }));
 
+// 14. Password Reset Tokens Relations
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+    user: one(users, {
+        fields: [passwordResetTokens.userId],
+        references: [users.id],
+    }),
+}));
+
 // III] Types
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
-
-
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
