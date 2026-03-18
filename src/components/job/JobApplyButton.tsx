@@ -5,6 +5,9 @@ import { hasUserAppliedAction, getJobScreeningQuestions } from "@/actions/job.ac
 import { useSession } from "next-auth/react";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { JobApplicationModal } from "./JobApplicationModal";
+import { AuthModal } from "@/components/auth/AuthModal";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { RegisterForm } from "@/components/auth/RegisterForm";
 
 interface JobApplyButtonProps {
     jobId: string;
@@ -15,7 +18,15 @@ export const JobApplyButton = ({ jobId, className = "" }: JobApplyButtonProps) =
     const { data: session } = useSession();
     const [isApplied, setIsApplied] = useState(false);
     const [isChecking, setIsChecking] = useState(true);
+    
+    // Application Modal
     const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    // Auth Modal
+    const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
+    const closeAuthModal = () => setAuthModal(null);
+    const switchToRegister = () => setAuthModal("register");
+    const switchToLogin = () => setAuthModal("login");
     
     const [hasResume, setHasResume] = useState(false);
     const [screeningData, setScreeningData] = useState<{
@@ -43,6 +54,10 @@ export const JobApplyButton = ({ jobId, className = "" }: JobApplyButtonProps) =
                 } catch(e) {
                      console.error("Failed to check resume status", e);
                 }
+            } else {
+                // If no session, no need to check application status
+                setIsChecking(false);
+                return;
             }
             setIsChecking(false);
         }
@@ -51,7 +66,7 @@ export const JobApplyButton = ({ jobId, className = "" }: JobApplyButtonProps) =
 
     const handleApplyClick = () => {
         if (!session) {
-            alert("Please log in to apply.");
+            setAuthModal("login");
             return;
         }
         setIsModalOpen(true);
@@ -96,6 +111,25 @@ export const JobApplyButton = ({ jobId, className = "" }: JobApplyButtonProps) =
                     screeningEnglishLevel={screeningData.screeningEnglishLevel}
                 />
             )}
+
+            {/* Auth Modals for unauthenticated users */}
+            <AuthModal
+                isOpen={authModal === "login"}
+                onClose={closeAuthModal}
+                title="Login Required"
+                subtitle="Please log in to apply for this position"
+            >
+                <LoginForm onSwitchToRegister={switchToRegister} onClose={closeAuthModal} />
+            </AuthModal>
+
+            <AuthModal
+                isOpen={authModal === "register"}
+                onClose={closeAuthModal}
+                title="Create Account"
+                subtitle="Join thousands of job seekers"
+            >
+                <RegisterForm onSwitchToLogin={switchToLogin} />
+            </AuthModal>
         </>
     );
 };

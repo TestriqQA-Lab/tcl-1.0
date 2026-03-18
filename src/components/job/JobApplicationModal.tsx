@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, CheckCircle2, ChevronRight, UploadCloud, FileText } from "lucide-react";
 import { applyToJobAction } from "@/actions/job.actions";
 import { Button } from "@/components/ui/Button";
@@ -106,8 +107,15 @@ export const JobApplicationModal = ({
 
     const isResumeValid = resumeSource === "EXISTING" || (resumeSource === "NEW" && customResumeBase64 !== null);
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    const [mounted, setMounted] = useState(false);
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!isOpen || !mounted) return null;
+
+    const modalContent = (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
                 
                 {/* Header */}
@@ -356,4 +364,6 @@ export const JobApplicationModal = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };

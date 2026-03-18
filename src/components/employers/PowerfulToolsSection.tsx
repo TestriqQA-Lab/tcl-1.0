@@ -48,9 +48,6 @@ export function PowerfulToolsSection() {
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">Powerful tools for modern teams</h2>
                     <p className="text-lg text-slate-500 font-medium">Everything you need to manage your hiring cycle from start to finish without leaving the platform.</p>
                 </div>
-                <Link href="#" className="text-[#0f766d] font-bold flex items-center gap-1 hover:gap-2 transition-all">
-                    View all features <span className="material-symbols-outlined text-[1rem]">arrow_forward</span>
-                </Link>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">

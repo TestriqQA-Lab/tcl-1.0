@@ -72,10 +72,10 @@ const EditResumeModal: React.FC<EditResumeModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
-            <div className={`bg-white rounded-2xl w-full max-w-[550px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
+            <div className={`bg-white rounded-2xl w-full max-w-[550px] shadow-2xl transform transition-all duration-300 max-h-[90vh] flex flex-col ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
-                <div className="p-8 pb-4 relative">
+                <div className="p-8 pb-4 relative shrink-0">
                     <button
                         onClick={onClose}
                         className="absolute right-6 top-6 text-gray-400 hover:text-gray-600 transition-colors"
@@ -88,7 +88,7 @@ const EditResumeModal: React.FC<EditResumeModalProps> = ({
                     </p>
                 </div>
 
-                <div className="px-8 pb-8 space-y-6">
+                <div className="px-8 pb-8 space-y-6 overflow-y-auto">
                     {/* Upload Area or Current File */}
                     {!resume ? (
                         <div
@@ -117,22 +117,6 @@ const EditResumeModal: React.FC<EditResumeModalProps> = ({
                         </div>
                     ) : (
                         <div>
-                            {/* Upload Area (Collapsed/Hidden or Replaced? Images show different states. 
-                                Image 1: Upload area visible. 
-                                Image 2: Upload Area + Current File + Create Resume.
-                                Wait, Image 2 has "Upload resume" area AND "Current File". 
-                                Image 1 just has Upload area and Create Resume.
-                                So if file exists, do we show upload area?
-                                Image 2 shows:
-                                1. Upload area (Drag and drop...)
-                                2. CURRENT FILE section
-                                3. Don't have a resume yet?
-                                
-                                So the upload area IS always visible, acting as "Upload New/Replace" maybe? 
-                                Or simply as a drop zone.
-                                
-                                Let's follow Image 2 structure which seems to be the "Active" state.
-                             */}
                             <div
                                 className="border-2 border-dashed border-emerald-100 rounded-2xl bg-[#f8fcfc] p-8 flex flex-col items-center justify-center text-center hover:bg-[#f0f9f9] transition-colors cursor-pointer mb-6"
                                 onClick={triggerFileUpload}
@@ -199,30 +183,10 @@ const EditResumeModal: React.FC<EditResumeModalProps> = ({
                             </div>
                         </div>
                     )}
-
-                    {/* Don't have a resume yet? - Always visible based on images */}
-                    <div className="bg-[#f0f9f9] rounded-2xl p-5 flex items-center justify-between">
-                        <div className="flex items-start gap-3">
-                            <div className="mt-1 text-[#117a7a]">
-                                <Sparkles size={20} />
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-bold text-gray-900 mb-1">
-                                    Don't have a resume yet?
-                                </h4>
-                                <p className="text-xs text-gray-500 leading-relaxed max-w-[250px]">
-                                    Use our professional builder to create a standout resume in minutes.
-                                </p>
-                            </div>
-                        </div>
-                        <button className="flex items-center text-sm font-bold text-[#117a7a] hover:text-[#0e6666] transition-colors whitespace-nowrap">
-                            Create resume <ArrowRight size={16} className="ml-1" />
-                        </button>
-                    </div>
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="p-6 pt-2 flex justify-end gap-3 items-center border-t border-gray-50">
+                <div className="p-6 pt-2 flex justify-end gap-3 items-center border-t border-gray-50 shrink-0">
                     <button
                         onClick={onClose}
                         className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors px-4"

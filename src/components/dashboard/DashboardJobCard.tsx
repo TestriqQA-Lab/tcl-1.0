@@ -41,14 +41,6 @@ export const DashboardJobCard = ({
                             <p className="text-gray-600 text-sm font-medium line-clamp-1">{company}</p>
                         </div>
                     </div>
-
-                    <button className="text-gray-400 hover:text-[#0f766d] transition-colors shrink-0" onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        // Handle bookmark logic here if needed
-                    }}>
-                        <Bookmark className="w-5 h-5" />
-                    </button>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 font-medium">

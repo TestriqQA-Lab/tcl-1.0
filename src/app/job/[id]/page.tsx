@@ -19,21 +19,21 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
     return (
         <div className="min-h-screen bg-slate-50">
-            <main className="max-w-[1280px] mx-auto md:px-6 py-8">
+            <main className="max-w-[1280px] mx-auto px-4 md:px-6 py-8 pb-28 lg:pb-8">
                 {/* Breadcrumbs */}
-                <div className="flex items-center gap-2 mb-6 text-sm">
-                    <Link href="/" className="text-gray-400 hover:text-[#0f766d] transition-colors">
+                <div className="flex items-center gap-2 mb-6 text-sm flex-wrap">
+                    <Link href="/" className="text-gray-400 hover:text-[#0f766d] transition-colors shrink-0">
                         <span className="material-symbols-outlined text-lg">home</span>
                     </Link>
                     {breadcrumbs.map((crumb, index) => (
                         <span key={crumb.label} className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-gray-400 text-lg">chevron_right</span>
+                            <span className="material-symbols-outlined text-gray-400 text-lg shrink-0">chevron_right</span>
                             {crumb.href ? (
-                                <Link href={crumb.href} className="text-[#0f766d] font-medium hover:underline">
+                                <Link href={crumb.href} className="text-[#0f766d] font-medium hover:underline whitespace-nowrap">
                                     {crumb.label}
                                 </Link>
                             ) : (
-                                <span className="text-gray-900 font-semibold">{titleCase(job.title)}</span>
+                                <span className="text-gray-900 font-semibold truncate max-w-[150px] md:max-w-[300px]">{titleCase(job.title)}</span>
                             )}
                         </span>
                     ))}
@@ -41,25 +41,25 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
 
                 {/* Hero Card */}
-                <div className="bg-white border border-gray-100 rounded-xl p-6 md:p-8 shadow-sm mb-8">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 md:gap-8">
-                        <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+                <div className="bg-white border border-gray-100 rounded-xl p-6 md:p-8 shadow-sm mb-8 overflow-hidden w-full">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 md:gap-8 min-w-0">
+                        <div className="flex flex-col md:flex-row gap-4 md:gap-6 min-w-0 flex-1">
                             <div className="size-16 md:size-20 bg-white border border-gray-100 rounded-xl flex items-center justify-center p-3 shadow-sm overflow-hidden shrink-0">
                                 <img alt={`${job.company.name || "Company"} Logo`} className="w-full" src={job.company.logo || undefined} />
                             </div>
-                            <div className="space-y-3">
-                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{job.title}</h1>
-                                <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-gray-600">
-                                    <span className="font-semibold text-[#0f766d]">{job.company.name}</span>
-                                    <span className="flex items-center gap-1 text-sm">
-                                        <span className="material-symbols-outlined text-lg">location_on</span>
-                                        {job.location}
+                            <div className="space-y-3 min-w-0 flex-1">
+                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 break-words">{job.title}</h1>
+                                <div className="flex flex-wrap items-center gap-y-3 gap-x-4 text-gray-600">
+                                    <span className="font-semibold text-[#0f766d] truncate max-w-full">{job.company.name}</span>
+                                    <span className="flex items-center gap-1 text-sm truncate max-w-full">
+                                        <span className="material-symbols-outlined text-lg shrink-0">location_on</span>
+                                        <span className="truncate">{job.location}</span>
                                     </span>
-                                    <span className="bg-[#0f766d]/10 text-[#0f766d] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                                    <span className="bg-[#0f766d]/10 text-[#0f766d] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shrink-0">
                                         {job.type}
                                     </span>
-                                    <span className="flex items-center gap-1 font-medium text-gray-900 text-sm">
-                                        <span className="material-symbols-outlined text-lg">payments</span>
+                                    <span className="flex items-center gap-1 font-medium text-gray-900 text-sm shrink-0">
+                                        <span className="material-symbols-outlined text-lg shrink-0">payments</span>
                                         {job.salary}
                                     </span>
                                 </div>
@@ -70,9 +70,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                             <button className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 p-3 md:p-3.5 rounded-xl transition-all">
                                 <span className="material-symbols-outlined block">share</span>
                             </button>
-                            <button className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 p-3 md:p-3.5 rounded-xl transition-all">
-                                <span className="material-symbols-outlined block">bookmark</span>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -82,20 +79,21 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                     {/* Left Column: Main Content */}
                     <div className="lg:col-span-8 space-y-6">
                         {/* Overview */}
-                        <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100">
+                        <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100 overflow-hidden w-full">
                             <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 border-b border-gray-50 pb-4">
                                 Description
                             </h2>
                             <div className="space-y-4">
-                                <p className="text-gray-600 leading-relaxed text-sm md:text-base whitespace-pre-wrap">
-                                    {job.description}
-                                </p>
+                                <div 
+                                    className="text-gray-600 leading-relaxed text-sm md:text-base break-words w-full prose prose-sm max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: job.description }}
+                                />
                             </div>
                         </section>
 
                         {/* Requirements */}
                         {job.requiredSkills && job.requiredSkills.length > 0 && (
-                            <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100">
+                            <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100 overflow-hidden w-full">
                                 <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 border-b border-gray-50 pb-4">
                                     Required Skills
                                 </h2>
@@ -111,7 +109,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                         )}
 
                         {/* How to Apply */}
-                        <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100">
+                        <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100 overflow-hidden w-full">
                             <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 border-b border-gray-50 pb-4">
                                 Ready to Apply?
                             </h2>
@@ -120,7 +118,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                         </section>
 
                         {/* Similar Jobs - Bigger Cards */}
-                        <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100">
+                        <section className="bg-white rounded-xl p-6 md:p-8 border border-gray-100 overflow-hidden w-full">
                             <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 border-b border-gray-50 pb-4">
                                 Similar Jobs You Might Like
                             </h2>
@@ -159,15 +157,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                                                     </div>
                                                 </div>
                                             </div>
-                                            <button
-                                                className="text-slate-300 hover:text-rose-500 transition-colors"
-                                            >
-                                                <span className="material-symbols-outlined">favorite</span>
-                                            </button>
                                         </div>
-                                        <p className="text-slate-600 text-sm mt-3 line-clamp-2 leading-relaxed">
-                                            {simJob.description}
-                                        </p>
+                                        <div 
+                                            className="text-slate-600 text-sm mt-3 line-clamp-2 leading-relaxed"
+                                            dangerouslySetInnerHTML={{ __html: simJob.description }}
+                                        />
                                         <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-100">
                                             <div className="text-slate-900 font-bold text-sm md:text-base">
                                                 {simJob.salary} <span className="text-slate-400 font-normal text-xs">/ year</span>
@@ -185,7 +179,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                     {/* Right Column: Sidebar */}
                     <aside className="lg:col-span-4 space-y-6">
                         {/* About Company Widget */}
-                        <div className="bg-white rounded-xl p-6 border border-gray-100 lg:sticky lg:top-24">
+                        <div className="bg-white rounded-xl p-6 border border-gray-100 lg:sticky lg:top-24 overflow-hidden w-full">
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="size-14 bg-white border border-gray-100 rounded-lg flex items-center justify-center p-2 shadow-sm overflow-hidden">
                                     <img alt={`${job.company.name || "Company"} Logo`} className="w-full" src={job.company.logo || undefined} />
@@ -197,7 +191,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                                     </span>
                                 </div>
                             </div>
-                            <p className="text-sm text-gray-600 mb-4 leading-relaxed">{job.company.description}</p>
+                            <div className="text-sm text-gray-600 mb-4 leading-relaxed prose prose-sm" dangerouslySetInnerHTML={{ __html: job.company.description || "" }} />
                             <a
                                 href="#"
                                 className="block text-center text-[#0f766d] font-bold text-sm py-3 border border-[#0f766d]/20 rounded-xl hover:bg-[#0f766d]/5 transition-colors"
@@ -239,12 +233,10 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </main>
 
             {/* Mobile Sticky Apply Button */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40">
+            <div className="lg:hidden fixed bottom-[64px] left-0 right-0 bg-white border-t border-gray-200 p-2 z-50">
                 <div className="flex items-center gap-3">
-                    <JobApplyButton jobId={id} className="flex-1 py-3.5 shadow-lg shadow-[#0f766d]/20" />
-                    <button className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 p-3.5 rounded-xl transition-all">
-                        <span className="material-symbols-outlined block">mail</span>
-                    </button>
+                    <JobApplyButton jobId={id} className="flex-1 py-2 shadow-lg shadow-[#0f766d]/20" />
+
                 </div>
             </div>
         </div>

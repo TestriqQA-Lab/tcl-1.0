@@ -21,9 +21,7 @@ export function RecruiterCTA() {
                             <Link href="/employer-dashboard/post-job" className="bg-white text-[#0f766d] font-bold px-8 py-4 rounded-xl hover:shadow-xl transition-all inline-block w-fit">
                                 Post a Job for Free
                             </Link>
-                            <button className="bg-transparent text-white border-2 border-white/30 font-bold px-8 py-4 rounded-xl hover:bg-white/10 transition-all">
-                                Contact Sales
-                            </button>
+
                         </div>
                     </div>
 

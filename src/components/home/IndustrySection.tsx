@@ -1,13 +1,13 @@
 import { CATEGORIES } from "@/data/mock-data";
 import Link from "next/link";
 
-export function CategorySection() {
+export function IndustrySection() {
     return (
         <section className="py-20">
             <div className="flex items-end justify-between mb-10">
                 <div className="space-y-2">
-                    <h2 className="text-3xl hidden md:block font-bold font-heading">Explore by Category</h2>
-                    <h2 className="text-3xl w-full md:hidden font-bold font-heading">Explore Categories</h2>
+                    <h2 className="text-3xl hidden md:block font-bold font-heading">Explore by Industries</h2>
+                    <h2 className="text-3xl w-full md:hidden font-bold font-heading">Explore Industries</h2>
                     <p className="text-gray-500">Find the perfect niche for your career growth</p>
                 </div>
                 <button className="text-[#0f766d] hidden md:block font-bold text-sm flex items-center gap-1 px-4 mb-3 hover:text-[#0f766d]/80 transition-colors">

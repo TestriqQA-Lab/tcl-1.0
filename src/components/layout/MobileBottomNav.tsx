@@ -24,7 +24,7 @@ import {
 
 // ── Primary bottom bar items (4 + More) ──────────────────────────────────────
 const primaryNav = [
-    { label: "Home", href: "/seeker/dashboard", icon: Home },
+    { label: "Home", href: "/?nav=true", icon: Home },
     { label: "Jobs", href: "/search", icon: Briefcase },
     { label: "Inbox", href: "/inbox", icon: MessageSquare },
     { label: "Profile", href: "/seeker/profile", icon: User },

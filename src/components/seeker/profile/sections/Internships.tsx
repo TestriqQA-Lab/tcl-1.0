@@ -106,27 +106,29 @@ const Internships = () => {
                     {internships.map((internship, index) => (
                         <div key={index} className="relative pl-4 border-l-2 border-emerald-500 pb-4">
                             <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                            <div className="flex justify-between items-start group">
-                                <div className="min-w-0 flex-1 pr-2">
-                                    <h3 className="text-sm font-bold text-gray-900 truncate">{internship.role}</h3>
-                                    <p className="text-xs font-medium text-gray-600 truncate">{internship.companyName}</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[10px] text-gray-400">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <h3 className="text-sm font-bold text-gray-900 break-words">{internship.role}</h3>
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <button
+                                                onClick={() => openEditModal(index)}
+                                                className="text-gray-400 hover:text-emerald-600 p-1 transition-all"
+                                            >
+                                                <Pencil size={14} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(index)}
+                                                className="text-gray-400 hover:text-red-500 p-1 transition-all"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs font-medium text-gray-600 break-words">{internship.companyName}</p>
+                                    <span className="text-[10px] text-gray-400 mt-0.5 block">
                                         {internship.startMonth} {internship.startYear} - {internship.isCurrent ? 'Present' : `${internship.endMonth} ${internship.endYear}`}
                                     </span>
-                                    <button
-                                        onClick={() => openEditModal(index)}
-                                        className="text-gray-400 hover:text-emerald-600 p-1 opacity-0 group-hover:opacity-100 transition-all"
-                                    >
-                                        <Pencil size={14} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(index)}
-                                        className="text-gray-400 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-all"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
                                 </div>
                             </div>
                             <p className="text-xs text-gray-500 mt-2 line-clamp-2">{internship.description}</p>

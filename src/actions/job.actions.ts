@@ -3,13 +3,14 @@
 import { db } from "@/lib/db/db";
 import { jobs, employerProfiles, users, applications, seekerProfiles } from "@/lib/db/schema";
 import { auth } from "@/auth";
-import { eq, ilike, or, and, inArray, desc, sql } from "drizzle-orm";
+import { eq, ilike, or, and, inArray, desc, sql, gte } from "drizzle-orm";
 import type { CreateJobPayload } from "@/types/job";
 
 export async function getJobs(params: {
     keyword?: string;
     location?: string;
     jobTypes?: string[];
+    salaryMin?: number;
 }) {
     try {
         const query = db
@@ -39,7 +40,8 @@ export async function getJobs(params: {
                     params.location ? ilike(jobs.location, `%${params.location}%`) : undefined,
                     params.jobTypes && params.jobTypes.length > 0
                         ? inArray(jobs.type, params.jobTypes.map(t => t.toUpperCase() as any))
-                        : undefined
+                        : undefined,
+                    params.salaryMin !== undefined ? gte(jobs.salaryMax, params.salaryMin) : undefined
                 )
             )
             .orderBy(desc(jobs.createdAt));
@@ -534,6 +536,110 @@ export async function hasUserAppliedAction(jobId: string) {
         return !!existing;
     } catch (error) {
         return false;
+    }
+}
+
+export async function getUserApplicationsAction() {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { error: "Unauthorized" };
+        }
+
+        const userId = session.user.id;
+
+        // Get all applications for the user with joined job and employer data
+        const results = await db
+            .select({
+                applicationId: applications.id,
+                applicationStatus: applications.applicationStatus,
+                applicationDate: applications.applicationDate,
+                resumeUrl: applications.resumeUrl,
+                coverLetterUrl: applications.coverLetterUrl,
+                jobId: jobs.id,
+                jobTitle: jobs.title,
+                jobLocation: jobs.location,
+                jobType: jobs.type,
+                salaryMin: jobs.salaryMin,
+                salaryMax: jobs.salaryMax,
+                requiredSkills: jobs.requiredSkills,
+                description: jobs.description,
+                employerId: jobs.employerId,
+                companyName: employerProfiles.companyName,
+                companyLogo: employerProfiles.companyLogo,
+            })
+            .from(applications)
+            .innerJoin(jobs, eq(applications.jobId, jobs.id))
+            .innerJoin(employerProfiles, eq(jobs.employerId, employerProfiles.userId))
+            .where(eq(applications.applicantId, userId))
+            .orderBy(desc(applications.applicationDate));
+
+        // Map DB status to UI-friendly status
+        const statusMap: Record<string, string> = {
+            PENDING: "Pending",
+            REVIEWED: "Reviewed",
+            ACCEPTED: "Reviewed",
+            REJECTED: "Rejected",
+            SHORTLISTED: "Reviewed",
+        };
+
+        const mapped = results.map((r) => {
+            const appliedDate = new Date(r.applicationDate);
+            const now = new Date();
+            const diffMs = now.getTime() - appliedDate.getTime();
+            const daysAgo = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+            const companyName = r.companyName || "Company";
+            const initials = companyName
+                .split(" ")
+                .map((w: string) => w[0])
+                .join("")
+                .substring(0, 2)
+                .toUpperCase();
+
+            return {
+                id: r.applicationId,
+                jobId: r.jobId,
+                jobTitle: r.jobTitle,
+                company: companyName,
+                companyInitials: initials,
+                companyColor: "bg-[#115e59]",
+                companyLogo: r.companyLogo || "",
+                location: r.jobLocation,
+                jobType: r.jobType === "ONSITE" ? "On-site" : r.jobType === "REMOTE" ? "Remote" : r.jobType === "HYBRID" ? "Hybrid" : r.jobType,
+                workMode: r.jobType === "ONSITE" ? "On-site" : r.jobType === "REMOTE" ? "Remote" : "Hybrid",
+                salary: `₹${(r.salaryMin / 1000).toFixed(0)}K – ₹${(r.salaryMax / 1000).toFixed(0)}K`,
+                dateApplied: appliedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                daysAgo,
+                status: statusMap[r.applicationStatus] || "Pending",
+                matchScore: 0,
+                resumeUsed: r.resumeUrl ? "Resume" : "",
+                coverLetterAttached: !!r.coverLetterUrl,
+                timeline: [
+                    {
+                        title: "Application Submitted",
+                        description: `Successfully sent to ${companyName}`,
+                        date: appliedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                        icon: "send" as const,
+                    },
+                ],
+                jobSummary: r.description?.substring(0, 200) || "",
+                requiredSkills: r.requiredSkills || [],
+            };
+        });
+
+        // Calculate stats
+        const stats = {
+            total: mapped.length,
+            pending: mapped.filter((a) => a.status === "Pending").length,
+            reviewed: mapped.filter((a) => a.status === "Reviewed").length,
+            rejected: mapped.filter((a) => a.status === "Rejected").length,
+        };
+
+        return { success: true, applications: mapped, stats };
+    } catch (error) {
+        console.error("Error fetching user applications:", error);
+        return { error: "Failed to fetch applications" };
     }
 }
 
