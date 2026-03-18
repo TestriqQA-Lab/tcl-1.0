@@ -25,6 +25,7 @@ interface RegisterEmployerInput {
     designation: string;
     pincode: string;
     companyAddress: string;
+    companyLogo?: string; // base64 data URL
 }
 
 export async function registerEmployerAction(input: RegisterEmployerInput) {
@@ -108,7 +109,7 @@ export async function registerEmployerAction(input: RegisterEmployerInput) {
                 companyName: companyName.trim() || null,
                 companyIndustry: companyIndustry || null,
                 companySize: dbCompanySize ?? null,
-                companyLogo: "",
+                companyLogo: input.companyLogo || "",
             });
         });
 
@@ -189,5 +190,86 @@ export async function submitEmployerVerificationAction(input: SubmitVerification
     } catch (error) {
         console.error("Failed to submit employer verification:", error);
         return { error: "Failed to submit verification. Please try again." };
+    }
+}
+
+/**
+ * Fetches the full employer profile for the profile page.
+ */
+export async function getFullEmployerProfile(userId: string) {
+    try {
+        const profile = await db
+            .select({
+                fullName: employerProfiles.fullName,
+                designation: employerProfiles.designation,
+                companyName: employerProfiles.companyName,
+                companyLogo: employerProfiles.companyLogo,
+                companyDescription: employerProfiles.companyDescription,
+                companyWebsite: employerProfiles.companyWebsite,
+                companySize: employerProfiles.companySize,
+                companyIndustry: employerProfiles.companyIndustry,
+                companyLocation: employerProfiles.companyLocation,
+                companyAddress: employerProfiles.companyAddress,
+                pincode: employerProfiles.pincode,
+                accountType: employerProfiles.accountType,
+                hiringFor: employerProfiles.hiringFor,
+                email: users.email,
+                phoneNumber: users.phoneNumber,
+            })
+            .from(employerProfiles)
+            .innerJoin(users, eq(employerProfiles.userId, users.id))
+            .where(eq(employerProfiles.userId, userId))
+            .limit(1);
+
+        if (profile.length === 0) return null;
+        return profile[0];
+    } catch (error) {
+        console.error("Failed to fetch full employer profile:", error);
+        return null;
+    }
+}
+
+interface UpdateEmployerProfileInput {
+    fullName?: string;
+    designation?: string;
+    companyName?: string;
+    companyLogo?: string;
+    companyDescription?: string;
+    companyWebsite?: string;
+    companySize?: string;
+    companyIndustry?: string;
+    companyLocation?: string;
+    companyAddress?: string;
+    pincode?: string;
+}
+
+/**
+ * Updates employer profile fields.
+ */
+export async function updateEmployerProfileAction(userId: string, input: UpdateEmployerProfileInput) {
+    try {
+        const payload: Record<string, any> = { updatedAt: new Date() };
+
+        if (input.fullName !== undefined) payload.fullName = input.fullName.trim();
+        if (input.designation !== undefined) payload.designation = input.designation.trim() || null;
+        if (input.companyName !== undefined) payload.companyName = input.companyName.trim() || null;
+        if (input.companyLogo !== undefined) payload.companyLogo = input.companyLogo;
+        if (input.companyDescription !== undefined) payload.companyDescription = input.companyDescription.trim() || null;
+        if (input.companyWebsite !== undefined) payload.companyWebsite = input.companyWebsite.trim() || null;
+        if (input.companySize !== undefined) payload.companySize = input.companySize || null;
+        if (input.companyIndustry !== undefined) payload.companyIndustry = input.companyIndustry.trim() || null;
+        if (input.companyLocation !== undefined) payload.companyLocation = input.companyLocation.trim() || null;
+        if (input.companyAddress !== undefined) payload.companyAddress = input.companyAddress.trim() || null;
+        if (input.pincode !== undefined) payload.pincode = input.pincode.trim() || null;
+
+        await db
+            .update(employerProfiles)
+            .set(payload)
+            .where(eq(employerProfiles.userId, userId));
+
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to update employer profile:", error);
+        return { error: "Failed to update profile. Please try again." };
     }
 }

@@ -10,9 +10,9 @@ export function IndustrySection() {
                     <h2 className="text-3xl w-full md:hidden font-bold font-heading">Explore Industries</h2>
                     <p className="text-gray-500">Find the perfect niche for your career growth</p>
                 </div>
-                <button className="text-[#0f766d] hidden md:block font-bold text-sm flex items-center gap-1 px-4 mb-3 hover:text-[#0f766d]/80 transition-colors">
+                {/* <button className="text-[#0f766d] hidden md:block font-bold text-sm flex items-center gap-1 px-4 mb-3 hover:text-[#0f766d]/80 transition-colors">
                     View All <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                </button>
+                </button> */}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

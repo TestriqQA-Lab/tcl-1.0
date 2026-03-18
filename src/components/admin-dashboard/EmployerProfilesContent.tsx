@@ -145,10 +145,14 @@ export default function EmployerProfilesContent() {
                                 {/* Company */}
                                 <div className="flex items-center gap-3">
                                     <div
-                                        className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-white font-bold"
-                                        style={{ backgroundColor: getLogoColor(employer.companyName || employer.name) }}
+                                        className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-white font-bold overflow-hidden"
+                                        style={{ backgroundColor: employer.logoUrl ? '#F9FAFB' : getLogoColor(employer.companyName || employer.name) }}
                                     >
-                                        {(employer.companyName || employer.name || "E")[0].toUpperCase()}
+                                        {employer.logoUrl ? (
+                                            <img src={employer.logoUrl} alt={employer.companyName || employer.name || ''} className="w-full h-full object-contain p-0.5" />
+                                        ) : (
+                                            (employer.companyName || employer.name || "E")[0].toUpperCase()
+                                        )}
                                     </div>
                                     <span className="text-sm font-semibold text-[#111827] font-inter truncate">
                                         {employer.companyName || employer.name || "Unnamed Employer"}
@@ -209,10 +213,14 @@ export default function EmployerProfilesContent() {
                                 {/* Card Top: Logo + Name/Industry + Badge */}
                                 <div className="flex items-center gap-3">
                                     <div
-                                        className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-white font-bold"
-                                        style={{ backgroundColor: getLogoColor(employer.companyName || employer.name) }}
+                                        className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-white font-bold overflow-hidden"
+                                        style={{ backgroundColor: employer.logoUrl ? '#F9FAFB' : getLogoColor(employer.companyName || employer.name) }}
                                     >
-                                        {(employer.companyName || employer.name || "E")[0].toUpperCase()}
+                                        {employer.logoUrl ? (
+                                            <img src={employer.logoUrl} alt={employer.companyName || employer.name || ''} className="w-full h-full object-contain p-0.5" />
+                                        ) : (
+                                            (employer.companyName || employer.name || "E")[0].toUpperCase()
+                                        )}
                                     </div>
                                     <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                                         <span className="text-sm font-semibold text-[#111827] font-inter truncate">

@@ -56,9 +56,6 @@ export function EmployerNavbar({ session, onLogout }: EmployerNavbarProps) {
                         <Link href="#features" className="text-sm font-medium text-slate-900 hover:text-[#0f766d] transition-colors font-inter">
                             Features
                         </Link>
-                        <Link href="#pricing" className="text-sm font-medium text-slate-900 hover:text-[#0f766d] transition-colors font-inter">
-                            Pricing
-                        </Link>
                         <Link href="#faq" className="text-sm font-medium text-slate-900 hover:text-[#0f766d] transition-colors font-inter">
                             FAQ
                         </Link>
@@ -146,7 +143,6 @@ export function EmployerNavbar({ session, onLogout }: EmployerNavbarProps) {
                         <nav className="flex flex-col gap-4 mb-6">
                             <Link href="#how-it-works" className="text-sm font-medium text-slate-900" onClick={() => setIsMobileMenuOpen(false)}>How it works</Link>
                             <Link href="#features" className="text-sm font-medium text-slate-900" onClick={() => setIsMobileMenuOpen(false)}>Features</Link>
-                            <Link href="#pricing" className="text-sm font-medium text-slate-900" onClick={() => setIsMobileMenuOpen(false)}>Pricing</Link>
                             <Link href="#faq" className="text-sm font-medium text-slate-900" onClick={() => setIsMobileMenuOpen(false)}>FAQ</Link>
                         </nav>
 

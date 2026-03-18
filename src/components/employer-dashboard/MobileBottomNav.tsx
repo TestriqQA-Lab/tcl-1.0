@@ -13,6 +13,7 @@ import {
     BarChart3,
     Settings,
     X,
+    User,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { getEmployerProfile } from "@/actions/employer.actions";
@@ -54,6 +55,7 @@ const tabs = [
 ];
 
 const moreLinks = [
+    { label: "Profile", icon: User, href: "/employer-dashboard/profile" },
     { label: "Settings", icon: Settings, href: "/employer-dashboard/settings" },
 ];
 
