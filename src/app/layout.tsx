@@ -46,11 +46,11 @@ export default async function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} ${inter.variable} antialiased bg-[#f8fafc] text-[#0e1b1a] flex flex-col min-h-screen font-sans`}
+        className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} ${inter.variable} antialiased bg-[#f8fafc] text-[#0e1b1a] flex flex-col min-h-screen font-sans overflow-x-hidden`}
       >
         <AuthProvider session={session}>
           <Navbar session={session} />
-          <main className="flex-grow max-w-[1440px] mx-auto px-6 lg:px-10 w-full">
+          <main className="flex-grow max-w-[1440px] mx-auto px-4 md:px-6 lg:px-10 w-full min-w-0">
             {children}
           </main>
           <Footer session={session} />

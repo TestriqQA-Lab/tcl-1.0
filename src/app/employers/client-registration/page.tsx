@@ -2,15 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
     CheckCircle2, Check, EyeOff, Eye, UserPlus, Rocket,
-    Building2, ChevronDown, PartyPopper
+    Building2, ChevronDown, PartyPopper, Loader2
 } from "lucide-react";
+import { registerEmployerAction } from "@/actions/employer.actions";
 
 type Step = "otp" | "basic-details" | "company-details";
 
 export default function ClientRegistrationPage() {
+    const router = useRouter();
     // ── Shared state ──
     const [step, setStep] = useState<Step>("otp");
 
@@ -38,8 +41,21 @@ export default function ClientRegistrationPage() {
     // ── Success Popup state ──
     const [showSuccess, setShowSuccess] = useState(false);
 
+    // ── Submission state ──
+    const [isLoading, setIsLoading] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
     const isOtpValid = phone.length >= 10 && termsConsent;
-    const isBasicValid = fullName.trim().length > 0 && email.trim().length > 0 && password.length >= 6;
+    const isWorkEmail = (email: string) => {
+        const publicDomains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com", "rediffmail.com", "protonmail.com"];
+        const domain = email.split("@")[1];
+        return domain && !publicDomains.includes(domain.toLowerCase());
+    };
+
+    const isBasicValid = fullName.trim().length > 0 &&
+        email.trim().length > 0 &&
+        password.length >= 6 &&
+        (accountType === "individual" || isWorkEmail(email));
     const isCompanyValid = companyName.trim().length > 0 && designation.trim().length > 0;
 
     const handleSendOTP = () => {
@@ -54,12 +70,32 @@ export default function ClientRegistrationPage() {
         }
     };
 
-    const handleCompanyContinue = () => {
-        if (isCompanyValid) {
-            console.log("Submitting:", {
-                phone, fullName, email, password, accountType,
-                hiringFor, companyName, industry, employees, designation, pinCode, companyAddress
-            });
+    const handleCompanyContinue = async () => {
+        if (!isCompanyValid || isLoading) return;
+        setIsLoading(true);
+        setSubmitError(null);
+        const result = await registerEmployerAction({
+            phone,
+            fullName,
+            email,
+            password,
+            accountType,
+            hiringFor,
+            companyName,
+            companyIndustry: industry,
+            companySize: employees,
+            designation,
+            pincode: pinCode,
+            companyAddress,
+        });
+        setIsLoading(false);
+        if (result.error) {
+            setSubmitError(result.error);
+        } else {
+            // Auto-login the newly registered employer
+            const { signIn } = await import("next-auth/react");
+            await signIn("credentials", { email, password, redirect: false });
+            router.refresh();
             setShowSuccess(true);
         }
     };
@@ -303,7 +339,10 @@ export default function ClientRegistrationPage() {
                                     </div>
                                     <div className="flex flex-col gap-1.5">
                                         <label className={labelClass}>Official email ID</label>
-                                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email ID" className={inputClass} />
+                                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={accountType === "company" ? "Enter work email ID" : "Enter email ID"} className={inputClass} />
+                                        {accountType === "company" && email && !isWorkEmail(email) && (
+                                            <span className="text-[11px] text-red-500 font-medium">Please enter a valid work email. Gmail, Yahoo, etc. are not allowed for companies.</span>
+                                        )}
                                     </div>
                                     <div className="flex flex-col gap-1.5">
                                         <label className={labelClass}>Create password</label>
@@ -347,11 +386,11 @@ export default function ClientRegistrationPage() {
                                             </div>
                                             <span className={`text-[12px] md:text-[13px] font-medium font-inter ${hiringFor === "company" ? "text-[#0e1b1a]" : "text-[#71717A]"}`}>your company</span>
                                         </label>
-                                        <label className="flex items-center gap-2 cursor-pointer" onClick={() => setHiringFor("consultancy")}>
-                                            <div className={`w-[18px] h-[18px] lg:w-5 lg:h-5 rounded-full border-2 flex items-center justify-center ${hiringFor === "consultancy" ? "border-[#2563EB]" : "border-[#D4D4D8]"}`}>
-                                                {hiringFor === "consultancy" && <div className="w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full bg-[#2563EB]" />}
+                                        <label className="flex items-center gap-2 cursor-pointer" onClick={() => setHiringFor("individual_proprietor" as any)}>
+                                            <div className={`w-[18px] h-[18px] lg:w-5 lg:h-5 rounded-full border-2 flex items-center justify-center ${hiringFor === "individual_proprietor" as any ? "border-[#2563EB]" : "border-[#D4D4D8]"}`}>
+                                                {hiringFor === "individual_proprietor" as any && <div className="w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full bg-[#2563EB]" />}
                                             </div>
-                                            <span className={`text-[12px] md:text-[13px] font-medium font-inter ${hiringFor === "consultancy" ? "text-[#0e1b1a]" : "text-[#71717A]"}`}>a consultancy</span>
+                                            <span className={`text-[12px] md:text-[13px] font-medium font-inter ${hiringFor === "individual_proprietor" as any ? "text-[#0e1b1a]" : "text-[#71717A]"}`}>an individual proprietor</span>
                                         </label>
                                     </div>
                                 </div>
@@ -369,13 +408,14 @@ export default function ClientRegistrationPage() {
                                         <div className="relative">
                                             <select value={industry} onChange={(e) => setIndustry(e.target.value)} className={selectClass}>
                                                 <option value="">Select industry</option>
-                                                <option value="it">IT / Software</option>
-                                                <option value="finance">Finance / Banking</option>
-                                                <option value="healthcare">Healthcare</option>
-                                                <option value="education">Education</option>
-                                                <option value="manufacturing">Manufacturing</option>
-                                                <option value="retail">Retail</option>
-                                                <option value="other">Other</option>
+                                                <option value="Healthcare">Healthcare</option>
+                                                <option value="Manufacturing">Manufacturing</option>
+                                                <option value="IT / Software">IT / Software</option>
+                                                <option value="Finance / Banking">Finance / Banking</option>
+                                                <option value="Education">Education</option>
+                                                <option value="Retail">Retail</option>
+                                                <option value="Construction">Construction</option>
+                                                <option value="Other">Other</option>
                                             </select>
                                             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8] pointer-events-none" />
                                         </div>
@@ -391,7 +431,7 @@ export default function ClientRegistrationPage() {
                                                 <option value="51-200">51–200</option>
                                                 <option value="201-500">201–500</option>
                                                 <option value="501-1000">501–1000</option>
-                                                <option value="1001+">1001+</option>
+                                                <option value="1000+">1000+</option>
                                             </select>
                                             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8] pointer-events-none" />
                                         </div>
@@ -414,12 +454,21 @@ export default function ClientRegistrationPage() {
                                     </div>
                                 </div>
 
+                                {/* Error message */}
+                                {submitError && (
+                                    <p className="text-sm text-red-500 font-inter text-center bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                                        {submitError}
+                                    </p>
+                                )}
+
                                 {/* Continue Button */}
-                                <button type="button" onClick={handleCompanyContinue} disabled={!isCompanyValid}
-                                    className={`w-full h-10 md:h-11 lg:h-10 rounded-xl text-[13px] md:text-sm font-semibold font-inter transition-all active:scale-[0.98] ${isCompanyValid
+                                <button type="button" onClick={handleCompanyContinue} disabled={!isCompanyValid || isLoading}
+                                    className={`w-full h-10 md:h-11 lg:h-10 rounded-xl text-[13px] md:text-sm font-semibold font-inter transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${isCompanyValid && !isLoading
                                         ? "bg-[#0f766d] text-white shadow-lg shadow-[#0f766d]/30 hover:bg-[#0d635c]"
                                         : "bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed"}`}>
-                                    Continue
+                                    {isLoading ? (
+                                        <><Loader2 className="w-4 h-4 animate-spin" /> Creating account...</>
+                                    ) : "Continue"}
                                 </button>
                             </>
                         )}
@@ -484,7 +533,7 @@ export default function ClientRegistrationPage() {
                         {/* Explore Plans Button */}
                         <button
                             type="button"
-                            onClick={() => window.location.href = "/employers"}
+                            onClick={() => window.location.href = "/employer-dashboard"}
                             className="w-full max-w-[280px] h-[50px] md:h-[52px] rounded-[14px] bg-gradient-to-b from-[#2563EB] to-[#1D4ED8] text-white text-[15px] md:text-base font-semibold font-inter shadow-[0_6px_16px_-2px_rgba(37,99,235,0.4)] hover:shadow-[0_8px_24px_-2px_rgba(37,99,235,0.5)] transition-all active:scale-[0.97] hover:brightness-110"
                         >
                             Explore plans

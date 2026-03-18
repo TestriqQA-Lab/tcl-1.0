@@ -1,19 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { SearchJobCard } from "@/components/search/SearchJobCard";
 import { JOB_TYPE_FILTERS, DATE_POSTED_FILTERS } from "@/data/search-mock-data";
 import { getJobs } from "@/actions/job.actions";
 
-export default function SearchPage() {
-    const [searchKeyword, setSearchKeyword] = useState("");
-    const [searchLocation, setSearchLocation] = useState("");
+function SearchContent() {
+    const searchParams = useSearchParams();
+    
+    // Read initial values from URL if they exist
+    const initialKeyword = searchParams.get("keyword") || "";
+    const initialLocation = searchParams.get("location") || "";
+
+    const [searchKeyword, setSearchKeyword] = useState(initialKeyword);
+    const [searchLocation, setSearchLocation] = useState(initialLocation);
     const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
     const [selectedDateFilter, setSelectedDateFilter] = useState("Last 7 days");
+    const [minSalary, setMinSalary] = useState(0); // Add minSalary state (in thousands)
+    const [debouncedMinSalary, setDebouncedMinSalary] = useState(0); // Debounced version for fetching
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
     const [jobs, setJobs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Debounce the salary slider value
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedMinSalary(minSalary);
+        }, 500);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [minSalary]);
 
     const fetchJobs = async () => {
         setLoading(true);
@@ -21,7 +41,8 @@ export default function SearchPage() {
             const data = await getJobs({
                 keyword: searchKeyword,
                 location: searchLocation,
-                jobTypes: selectedJobTypes
+                jobTypes: selectedJobTypes,
+                salaryMin: debouncedMinSalary * 1000, // Multiply slider value by 1000 to match DB
             });
             setJobs(data);
         } catch (error) {
@@ -33,7 +54,7 @@ export default function SearchPage() {
 
     useEffect(() => {
         fetchJobs();
-    }, []); // initial load
+    }, [selectedJobTypes, debouncedMinSalary]); // re-fetch when filters change
 
     const toggleJobType = (type: string) => {
         setSelectedJobTypes((prev) =>
@@ -78,26 +99,19 @@ export default function SearchPage() {
             </div>
 
             {/* Results Header */}
-            <div className="max-w-7xl mx-auto md:px-2 py-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-md md:text-lg font-bold text-slate-900">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-10 py-6 min-w-0">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                        <p className="text-md md:text-lg font-bold text-slate-900 truncate">
                             {jobs.length} job{jobs.length === 1 ? "" : "s"} found
                             {searchKeyword ? ` for '${searchKeyword}'` : ""}
                             {searchLocation ? ` in ${searchLocation}` : ""}
                         </p>
                     </div>
-                    <div className="hidden md:flex items-center gap-3 text-sm">
-                        <span className="text-slate-500">Sort by</span>
-                        <select className="border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-[#0f766d]">
-                            <option>Most Relevant</option>
-                            <option>Latest</option>
-                            <option>Salary: High to Low</option>
-                        </select>
-                    </div>
+
                     {/* Mobile Filter Button */}
                     <button
-                        className="md:hidden flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold"
+                        className="md:hidden flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold shrink-0"
                         onClick={() => setShowMobileFilters(true)}
                     >
                         <span className="material-symbols-outlined text-sm">tune</span>
@@ -112,8 +126,8 @@ export default function SearchPage() {
             </div>
 
             {/* Main Content: Sidebar + Job Listings */}
-            <div className="max-w-7xl mx-auto pb-12">
-                <div className="flex gap-8">
+            <div className="max-w-7xl mx-auto pb-12 px-4 md:px-6 lg:px-10 min-w-0">
+                <div className="flex flex-col md:flex-row gap-8 min-w-0">
                     {/* Desktop Filters Sidebar */}
                     <aside className="hidden md:block w-64 shrink-0">
                         <div className="sticky top-24 bg-white rounded-xl border border-slate-200 p-5 space-y-6">
@@ -148,11 +162,12 @@ export default function SearchPage() {
                                         type="range"
                                         min="0"
                                         max="200"
-                                        defaultValue="150"
+                                        value={minSalary}
+                                        onChange={(e) => setMinSalary(Number(e.target.value))}
                                         className="w-full accent-[#0f766d]"
                                     />
                                     <div className="flex justify-between text-xs text-slate-500">
-                                        <span>$0</span>
+                                        <span className="font-bold text-[#0f766d]">${minSalary}k</span>
                                         <span>$200k+</span>
                                     </div>
                                 </div>
@@ -180,9 +195,9 @@ export default function SearchPage() {
                     </aside>
 
                     {/* Job Listings */}
-                    <main className="flex-1 space-y-4">
+                    <main className="flex-1 space-y-4 min-w-0 w-full overflow-hidden">
                         {loading ? (
-                            <div className="flex justify-center items-center h-64">
+                            <div className="flex justify-center items-center h-64 w-full">
                                 <span className="material-symbols-outlined text-4xl animate-spin text-[#0f766d]">refresh</span>
                             </div>
                         ) : jobs.length > 0 ? (
@@ -241,6 +256,24 @@ export default function SearchPage() {
                             </div>
                         </div>
 
+                        <div className="mb-6">
+                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Salary Range</h4>
+                            <div className="space-y-3">
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="200"
+                                    value={minSalary}
+                                    onChange={(e) => setMinSalary(Number(e.target.value))}
+                                    className="w-full accent-[#0f766d]"
+                                />
+                                <div className="flex justify-between text-xs text-slate-500">
+                                    <span className="font-bold text-[#0f766d]">${minSalary}k</span>
+                                    <span>$200k+</span>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Date Posted */}
                         <div className="mb-6">
                             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Date Posted</h4>
@@ -273,5 +306,13 @@ export default function SearchPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function SearchPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-[#0f766d]"><span className="material-symbols-outlined text-4xl animate-spin">refresh</span></div>}>
+            <SearchContent />
+        </Suspense>
     );
 }

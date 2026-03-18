@@ -5,14 +5,14 @@ import { experience } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
 // Helper to parse "Month Year" into an ISO date string
-function parseMonthYear(month: string, year: string): string {
-    const monthMap: Record<string, string> = {
-        January: "01", February: "02", March: "03", April: "04",
-        May: "05", June: "06", July: "07", August: "08",
-        September: "09", October: "10", November: "11", December: "12",
+function parseMonthYear(month: string, year: string): Date {
+    const monthMap: Record<string, number> = {
+        January: 0, February: 1, March: 2, April: 3,
+        May: 4, June: 5, July: 6, August: 7,
+        September: 8, October: 9, November: 10, December: 11,
     };
-    const m = monthMap[month] || "01";
-    return `${year}-${m}-01`;
+    const m = monthMap[month] || 0;
+    return new Date(parseInt(year), m, 1);
 }
 
 export async function GET(req: NextRequest) {
@@ -44,10 +44,8 @@ export async function POST(req: NextRequest) {
             companyName: body.companyName || "",
             designation: body.designation || body.role || "",
             employmentType: body.employmentType || "FULL_TIME",
-            startMonth: body.startMonth || "",
-            startYear: body.startYear || "",
-            endMonth: body.isCurrent ? null : body.endMonth,
-            endYear: body.isCurrent ? null : body.endYear,
+            startDate: body.startMonth && body.startYear ? parseMonthYear(body.startMonth, body.startYear) : new Date(),
+            endDate: (!body.isCurrent && body.endMonth && body.endYear) ? parseMonthYear(body.endMonth, body.endYear) : null,
             isCurrent: body.isCurrent || false,
             description: body.description || null,
             keySkills: body.keySkills || null,
@@ -79,10 +77,8 @@ export async function PATCH(req: NextRequest) {
                 companyName: updateData.companyName,
                 designation: updateData.designation || updateData.role,
                 employmentType: updateData.employmentType,
-                startMonth: updateData.startMonth,
-                startYear: updateData.startYear,
-                endMonth: updateData.isCurrent ? null : updateData.endMonth,
-                endYear: updateData.isCurrent ? null : updateData.endYear,
+                startDate: updateData.startMonth && updateData.startYear ? parseMonthYear(updateData.startMonth, updateData.startYear) : new Date(),
+                endDate: (!updateData.isCurrent && updateData.endMonth && updateData.endYear) ? parseMonthYear(updateData.endMonth, updateData.endYear) : null,
                 isCurrent: updateData.isCurrent !== undefined ? updateData.isCurrent : false,
                 description: updateData.description,
                 keySkills: updateData.keySkills,

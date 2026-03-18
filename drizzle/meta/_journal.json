@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1772908598664,
+      "tag": "0000_fine_kang",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773644359292,
+      "tag": "0001_easy_newton_destine",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773647285945,
+      "tag": "0002_ordinary_dagger",
+      "breakpoints": true
+    }
+  ]
+}

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Check, Edit3, Briefcase } from "lucide-react";
 
 export const MobileProfileCard = ({ userName, userImage, completionPercentage = 0, isLoading = false }: { userName?: string | null; userImage?: string | null; completionPercentage?: number; isLoading?: boolean }) => {
@@ -72,10 +73,10 @@ export const MobileProfileCard = ({ userName, userImage, completionPercentage = 
                 Add your skills to reach 100% and get 3x more visibility.
             </p>
 
-            <button className="w-full bg-[#0f766d] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#0d655d] transition-colors">
+            <Link href="/seeker/profile" className="w-full bg-[#0f766d] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#0d655d] transition-colors">
                 <Edit3 className="w-4 h-4" />
                 Complete Profile
-            </button>
+            </Link>
         </div>
     );
 };

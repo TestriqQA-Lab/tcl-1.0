@@ -1,19 +1,17 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Plus, Search, SlidersHorizontal, Briefcase, Zap, MessageSquare, Award } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Plus, Search, SlidersHorizontal, Briefcase, Zap, MessageSquare, Award, Loader2 } from "lucide-react";
 import { ApplicationTable } from "./ApplicationTable";
 import { ApplicationSlideOver } from "./ApplicationSlideOver";
-import { mockApplications, ApplicationMock, applicationStats } from "@/data/applications-mock";
-
-const stats = [
-    { label: "Total", value: applicationStats.total, icon: Briefcase, color: "text-[#0f766d]", bg: "bg-[#e8f5f3]" },
-    { label: "Pending", value: applicationStats.pending, icon: Zap, color: "text-amber-600", bg: "bg-amber-50" },
-    { label: "Reviewed", value: applicationStats.reviewed, icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Rejected", value: applicationStats.rejected, icon: Award, color: "text-red-500", bg: "bg-red-50" },
-];
+import { getUserApplicationsAction } from "@/actions/job.actions";
+import type { ApplicationMock } from "@/data/applications-mock";
 
 export const ApplicationsContainer = () => {
+    const [applications, setApplications] = useState<ApplicationMock[]>([]);
+    const [appStats, setAppStats] = useState({ total: 0, pending: 0, reviewed: 0, rejected: 0 });
+    const [isLoading, setIsLoading] = useState(true);
+
     const [selectedApp, setSelectedApp] = useState<ApplicationMock | null>(null);
     const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState("All");
@@ -24,9 +22,34 @@ export const ApplicationsContainer = () => {
 
     const LOAD_BATCH = 4;
 
+    // Fetch real data from the server
+    useEffect(() => {
+        const fetchApplications = async () => {
+            try {
+                const result = await getUserApplicationsAction();
+                if (result.success && result.applications) {
+                    setApplications(result.applications as unknown as ApplicationMock[]);
+                    setAppStats(result.stats || { total: 0, pending: 0, reviewed: 0, rejected: 0 });
+                }
+            } catch (error) {
+                console.error("Error fetching applications:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchApplications();
+    }, []);
+
+    const stats = [
+        { label: "Total", value: appStats.total, icon: Briefcase, color: "text-[#0f766d]", bg: "bg-[#e8f5f3]" },
+        { label: "Pending", value: appStats.pending, icon: Zap, color: "text-amber-600", bg: "bg-amber-50" },
+        { label: "Reviewed", value: appStats.reviewed, icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
+        { label: "Rejected", value: appStats.rejected, icon: Award, color: "text-red-500", bg: "bg-red-50" },
+    ];
+
     // Filtered data
     const filteredData = useMemo(() => {
-        let result = mockApplications;
+        let result = applications;
 
         // Status filter
         if (activeFilter !== "All") {
@@ -45,7 +68,7 @@ export const ApplicationsContainer = () => {
         }
 
         return result;
-    }, [activeFilter, searchQuery]);
+    }, [activeFilter, searchQuery, applications]);
 
     const visibleData = filteredData.slice(0, visibleCount);
     const hasMore = visibleCount < filteredData.length;
@@ -57,11 +80,10 @@ export const ApplicationsContainer = () => {
 
     const handleLoadMore = () => {
         setIsLoadingMore(true);
-        // Simulate network delay for realistic feel
         setTimeout(() => {
             setVisibleCount((prev) => prev + LOAD_BATCH);
             setIsLoadingMore(false);
-        }, 500);
+        }, 300);
     };
 
     const handleViewDetails = (app: ApplicationMock) => {
@@ -73,6 +95,17 @@ export const ApplicationsContainer = () => {
         setIsSlideOverOpen(false);
         setTimeout(() => setSelectedApp(null), 500);
     };
+
+    if (isLoading) {
+        return (
+            <div className="w-full pb-10">
+                <div className="flex flex-col items-center justify-center py-20">
+                    <Loader2 className="w-8 h-8 text-[#0f766d] animate-spin mb-4" />
+                    <p className="text-gray-500 text-sm">Loading your applications...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full pb-10">
@@ -104,11 +137,6 @@ export const ApplicationsContainer = () => {
                             ))}
                         </div>
                     </div>
-
-                    <button className="w-full sm:w-auto self-start inline-flex items-center justify-center gap-2 bg-[#0f766d] hover:bg-[#0d6b63] active:scale-[0.98] text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-all duration-200 shrink-0">
-                        <Plus className="w-4 h-4" />
-                        Track New Job
-                    </button>
                 </div>
             </div>
 
@@ -154,13 +182,19 @@ export const ApplicationsContainer = () => {
                     <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                         <Search className="w-7 h-7 text-gray-300" />
                     </div>
-                    <p className="text-gray-500 font-medium text-sm">No applications match your search.</p>
-                    <button
-                        onClick={() => { setSearchQuery(""); setActiveFilter("All"); }}
-                        className="mt-3 text-[#0f766d] font-semibold text-sm hover:underline"
-                    >
-                        Clear all filters
-                    </button>
+                    <p className="text-gray-500 font-medium text-sm">
+                        {applications.length === 0
+                            ? "You haven't applied to any jobs yet. Start browsing jobs!"
+                            : "No applications match your search."}
+                    </p>
+                    {applications.length > 0 && (
+                        <button
+                            onClick={() => { setSearchQuery(""); setActiveFilter("All"); }}
+                            className="mt-3 text-[#0f766d] font-semibold text-sm hover:underline"
+                        >
+                            Clear all filters
+                        </button>
+                    )}
                 </div>
             )}
 
