@@ -5,10 +5,10 @@ import Link from "next/link";
 const tabs = [
     { label: "Dashboard", href: "/employer-dashboard" },
     { label: "Applications", href: "/employer-applications" },
-    { label: "Jobs", href: "/employer-dashboard/job-postings" },
+    { label: "Jobs", href: "/job-postings" },
     { label: "Search", href: "/database-search" },
+    { label: "Profile", href: "/employer-dashboard/profile" },
     { label: "Blogs", href: "/employer-dashboard/blogs" },
-    { label: "Analytics", href: "/employer-dashboard/analytics" },
 ];
 
 interface TabletNavStripProps {

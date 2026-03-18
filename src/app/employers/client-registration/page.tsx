@@ -6,8 +6,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
     CheckCircle2, Check, EyeOff, Eye, UserPlus, Rocket,
-    Building2, ChevronDown, PartyPopper, Loader2
+    Building2, ChevronDown, PartyPopper, Loader2, Camera, X
 } from "lucide-react";
+import { useRef } from "react";
 import { registerEmployerAction } from "@/actions/employer.actions";
 
 type Step = "otp" | "basic-details" | "company-details";
@@ -37,6 +38,9 @@ export default function ClientRegistrationPage() {
     const [designation, setDesignation] = useState("");
     const [pinCode, setPinCode] = useState("");
     const [companyAddress, setCompanyAddress] = useState("");
+    const [companyLogoFile, setCompanyLogoFile] = useState<File | null>(null);
+    const [companyLogoPreview, setCompanyLogoPreview] = useState("");
+    const logoInputRef = useRef<HTMLInputElement>(null);
 
     // ── Success Popup state ──
     const [showSuccess, setShowSuccess] = useState(false);
@@ -70,6 +74,25 @@ export default function ClientRegistrationPage() {
         }
     };
 
+    const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+            alert("Logo must be less than 2MB");
+            return;
+        }
+        setCompanyLogoFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => setCompanyLogoPreview(reader.result as string);
+        reader.readAsDataURL(file);
+    };
+
+    const handleRemoveLogo = () => {
+        setCompanyLogoFile(null);
+        setCompanyLogoPreview("");
+        if (logoInputRef.current) logoInputRef.current.value = "";
+    };
+
     const handleCompanyContinue = async () => {
         if (!isCompanyValid || isLoading) return;
         setIsLoading(true);
@@ -87,6 +110,7 @@ export default function ClientRegistrationPage() {
             designation,
             pincode: pinCode,
             companyAddress,
+            companyLogo: companyLogoPreview || undefined,
         });
         setIsLoading(false);
         if (result.error) {
@@ -393,6 +417,42 @@ export default function ClientRegistrationPage() {
                                             <span className={`text-[12px] md:text-[13px] font-medium font-inter ${hiringFor === "individual_proprietor" as any ? "text-[#0e1b1a]" : "text-[#71717A]"}`}>an individual proprietor</span>
                                         </label>
                                     </div>
+                                </div>
+
+                                {/* Company Logo Upload */}
+                                <div className="flex flex-col items-center gap-2">
+                                    <span className={labelClass}>Company Logo <span className="text-[#94A3B8] font-normal">(optional)</span></span>
+                                    <div className="relative group">
+                                        {companyLogoPreview ? (
+                                            <div className="relative w-[72px] h-[72px] md:w-20 md:h-20 rounded-full overflow-hidden ring-2 ring-[#E2E8F0] bg-[#F8FAFB]">
+                                                <img src={companyLogoPreview} alt="Logo preview" className="w-full h-full object-contain p-1" />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleRemoveLogo}
+                                                    className="absolute top-0 right-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"
+                                                >
+                                                    <X className="w-3 h-3 text-white" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => logoInputRef.current?.click()}
+                                                className="w-[72px] h-[72px] md:w-20 md:h-20 rounded-full border-2 border-dashed border-[#CBD5E1] bg-[#F8FAFB] flex flex-col items-center justify-center gap-1 hover:border-[#0f766d] hover:bg-[#f0fdf4] transition-all cursor-pointer"
+                                            >
+                                                <Camera className="w-5 h-5 text-[#94A3B8]" />
+                                                <span className="text-[9px] text-[#94A3B8] font-medium">Upload</span>
+                                            </button>
+                                        )}
+                                        <input
+                                            ref={logoInputRef}
+                                            type="file"
+                                            accept="image/png,image/jpeg,image/webp"
+                                            onChange={handleLogoSelect}
+                                            className="hidden"
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-[#94A3B8] font-inter">PNG, JPG or WEBP. Max 2MB.</p>
                                 </div>
 
                                 {/* Form Fields */}

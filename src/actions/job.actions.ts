@@ -50,7 +50,7 @@ export async function getJobs(params: {
 
         return results.map(job => ({
             ...job,
-            salary: `$${(job.salaryMin / 1000).toFixed(0)}k - $${(job.salaryMax / 1000).toFixed(0)}k`,
+            salary: `₹${(job.salaryMin / 1000).toFixed(0)}K - ₹${(job.salaryMax / 1000).toFixed(0)}K`,
             // Capitalize first letter, lowercase rest for job type formatting
             type: job.type.charAt(0) + job.type.slice(1).toLowerCase()
         }));
@@ -95,7 +95,7 @@ export async function getJobById(jobId: string) {
         const job = result[0];
         return {
             ...job,
-            salary: `$${(job.salaryMin / 1000).toFixed(0)}k - $${(job.salaryMax / 1000).toFixed(0)}k`,
+            salary: `₹${(job.salaryMin / 1000).toFixed(0)}K - ₹${(job.salaryMax / 1000).toFixed(0)}K`,
             type: job.type.charAt(0) + job.type.slice(1).toLowerCase()
         };
     } catch (error) {
@@ -152,7 +152,7 @@ export async function getSimilarJobs(jobId: string, limitCount = 3) {
                 location: job.location,
                 type: job.type.charAt(0) + job.type.slice(1).toLowerCase(),
                 description: job.description,
-                salary: `$${(job.salaryMin / 1000).toFixed(0)}k - $${(job.salaryMax / 1000).toFixed(0)}k`,
+                salary: `₹${(job.salaryMin / 1000).toFixed(0)}K - ₹${(job.salaryMax / 1000).toFixed(0)}K`,
                 color: "bg-blue-600" // Placeholder for identical UI rendering
             }));
 

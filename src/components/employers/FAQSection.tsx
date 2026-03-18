@@ -13,7 +13,7 @@ export function FAQSection() {
     ];
 
     return (
-        <section className="py-10 w-full">
+        <section id="faq" className="py-10 w-full">
             <div className="text-center mb-16 space-y-4">
                 <h2 className="text-3xl md:text-3xl font-bold text-slate-900 tracking-tight">Frequently Asked Questions</h2>
                 <p className="text-lg text-slate-500 font-medium">Everything you need to know about hiring on TopCareerLive.</p>
