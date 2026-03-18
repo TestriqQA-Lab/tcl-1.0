@@ -2,20 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { AuthModal } from "@/components/auth/AuthModal";
-import { LoginForm } from "@/components/auth/LoginForm";
-import { RegisterForm } from "@/components/auth/RegisterForm";
+import { EmployerAuthModal } from "@/components/auth/EmployerAuthModal";
 
 export function EmployerNavbar() {
     const [isOpen, setIsOpen] = useState(false);
-    const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
+    const [isEmployerModalOpen, setIsEmployerModalOpen] = useState(false);
 
-    const openLogin = () => setAuthModal("login");
-    const openRegister = () => setAuthModal("register");
-    const closeModal = () => setAuthModal(null);
-
-    const switchToRegister = () => setAuthModal("register");
-    const switchToLogin = () => setAuthModal("login");
+    const openEmployerModal = () => setIsEmployerModalOpen(true);
+    const closeEmployerModal = () => setIsEmployerModalOpen(false);
 
     return (
         <>
@@ -37,13 +31,13 @@ export function EmployerNavbar() {
 
                     <div className="hidden md:flex items-center gap-3">
                         <button
-                            onClick={openLogin}
+                            onClick={openEmployerModal}
                             className="px-4 py-2 text-sm font-semibold hover:bg-slate-100 rounded-lg transition-all text-[#0e1b1a]"
                         >
                             Log In
                         </button>
                         <button
-                            onClick={openRegister}
+                            onClick={openEmployerModal}
                             className="bg-[#0f766d] hover:bg-[#0d635c] text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-all"
                         >
                             Create Employer Account
@@ -71,13 +65,13 @@ export function EmployerNavbar() {
                         </nav>
                         <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
                             <button
-                                onClick={() => { openLogin(); setIsOpen(false); }}
+                                onClick={() => { openEmployerModal(); setIsOpen(false); }}
                                 className="w-full text-center px-4 py-2 text-sm font-semibold hover:bg-slate-100 rounded-lg transition-all"
                             >
                                 Log In
                             </button>
                             <button
-                                onClick={() => { openRegister(); setIsOpen(false); }}
+                                onClick={() => { openEmployerModal(); setIsOpen(false); }}
                                 className="w-full text-center bg-[#0f766d] hover:bg-[#0d635c] text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-all"
                             >
                                 Create Employer Account
@@ -87,23 +81,10 @@ export function EmployerNavbar() {
                 )}
             </header>
 
-            <AuthModal
-                isOpen={authModal === "login"}
-                onClose={closeModal}
-                title="Welcome Back"
-                subtitle="Sign in to continue your journey"
-            >
-                <LoginForm onSwitchToRegister={switchToRegister} />
-            </AuthModal>
-
-            <AuthModal
-                isOpen={authModal === "register"}
-                onClose={closeModal}
-                title="Create Account"
-                subtitle="Join thousands of job seekers"
-            >
-                <RegisterForm onSwitchToLogin={switchToLogin} />
-            </AuthModal>
+            <EmployerAuthModal
+                isOpen={isEmployerModalOpen}
+                onClose={closeEmployerModal}
+            />
         </>
     );
 }

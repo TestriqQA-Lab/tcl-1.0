@@ -175,9 +175,10 @@ export const ApplicationSlideOver = ({ isOpen, onClose, application }: Applicati
                         {/* ── Job Summary ───────────────────────────────── */}
                         <div>
                             <h4 className="text-[11px] font-bold tracking-[0.1em] text-gray-400 uppercase mb-3">Job Summary</h4>
-                            <div className="bg-[#f8fafc] border border-gray-200 rounded-xl p-4 text-sm text-gray-600 leading-relaxed">
-                                {application?.jobSummary}
-                            </div>
+                            <div 
+                                className="bg-[#f8fafc] border border-gray-200 rounded-xl p-4 text-sm text-gray-600 leading-relaxed max-w-none prose prose-sm line-clamp-3"
+                                dangerouslySetInnerHTML={{ __html: application?.jobSummary || "" }}
+                            />
                         </div>
 
                         {/* ── Required Skills ──────────────────────────── */}

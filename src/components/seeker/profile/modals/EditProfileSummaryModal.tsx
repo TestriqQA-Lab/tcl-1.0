@@ -61,9 +61,9 @@ const EditProfileSummaryModal: React.FC<EditProfileSummaryModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
-            <div className={`bg-white rounded-2xl w-full max-w-[600px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+            <div className={`bg-white rounded-2xl w-full max-w-[600px] shadow-2xl transform transition-all duration-300 max-h-[90vh] flex flex-col ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
-                <div className="p-8 pb-4 relative">
+                <div className="p-8 pb-4 relative shrink-0">
                     <button
                         onClick={onClose}
                         className="absolute right-6 top-6 text-gray-400 hover:text-gray-600 transition-colors"
@@ -76,7 +76,7 @@ const EditProfileSummaryModal: React.FC<EditProfileSummaryModalProps> = ({
                     </p>
                 </div>
 
-                <div className="px-8 pb-8 space-y-6">
+                <div className="px-8 pb-8 space-y-6 overflow-y-auto">
                     {/* Summary Text Area */}
                     <div className="relative">
                         <label className="block text-xs font-bold text-gray-700 mb-2">Summary</label>
@@ -109,7 +109,7 @@ const EditProfileSummaryModal: React.FC<EditProfileSummaryModalProps> = ({
                     </div>
 
                     {/* Footer Buttons */}
-                    <div className="pt-2 flex justify-end gap-3 items-center">
+                    <div className="pt-2 flex justify-end gap-3 items-center shrink-0">
                         <button
                             onClick={onClose}
                             className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors px-4"

@@ -4,12 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
 import SectionContainer from '../SectionContainer';
 import EditBasicDetailsModal from '../modals/EditBasicDetailsModal';
+import { calculateAge } from '@/lib/profileUtils';
 
 interface BasicDetailsData {
     fullName: string;
     phoneNumber: string;
     gender: string;
     currentLocation: string;
+    currentIndustry: string;
+    noticePeriod: string;
+    dateOfBirth: string | null;
 }
 
 function formatGender(val: string | null): string {
@@ -31,6 +35,9 @@ const BasicDetails = () => {
         phoneNumber: '',
         gender: '',
         currentLocation: '',
+        currentIndustry: '',
+        noticePeriod: '',
+        dateOfBirth: null,
     });
 
     useEffect(() => {
@@ -44,6 +51,9 @@ const BasicDetails = () => {
                         phoneNumber: profileJson.user?.phoneNumber || '',
                         gender: profileJson.profile.gender || '',
                         currentLocation: profileJson.profile.currentLocation || '',
+                        currentIndustry: profileJson.profile.currentIndustry || '',
+                        noticePeriod: profileJson.profile.noticePeriod || '',
+                        dateOfBirth: profileJson.profile.dateOfBirth || null,
                     });
                 }
             })
@@ -63,6 +73,9 @@ const BasicDetails = () => {
                 gender: data.gender || null,
                 currentLocation: data.currentLocation || null,
                 phoneNumber: data.phoneNumber || null,
+                currentIndustry: data.currentIndustry || null,
+                noticePeriod: data.noticePeriod || null,
+                dateOfBirth: data.dateOfBirth || null,
             }),
         });
 
@@ -102,8 +115,22 @@ const BasicDetails = () => {
                             <p className="text-sm font-medium text-gray-900">{formatGender(details.gender)}</p>
                         </div>
                         <div>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Date of Birth</p>
+                            <p className="text-sm font-medium text-gray-900">
+                                {details.dateOfBirth ? `${new Date(details.dateOfBirth).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} (${calculateAge(details.dateOfBirth)} yrs)` : '—'}
+                            </p>
+                        </div>
+                        <div>
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Location</p>
                             <p className="text-sm font-medium text-gray-900">{details.currentLocation || '—'}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Industry</p>
+                            <p className="text-sm font-medium text-gray-900">{details.currentIndustry || '—'}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Notice Period</p>
+                            <p className="text-sm font-medium text-gray-900">{details.noticePeriod?.replace('_', ' ') || '—'}</p>
                         </div>
                     </div>
                 )}
@@ -112,7 +139,10 @@ const BasicDetails = () => {
             <EditBasicDetailsModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                initialData={details}
+                initialData={{
+                    ...details,
+                    dateOfBirth: details.dateOfBirth ?? undefined
+                }}
                 onSave={handleSave}
             />
         </>

@@ -16,7 +16,8 @@ export default function PreferencesPage() {
     const [locations, setLocations] = useState<string[]>([]);
     const [locationInput, setLocationInput] = useState("");
     const [salary, setSalary] = useState<string>("");
-    const [gender, setGender] = useState<"MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | "">("");
+    const [gender, setGender] = useState<"MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | "ANY" | "">("");
+    const [position, setPosition] = useState("");
 
     // Fetch Data on Mount
     React.useEffect(() => {
@@ -27,12 +28,13 @@ export default function PreferencesPage() {
                     const result = await getPreferencesAction(session.user.id);
 
                     if (result.success && result.data) {
-                        const { headline, locations, salary, gender } = result.data;
+                        const { headline, locations, salary, gender, position } = result.data;
 
                         if (headline) setHeadline(headline);
                         if (locations) setLocations(locations);
                         if (salary) setSalary(salary.toString());
                         if (gender) setGender(gender);
+                        if (position) setPosition(position);
                     }
                 } catch (error) {
                     console.error("Failed to load preferences data", error);
@@ -77,8 +79,8 @@ export default function PreferencesPage() {
                 headline,
                 locations,
                 salary: parseInt(salary) || 0,
-                gender: gender as any,
-                // Add missing fields here when we implement them in the UI
+                gender: (gender || undefined) as any,
+                position: position.trim() || undefined,
             });
 
             if (result.success) {
@@ -124,18 +126,21 @@ export default function PreferencesPage() {
                         maxLength={250}
                     />
 
-                    {/* AI Suggestion */}
-                    <div className="bg-[#E8F3F2]/50 border border-dashed border-[#0f766d]/30 rounded-xl p-4 flex gap-3">
-                        <div className="mt-1">
-                            <Sparkles className="w-5 h-5 text-[#0f766d]" />
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs font-bold text-[#0f766d] uppercase tracking-wide">AI Suggestion</p>
-                            <p className="text-sm text-gray-600 italic">
-                                &quot;Dynamic Full Stack Engineer specializing in modern JavaScript frameworks and cloud infrastructure.&quot;
-                            </p>
-                        </div>
+                </div>
+
+                {/* Position */}
+                <div className="space-y-3">
+                    <label className="text-sm font-bold text-gray-900">Position / Role (Optional)</label>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={position}
+                            onChange={(e) => setPosition(e.target.value)}
+                            className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#0f766d] focus:border-transparent outline-none text-sm text-gray-900"
+                            placeholder="e.g. Full Stack, Frontend, Marketing..."
+                        />
                     </div>
+                    <p className="text-[10px] text-gray-500">This will be highlighted on your profile</p>
                 </div>
 
                 {/* Preferred Work Locations */}

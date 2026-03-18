@@ -31,7 +31,6 @@ const ProfileHeaderSection = () => (
             {/* Left: Tabs */}
             <div className="flex">
                 <button className="text-[#117a7a] border-b-2 border-[#117a7a] pb-2 text-sm font-bold px-4">View & Edit</button>
-                <button className="text-gray-500 hover:text-gray-700 pb-2 text-sm font-medium px-4">Activity insights</button>
             </div>
 
             {/* Right: Quick Navigation */}

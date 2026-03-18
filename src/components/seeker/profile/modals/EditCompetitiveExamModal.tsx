@@ -78,10 +78,10 @@ const EditCompetitiveExamModal: React.FC<EditCompetitiveExamModalProps> = ({
     const quickSelections = ['TOEFL', 'GMAT', 'GRE', 'SAT', 'IELTS'];
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
-            <div className={`bg-white rounded-2xl w-full max-w-[500px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
+            <div className={`bg-white rounded-2xl w-full max-w-[500px] shadow-2xl transform transition-all duration-300 max-h-[90vh] flex flex-col ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
-                <div className="p-8 pb-4 relative">
+                <div className="p-8 pb-4 relative shrink-0">
                     <button
                         onClick={onClose}
                         className="absolute right-6 top-6 text-gray-400 hover:text-gray-600 transition-colors"
@@ -100,78 +100,82 @@ const EditCompetitiveExamModal: React.FC<EditCompetitiveExamModalProps> = ({
                     </p>
                 </div>
 
-                <div className="px-8 pb-8 space-y-6">
-                    {/* Exam Selector */}
+                <div className="px-8 pb-8 space-y-6 overflow-y-auto">
+                    {/* Exam Name */}
                     <div>
                         <label className="block text-xs font-bold text-gray-700 mb-2">
-                            Competitive exam
+                            Exam Name <span className="text-red-500">*</span>
                         </label>
-                        <div className="relative">
-                            <select
-                                value={formData.examName}
-                                onChange={(e) => handleSelectExam(e.target.value)}
-                                className="w-full p-3 pr-10 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white placeholder:text-gray-400"
-                            >
-                                <option value="" disabled>Select Exam</option>
-                                {quickSelections.map(exam => <option key={exam} value={exam}>{exam}</option>)}
-                                <option value="CAT">CAT</option>
-                                <option value="GATE">GATE</option>
-                                <option value="Other">Other</option>
-                            </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                        <input
+                            type="text"
+                            value={formData.examName}
+                            onChange={(e) => { setFormData(prev => ({ ...prev, examName: e.target.value })); setTouched(true); }}
+                            placeholder="Ex: TOEFL, GMAT, GRE, CAT, GATE..."
+                            className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:font-normal placeholder:text-gray-400"
+                        />
+                    </div>
+
+                    {/* Score & Total Score */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-2">
+                                Score
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.score || ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, score: e.target.value }))}
+                                placeholder="Ex: 320"
+                                className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:font-normal placeholder:text-gray-400"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-2">
+                                Total Score
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.totalScore || ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, totalScore: e.target.value }))}
+                                placeholder="Ex: 340"
+                                className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:font-normal placeholder:text-gray-400"
+                            />
                         </div>
                     </div>
 
-                    {/* Quick Selections */}
+                    {/* Year */}
                     <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                            POPULAR SELECTIONS
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                            {quickSelections.map(exam => (
-                                <button
-                                    key={exam}
-                                    onClick={() => handleSelectExam(exam)}
-                                    className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${formData.examName === exam
-                                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                            : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    {exam}
-                                </button>
-                            ))}
-                        </div>
+                        <label className="block text-xs font-bold text-gray-700 mb-2">
+                            Year
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.year || ''}
+                            onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value }))}
+                            placeholder="Ex: 2024"
+                            className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:font-normal placeholder:text-gray-400"
+                        />
                     </div>
+                </div>
 
-                    {/* Info Box */}
-                    <div className="bg-[#f8fcfc] border border-[#e0f2f1] rounded-xl p-4 flex gap-3 items-start">
-                        <div className="mt-0.5 text-[#117a7a]">
-                            <Info size={16} className="fill-[#117a7a] text-white" />
-                        </div>
-                        <p className="text-xs text-gray-600 leading-relaxed">
-                            You can add scores and certificates in the next step after selecting your exam type.
-                        </p>
-                    </div>
-
-                    {/* Footer Buttons */}
-                    <div className="pt-2 flex justify-end gap-3 items-center">
-                        <button
-                            onClick={onClose}
-                            className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors px-4"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            disabled={!formData.examName}
-                            className={`text-white text-sm font-bold py-2.5 px-8 rounded-lg transition-all shadow-lg ${formData.examName
-                                    ? 'bg-[#117a7a] hover:bg-[#0e6666] shadow-emerald-900/10 cursor-pointer'
-                                    : 'bg-gray-300 shadow-none cursor-not-allowed'
-                                }`}
-                        >
-                            Save
-                        </button>
-                    </div>
+                {/* Footer Buttons */}
+                <div className="px-8 pb-8 pt-2 flex justify-end gap-3 items-center shrink-0">
+                    <button
+                        onClick={onClose}
+                        className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors px-4"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={!formData.examName}
+                        className={`text-white text-sm font-bold py-2.5 px-8 rounded-lg transition-all shadow-lg ${formData.examName
+                            ? 'bg-[#117a7a] hover:bg-[#0e6666] shadow-emerald-900/10 cursor-pointer'
+                            : 'bg-gray-300 shadow-none cursor-not-allowed'
+                            }`}
+                    >
+                        Save
+                    </button>
                 </div>
             </div>
         </div>

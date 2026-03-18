@@ -1,0 +1,409 @@
+﻿Folder PATH listing
+Volume serial number is D8B1-1BE8
+C:\GITHUB\TCL-1.0\SRC
+ª   auth.ts
+ª   proxy.ts
+ª   
++---actions
+ª       admin.actions.ts
+ª       auth.actions.ts
+ª       employer.actions.ts
+ª       job.actions.ts
+ª       onboarding.actions.ts
+ª       
++---app
+ª   ª   globals.css
+ª   ª   icon.svg
+ª   ª   layout.tsx
+ª   ª   page.tsx
+ª   ª   
+ª   +---(admin-dashboard)
+ª   ª   ª   layout.tsx
+ª   ª   ª   
+ª   ª   +---admin-dashboard
+ª   ª       ª   page.tsx
+ª   ª       ª   
+ª   ª       +---employers-profile
+ª   ª       ª   ª   page.tsx
+ª   ª       ª   ª   
+ª   ª       ª   +---[id]
+ª   ª       ª           page.tsx
+ª   ª       ª           
+ª   ª       +---job-approvals
+ª   ª       ª   ª   page.tsx
+ª   ª       ª   ª   
+ª   ª       ª   +---[id]
+ª   ª       ª           page.tsx
+ª   ª       ª           
+ª   ª       +---jobs
+ª   ª       ª   ª   page.tsx
+ª   ª       ª   ª   
+ª   ª       ª   +---[id]
+ª   ª       ª           page.tsx
+ª   ª       ª           
+ª   ª       +---seekers-profile
+ª   ª               page.tsx
+ª   ª               
+ª   +---(employer-dashboard)
+ª   ª   ª   layout.tsx
+ª   ª   ª   
+ª   ª   +---database-search
+ª   ª   ª       page.tsx
+ª   ª   ª       
+ª   ª   +---employer-applications
+ª   ª   ª       page.tsx
+ª   ª   ª       
+ª   ª   +---employer-dashboard
+ª   ª   ª   ª   page.tsx
+ª   ª   ª   ª   
+ª   ª   ª   +---post-job
+ª   ª   ª   ª       page.tsx
+ª   ª   ª   ª       
+ª   ª   ª   +---verification
+ª   ª   ª           page.tsx
+ª   ª   ª           
+ª   ª   +---job-postings
+ª   ª           page.tsx
+ª   ª           
+ª   +---api
+ª   ª   +---auth
+ª   ª   ª   +---forgot-password
+ª   ª   ª   ª       route.ts
+ª   ª   ª   ª       
+ª   ª   ª   +---reset-password
+ª   ª   ª   ª       route.ts
+ª   ª   ª   ª       
+ª   ª   ª   +---[...nextauth]
+ª   ª   ª           route.ts
+ª   ª   ª           
+ª   ª   +---employer
+ª   ª   ª   +---candidates
+ª   ª   ª       +---search
+ª   ª   ª               route.ts
+ª   ª   ª               
+ª   ª   +---profile
+ª   ª       ª   route.ts
+ª   ª       ª   
+ª   ª       +---achievements
+ª   ª       ª       route.ts
+ª   ª       ª       
+ª   ª       +---education
+ª   ª       ª       route.ts
+ª   ª       ª       
+ª   ª       +---experience
+ª   ª       ª       route.ts
+ª   ª       ª       
+ª   ª       +---languages
+ª   ª       ª       route.ts
+ª   ª       ª       
+ª   ª       +---projects
+ª   ª       ª       route.ts
+ª   ª       ª       
+ª   ª       +---skills
+ª   ª               route.ts
+ª   ª               
+ª   +---basic-profile
+ª   ª       page.tsx
+ª   ª       
+ª   +---company
+ª   ª   +---[id]
+ª   ª           page.tsx
+ª   ª           
+ª   +---detailed-seeker-profile
+ª   ª       page.tsx
+ª   ª       
+ª   +---employers
+ª   ª   ª   page.tsx
+ª   ª   ª   
+ª   ª   +---client-registration
+ª   ª           page.tsx
+ª   ª           
+ª   +---forgot-password
+ª   ª       page.tsx
+ª   ª       
+ª   +---job
+ª   ª   +---[id]
+ª   ª           page.tsx
+ª   ª           
+ª   +---login
+ª   ª       page.tsx
+ª   ª       
+ª   +---onboarding
+ª   ª   ª   layout.tsx
+ª   ª   ª   page.tsx
+ª   ª   ª   
+ª   ª   +---education
+ª   ª   ª       page.tsx
+ª   ª   ª       
+ª   ª   +---employment
+ª   ª   ª       page.tsx
+ª   ª   ª       
+ª   ª   +---preferences
+ª   ª           page.tsx
+ª   ª           
+ª   +---register
+ª   ª       page.tsx
+ª   ª       
+ª   +---reset-password
+ª   ª   +---[token]
+ª   ª           page.tsx
+ª   ª           
+ª   +---search
+ª   ª       page.tsx
+ª   ª       
+ª   +---seeker
+ª   ª   +---dashboard
+ª   ª   ª       page.tsx
+ª   ª   ª       UserDashboardClient.tsx
+ª   ª   ª       
+ª   ª   +---jobs
+ª   ª   ª       page.tsx
+ª   ª   ª       
+ª   ª   +---profile
+ª   ª           page.tsx
+ª   ª           
+ª   +---user-applications
+ª           page.tsx
+ª           
++---components
+ª   +---admin-dashboard
+ª   ª       AdminLayoutWrapper.tsx
+ª   ª       DashboardOverviewContent.tsx
+ª   ª       DetailedEmployerProfileContent.tsx
+ª   ª       EmployerProfilesContent.tsx
+ª   ª       JobApprovalsContent.tsx
+ª   ª       JobPostingDetailsContent.tsx
+ª   ª       JobPostingsContent.tsx
+ª   ª       SeekersProfileContent.tsx
+ª   ª       
+ª   +---auth
+ª   ª       AuthCard.tsx
+ª   ª       AuthModal.tsx
+ª   ª       EmployerAuthModal.tsx
+ª   ª       ForgotPasswordForm.tsx
+ª   ª       LoginForm.tsx
+ª   ª       RegisterForm.tsx
+ª   ª       RegistrationJourneyIllustration.tsx
+ª   ª       ResetPasswordForm.tsx
+ª   ª       SeekerRegisterForm.tsx
+ª   ª       SessionProvider.tsx
+ª   ª       
+ª   +---company
+ª   ª       AboutSection.tsx
+ª   ª       CompanyHero.tsx
+ª   ª       CompanySidebar.tsx
+ª   ª       CultureGrid.tsx
+ª   ª       LocationSection.tsx
+ª   ª       OpenRolesList.tsx
+ª   ª       PerksSection.tsx
+ª   ª       StatsSection.tsx
+ª   ª       
+ª   +---dashboard
+ª   ª       DashboardBlogSection.tsx
+ª   ª       DashboardJobCard.tsx
+ª   ª       MobileComponents.tsx
+ª   ª       ProfileSidebar.tsx
+ª   ª       RightSidebar.tsx
+ª   ª       SidebarNav.tsx
+ª   ª       StatsWidget.tsx
+ª   ª       UpgradeBanner.tsx
+ª   ª       
+ª   +---database-search
+ª   ª       CandidateCard.tsx
+ª   ª       DatabaseSearchContent.tsx
+ª   ª       FilterDrawer.tsx
+ª   ª       SearchFilters.tsx
+ª   ª       
+ª   +---employer
+ª   ª       EmployerFooter.tsx
+ª   ª       EmployerNavbar.tsx
+ª   ª       
+ª   +---employer-application
+ª   ª       ActiveJobsStrip.tsx
+ª   ª       applicantsData.ts
+ª   ª       ApplicantsTable.tsx
+ª   ª       ApplicantStatusDropdown.tsx
+ª   ª       ApplicationsContent.tsx
+ª   ª       ApplicationsMobileHeader.tsx
+ª   ª       ApplicationsPagination.tsx
+ª   ª       ApplicationsTopBar.tsx
+ª   ª       FilterPanel.tsx
+ª   ª       StatusFilterTabs.tsx
+ª   ª       
+ª   +---employer-dashboard
+ª   ª       DashboardSidebar.tsx
+ª   ª       DashboardTopBar.tsx
+ª   ª       MetricsRow.tsx
+ª   ª       MobileBottomNav.tsx
+ª   ª       QuickActionsPanel.tsx
+ª   ª       RecentApplicationsTable.tsx
+ª   ª       TabletNavStrip.tsx
+ª   ª       UpcomingInterviewsCard.tsx
+ª   ª       
+ª   +---employers
+ª   ª       BuiltForEveryEmployerSection.tsx
+ª   ª       CTASection.tsx
+ª   ª       FAQSection.tsx
+ª   ª       HeroSection.tsx
+ª   ª       HiringProcessSection.tsx
+ª   ª       PowerfulToolsSection.tsx
+ª   ª       
+ª   +---home
+ª   ª       CategorySection.tsx
+ª   ª       HeroSection.tsx
+ª   ª       JobCard.tsx
+ª   ª       JobOpeningsSection.tsx
+ª   ª       RecruiterCTA.tsx
+ª   ª       TrustedCompanies.tsx
+ª   ª       
+ª   +---job
+ª   ª       JobApplyButton.tsx
+ª   ª       
+ª   +---job-posting
+ª   ª       EditJobModal.tsx
+ª   ª       JobCard.tsx
+ª   ª       JobPostingsContent.tsx
+ª   ª       JobPostingsHeader.tsx
+ª   ª       JobPostsList.tsx
+ª   ª       StatusFilterStrip.tsx
+ª   ª       
+ª   +---layout
+ª   ª       EmployerNavbar.tsx
+ª   ª       Footer.tsx
+ª   ª       LayoutWrapper.tsx
+ª   ª       LoggedInNavbar.tsx
+ª   ª       MobileBottomNav.tsx
+ª   ª       Navbar.tsx
+ª   ª       NavbarClient.tsx
+ª   ª       NotificationPopup.tsx
+ª   ª       
+ª   +---onboarding
+ª   ª       OnboardingSidebar.tsx
+ª   ª       OnboardingStepper.tsx
+ª   ª       
+ª   +---profile
+ª   ª   ª   DatePicker.tsx
+ª   ª   ª   FileUpload.tsx
+ª   ª   ª   FormInput.tsx
+ª   ª   ª   FormSelect.tsx
+ª   ª   ª   ProgressBar.tsx
+ª   ª   ª   RangeSlider.tsx
+ª   ª   ª   SectionCard.tsx
+ª   ª   ª   SegmentedControl.tsx
+ª   ª   ª   SkillBadge.tsx
+ª   ª   ª   TagInput.tsx
+ª   ª   ª   Timeline.tsx
+ª   ª   ª   
+ª   ª   +---sections
+ª   ª   ª       AchievementsSection.tsx
+ª   ª   ª       BasicAccountSection.tsx
+ª   ª   ª       EducationSection.tsx
+ª   ª   ª       PersonalDetailsSection.tsx
+ª   ª   ª       PreferencesSection.tsx
+ª   ª   ª       ProfessionalStatusSection.tsx
+ª   ª   ª       ProfileSummarySection.tsx
+ª   ª   ª       ProjectsSection.tsx
+ª   ª   ª       ResumeLinksSection.tsx
+ª   ª   ª       SkillsSection.tsx
+ª   ª   ª       VerificationSection.tsx
+ª   ª   ª       WorkExperienceSection.tsx
+ª   ª   ª       
+ª   ª   +---smart
+ª   ª   ª       SmartSuggest.tsx
+ª   ª   ª       
+ª   ª   +---wizard
+ª   ª       ª   ProfileWizard.tsx
+ª   ª       ª   StepProgress.tsx
+ª   ª       ª   StepTransition.tsx
+ª   ª       ª   WizardNavigation.tsx
+ª   ª       ª   
+ª   ª       +---steps
+ª   ª               index.ts
+ª   ª               Step1Account.tsx
+ª   ª               Step2Personal.tsx
+ª   ª               Step3Professional.tsx
+ª   ª               Step5Skills.tsx
+ª   ª               
+ª   +---search
+ª   ª       SearchJobCard.tsx
+ª   ª       
+ª   +---seeker
+ª   ª   +---profile
+ª   ª       ª   EmptyState.tsx
+ª   ª       ª   ProfileHeader.tsx
+ª   ª       ª   SectionContainer.tsx
+ª   ª       ª   Sidebar.tsx
+ª   ª       ª   UserProfileLayout.tsx
+ª   ª       ª   
+ª   ª       +---modals
+ª   ª       ª       EditAcademicAchievementsModal.tsx
+ª   ª       ª       EditAwardModal.tsx
+ª   ª       ª       EditBasicDetailsModal.tsx
+ª   ª       ª       EditCertificationModal.tsx
+ª   ª       ª       EditClubModal.tsx
+ª   ª       ª       EditCompetitiveExamModal.tsx
+ª   ª       ª       EditEducationModal.tsx
+ª   ª       ª       EditEmploymentModal.tsx
+ª   ª       ª       EditInternshipModal.tsx
+ª   ª       ª       EditLanguagesModal.tsx
+ª   ª       ª       EditPreferencesModal.tsx
+ª   ª       ª       EditProfileSummaryModal.tsx
+ª   ª       ª       EditProjectModal.tsx
+ª   ª       ª       EditResumeModal.tsx
+ª   ª       ª       EditSkillsModal.tsx
+ª   ª       ª       
+ª   ª       +---sections
+ª   ª               AcademicAchievements.tsx
+ª   ª               Accomplishments.tsx
+ª   ª               BasicDetails.tsx
+ª   ª               CareerPreferences.tsx
+ª   ª               CompetitiveExams.tsx
+ª   ª               Education.tsx
+ª   ª               Employment.tsx
+ª   ª               Internships.tsx
+ª   ª               KeySkills.tsx
+ª   ª               Languages.tsx
+ª   ª               ProfileSummary.tsx
+ª   ª               Projects.tsx
+ª   ª               Resume.tsx
+ª   ª               
+ª   +---ui
+ª   ª       Button.tsx
+ª   ª       
+ª   +---user-applications
+ª           ApplicationsContainer.tsx
+ª           ApplicationSlideOver.tsx
+ª           ApplicationTable.tsx
+ª           StatCards.tsx
+ª           
++---data
+ª       applications-mock.ts
+ª       company-mock.ts
+ª       mock-data.ts
+ª       search-mock-data.ts
+ª       
++---hooks
+ª       useFormPersistence.ts
+ª       
++---lib
+ª   ª   profileCompletion.ts
+ª   ª   profileTypes.ts
+ª   ª   profileUtils.ts
+ª   ª   suggestionData.ts
+ª   ª   wizardConfig.ts
+ª   ª   
+ª   +---db
+ª   ª       db.ts
+ª   ª       schema.ts
+ª   ª       seed.ts
+ª   ª       
+ª   +---email
+ª   ª       mailer.ts
+ª   ª       
+ª   +---validation
+ª           auth.ts
+ª           
++---types
+        job.ts
+        next-auth.d.ts
+        

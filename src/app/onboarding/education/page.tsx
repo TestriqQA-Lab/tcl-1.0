@@ -52,8 +52,8 @@ export default function EducationPage() {
                                 degreeName: degreeData.degree || degreeData.type || "",
                                 specialization: degreeData.stream || "",
                                 collegeName: degreeData.institute || "",
-                                startYear: degreeData.passingYear ? parseInt(degreeData.passingYear) - 4 : currentYear - 4,
-                                endYear: degreeData.passingYear ? parseInt(degreeData.passingYear) : currentYear,
+                                startYear: degreeData.startDate ? degreeData.startDate.getFullYear() : currentYear - 4,
+                                endYear: degreeData.endDate ? degreeData.endDate.getFullYear() : currentYear,
                                 isPursuing: degreeData.isPursuing || false,
                                 cgpa: degreeData.percentage || "",
                             });
@@ -63,8 +63,8 @@ export default function EducationPage() {
                             setClass12({
                                 schoolName: class12Data.institute || "",
                                 specialization: class12Data.stream || "",
-                                startYear: class12Data.passingYear ? parseInt(class12Data.passingYear) - 2 : currentYear - 6,
-                                endYear: class12Data.passingYear ? parseInt(class12Data.passingYear) : currentYear - 4,
+                                startYear: class12Data.startDate ? class12Data.startDate.getFullYear() : currentYear - 6,
+                                endYear: class12Data.endDate ? class12Data.endDate.getFullYear() : currentYear - 4,
                                 isPursuing: class12Data.isPursuing || false,
                             });
                         }

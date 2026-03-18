@@ -1,0 +1,15 @@
+﻿src/components/employer-dashboard/DashboardSidebar.tsx(69,28): error TS18047: 'profile' is possibly 'null'.
+src/components/employer-dashboard/DashboardSidebar.tsx(69,51): error TS18047: 'profile' is possibly 'null'.
+src/components/employer-dashboard/DashboardSidebar.tsx(70,28): error TS18047: 'profile' is possibly 'null'.
+src/components/employer-dashboard/DashboardTopBar.tsx(31,17): error TS2304: Cannot find name 'setCompanyName'.
+src/components/employer-dashboard/DashboardTopBar.tsx(32,17): error TS2304: Cannot find name 'setCompanyLogo'.
+src/components/employer-dashboard/DashboardTopBar.tsx(35,17): error TS2304: Cannot find name 'setCompanyName'.
+src/components/employer-dashboard/DashboardTopBar.tsx(36,17): error TS2304: Cannot find name 'setCompanyLogo'.
+src/components/employer-dashboard/DashboardTopBar.tsx(42,23): error TS2304: Cannot find name 'companyName'.
+src/components/employer-dashboard/DashboardTopBar.tsx(43,25): error TS2304: Cannot find name 'companyName'.
+src/components/employer-dashboard/DashboardTopBar.tsx(48,15): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/components/employer-dashboard/DashboardTopBar.tsx(155,26): error TS2304: Cannot find name 'companyLogo'.
+src/components/employer-dashboard/DashboardTopBar.tsx(156,39): error TS2304: Cannot find name 'companyLogo'.
+src/components/employer-dashboard/DashboardTopBar.tsx(226,34): error TS2304: Cannot find name 'companyLogo'.
+src/components/employer-dashboard/DashboardTopBar.tsx(227,47): error TS2304: Cannot find name 'companyLogo'.
+src/components/employer-dashboard/DashboardTopBar.tsx(260,30): error TS2304: Cannot find name 'ShieldAlert'.

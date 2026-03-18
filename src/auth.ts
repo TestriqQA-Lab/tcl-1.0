@@ -45,13 +45,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return null;
                 }
 
+                const isAdminEmail = foundUser.email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
+
                 // Return user object with role
                 return {
                     id: foundUser.id,
                     email: foundUser.email,
                     name: foundUser.username,
                     image: foundUser.profilePicture || null,
-                    role: foundUser.userRole,
+                    role: (isAdminEmail ? "ADMIN" : foundUser.userRole) as "SEEKER" | "EMPLOYER" | "ADMIN",
                 };
             },
         }),
@@ -104,7 +106,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const cookieStore = await cookies();
                     const roleCookie = cookieStore.get("oauth_role");
                     const role = roleCookie?.value || "SEEKER";
-                    const validRole = ["SEEKER", "EMPLOYER"].includes(role) ? role : "SEEKER";
+                    const isAdminEmail = user.email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
+                    const validRole = isAdminEmail ? "ADMIN" : (["SEEKER", "EMPLOYER"].includes(role) ? role : "SEEKER");
 
                     // Generate username from email
                     const baseUsername = user.email.split("@")[0];
@@ -116,7 +119,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         const [newUser] = await tx.insert(users).values({
                             email: user.email!,
                             username,
-                            userRole: validRole as "SEEKER" | "EMPLOYER",
+                            userRole: validRole as "SEEKER" | "EMPLOYER" | "ADMIN",
                             provider: "google",
                             providerAccountId: account.providerAccountId,
                             profilePicture: user.image || "",
@@ -139,12 +142,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         } else if (validRole === "EMPLOYER") {
                             await tx.insert(employerProfiles).values({
                                 userId: newUser.id,
-                                companyName: user.name || username,
-                                companyDescription: "Pending description",
-                                companyWebsite: "https://example.com",
-                                companySize: 1,
-                                companyIndustry: "General",
-                                companyLocation: "Remote",
+                                fullName: user.name || username,
+                                accountType: "COMPANY",
+                                hiringFor: "COMPANY",
+                                companyName: null,
                                 companyLogo: "",
                             });
                         }
@@ -178,8 +179,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 if (dbUsers.length > 0) {
                     const dbUser = dbUsers[0];
+                    const isAdminEmail = dbUser.email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
                     token.id = dbUser.id;
-                    token.role = dbUser.userRole;
+                    token.role = isAdminEmail ? "ADMIN" : dbUser.userRole;
                     // Keep the original Google name if available, otherwise fallback to username
                     token.name = user?.name || dbUser.username;
                     token.image = dbUser.profilePicture || null;

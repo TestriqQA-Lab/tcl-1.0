@@ -9,6 +9,11 @@ function dbToUi(row: any): EducationData & { dbId: string } {
     let t = row.type as any || 'Degree';
     if (t === 'Class 12') t = 'Class XII';
     if (t === 'Class 10') t = 'Class X';
+    // Let 'Diploma' and 'Post Graduation' pass through directly
+
+    // Extract year from DB Date objects
+    const endDate = row.endDate ? new Date(row.endDate) : null;
+    const endYear = endDate ? String(endDate.getFullYear()) : '';
 
     return {
         dbId: row.id,
@@ -16,14 +21,24 @@ function dbToUi(row: any): EducationData & { dbId: string } {
         board: row.board || '',
         medium: row.medium || '',
         percentage: row.percentage || '',
-        endingYear: row.endingYear ? String(row.endingYear) : '',
-        passingYear: row.passingYear ? String(row.passingYear) : '',
+        endingYear: endYear,
+        passingYear: endYear,
         isPursuing: row.isPursuing || false,
         degree: row.degree || '',
         stream: row.stream || '',
         institute: row.institute || '',
     };
 }
+
+const sortEducation = (list: (EducationData & { dbId?: string })[]) => {
+    return [...list].sort((a, b) => {
+        if (a.isPursuing && !b.isPursuing) return -1;
+        if (!a.isPursuing && b.isPursuing) return 1;
+        const yearA = parseInt(a.endingYear) || 0;
+        const yearB = parseInt(b.endingYear) || 0;
+        return yearB - yearA; // Sort descending by year
+    });
+};
 
 const Education = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,7 +51,7 @@ const Education = () => {
             .then(res => res.json())
             .then(json => {
                 if (Array.isArray(json)) {
-                    setEducationList(json.map(dbToUi));
+                    setEducationList(sortEducation(json.map(dbToUi)));
                 }
             })
             .catch(console.error)
@@ -59,7 +74,7 @@ const Education = () => {
             const updated = await res.json();
             const newList = [...educationList];
             newList[editingIndex!] = dbToUi(updated);
-            setEducationList(newList);
+            setEducationList(sortEducation(newList));
         } else {
             // Insert new
             const res = await fetch('/api/profile/education', {
@@ -68,7 +83,7 @@ const Education = () => {
                 body: JSON.stringify(data),
             });
             const inserted = await res.json();
-            setEducationList(prev => [...prev, dbToUi(inserted)]);
+            setEducationList(prev => sortEducation([...prev, dbToUi(inserted)]));
         }
 
         setIsModalOpen(false);
@@ -112,12 +127,12 @@ const Education = () => {
                             <div className="flex justify-between items-start group">
                                 <div className="min-w-0 flex-1 pr-2">
                                     <h3 className="text-sm font-bold text-gray-900">
-                                        {edu.type === 'Degree' && edu.degree ? edu.degree : edu.type || 'Education'}
+                                        {(edu.type === 'Degree' || edu.type === 'Post Graduation') && edu.degree ? edu.degree : edu.type || 'Education'}
                                     </h3>
                                     <p className="text-xs font-medium text-gray-600">
-                                        {edu.type === 'Degree'
+                                        {(edu.type === 'Degree' || edu.type === 'Post Graduation')
                                             ? `${edu.institute} ${edu.stream ? `(${edu.stream})` : ''}`
-                                            : `${edu.institute ? `${edu.institute}, ` : ''}${edu.board} (${edu.medium})`
+                                            : `${edu.institute ? `${edu.institute}, ` : ''}${edu.board ? edu.board : ''} ${edu.medium ? `(${edu.medium})` : ''}`
                                         }
                                     </p>
                                 </div>
@@ -142,12 +157,12 @@ const Education = () => {
                                 </div>
                             </div>
                             {edu.percentage && (
-                                <p className="text-xs text-gray-500 mt-1">Percentage: <span className="text-emerald-700 font-bold">{edu.percentage}%</span></p>
+                                <p className="text-xs text-gray-500 mt-1">Percentage/CGPA: <span className="text-emerald-700 font-bold">{edu.percentage}{(edu.type === 'Class X' || edu.type === 'Class XII') && '%'}</span></p>
                             )}
                         </div>
                     ))}
 
-                    {!['Class X', 'Class XII', 'Degree'].every(type => educationList.some(edu => edu.type === type)) && (
+                    {!['Class X', 'Class XII', 'Diploma', 'Degree', 'Post Graduation'].every(type => educationList.some(edu => edu.type === type || (type === 'Class XII' && edu.type === 'Diploma') || (type === 'Diploma' && edu.type === 'Class XII'))) && (
                         <div
                             onClick={openAddModal}
                             className="border border-dashed border-gray-200 rounded-xl p-4 flex justify-between items-center group hover:border-emerald-200 transition-colors cursor-pointer active:scale-[0.99]"

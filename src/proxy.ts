@@ -12,7 +12,7 @@ export default auth((req) => {
     const PROTECTED_ROUTES = [
         "/seeker/dashboard",
         "/employer/dashboard",
-        "/admin/dashboard",
+        "/admin-dashboard",
         "/seeker/profile",
         "/user-applications",
         "/onboarding",
@@ -55,7 +55,7 @@ export default auth((req) => {
         seekerOnlyRoutes.some((r) => pathname === r || pathname.startsWith(r + "/")) &&
         role !== "SEEKER"
     ) {
-        if (role === "ADMIN") return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+        if (role === "ADMIN") return NextResponse.redirect(new URL("/admin-dashboard", req.url));
         return NextResponse.redirect(new URL("/employer/dashboard", req.url));
     }
 
@@ -64,13 +64,13 @@ export default auth((req) => {
         (pathname === "/employer/dashboard" || pathname.startsWith("/employer/dashboard/")) &&
         role !== "EMPLOYER"
     ) {
-        if (role === "ADMIN") return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+        if (role === "ADMIN") return NextResponse.redirect(new URL("/admin-dashboard", req.url));
         return NextResponse.redirect(new URL("/seeker/dashboard", req.url));
     }
 
     // Admin-only pages
     if (
-        (pathname === "/admin/dashboard" || pathname.startsWith("/admin/dashboard/")) &&
+        (pathname === "/admin-dashboard" || pathname.startsWith("/admin-dashboard/")) &&
         role !== "ADMIN"
     ) {
         if (role === "EMPLOYER") return NextResponse.redirect(new URL("/employer/dashboard", req.url));

@@ -11,7 +11,7 @@ interface EditEducationModalProps {
 }
 
 export interface EducationData {
-    type?: 'Class X' | 'Class XII' | 'Degree';
+    type?: 'Class X' | 'Class XII' | 'Diploma' | 'Degree' | 'Post Graduation';
     board?: string;
     medium?: string;
     percentage: string;
@@ -74,6 +74,11 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
         }
     }, [isOpen, formData.type, initialData?.type]);
 
+    // Derived state for the UI tabs to group Class XII and Diploma
+    const currentTab = (educationType === 'Class XII' || educationType === 'Diploma')
+        ? 'Class XII / Diploma'
+        : educationType;
+
     if (!isOpen) return null;
 
     const handleChange = (field: keyof EducationData, value: string | boolean) => {
@@ -89,7 +94,7 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
-            <div className={`bg-white rounded-2xl w-full max-w-[500px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+            <div className={`bg-white rounded-2xl w-full max-w-[650px] shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                 {/* Header */}
                 <div className="p-8 pb-4 relative">
                     <button
@@ -110,25 +115,57 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
                         <label className="block text-xs font-bold text-gray-700 mb-2">
                             Education Type
                         </label>
-                        <div className="flex bg-gray-100 p-1 rounded-xl">
-                            {(['Class X', 'Class XII', 'Degree'] as const).map(type => (
-                                <button
-                                    key={type}
-                                    type="button"
-                                    disabled={!!initialData && educationType !== type}
-                                    onClick={() => handleTypeChange(type)}
-                                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${educationType === type
-                                        ? 'bg-white text-emerald-700 shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                        } ${!!initialData && educationType !== type ? 'opacity-40 cursor-not-allowed' : ''}`}
-                                >
-                                    {type}
-                                </button>
-                            ))}
+                        <div className="flex bg-gray-100 p-1 rounded-xl overflow-x-auto hide-scrollbar">
+                            {(['Class X', 'Class XII / Diploma', 'Degree', 'Post Graduation'] as const).map(tabName => {
+                                const isSelected = currentTab === tabName;
+                                const defaultTypeForTab = tabName === 'Class XII / Diploma' ? 'Class XII' : tabName as EducationData['type'];
+                                // Disable tab if editing existing data that belongs to a different tab
+                                const isTabDisabled = !!initialData && currentTab !== tabName;
+
+                                return (
+                                    <button
+                                        key={tabName}
+                                        type="button"
+                                        disabled={isTabDisabled}
+                                        onClick={() => handleTypeChange(defaultTypeForTab)}
+                                        className={`flex-1 min-w-[max-content] px-3 py-2 text-sm font-medium rounded-lg transition-all ${isSelected
+                                            ? 'bg-white text-emerald-700 shadow-sm'
+                                            : 'text-gray-500 hover:text-gray-700'
+                                            } ${isTabDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                    >
+                                        {tabName}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    {educationType === 'Degree' ? (
+                    {/* Sub-selector for Class XII / Diploma */}
+                    {currentTab === 'Class XII / Diploma' && (
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-2">
+                                Specific Type
+                            </label>
+                            <div className="flex bg-gray-100 p-1 rounded-xl w-fit">
+                                {(['Class XII', 'Diploma'] as const).map(subType => (
+                                    <button
+                                        key={subType}
+                                        type="button"
+                                        disabled={!!initialData && initialData.type !== subType}
+                                        onClick={() => handleTypeChange(subType)}
+                                        className={`px-6 py-1.5 text-sm font-medium rounded-lg transition-all ${educationType === subType
+                                            ? 'bg-white text-emerald-700 shadow-sm'
+                                            : 'text-gray-500 hover:text-gray-700'
+                                            } ${!!initialData && initialData.type !== subType ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                    >
+                                        {subType}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {currentTab === 'Degree' || currentTab === 'Post Graduation' ? (
                         <>
                             {/* College/University */}
                             <div>
@@ -154,7 +191,7 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
                                         type="text"
                                         value={formData.degree}
                                         onChange={(e) => handleChange('degree', e.target.value)}
-                                        placeholder="Ex: B.Tech"
+                                        placeholder="Ex: B.Tech / M.Tech"
                                         className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                                     />
                                 </div>
@@ -174,21 +211,21 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
                         </>
                     ) : (
                         <>
-                            {/* School Name */}
+                            {/* School/Institute Name */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-700 mb-2">
-                                    School Name
+                                    {educationType === 'Diploma' ? 'Institute Name' : 'School Name'}
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.institute}
                                     onChange={(e) => handleChange('institute', e.target.value)}
-                                    placeholder="Ex: St. Xavier's High School"
+                                    placeholder={educationType === 'Diploma' ? "Ex: Government Polytechnic" : "Ex: St. Xavier's High School"}
                                     className="w-full p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:font-normal placeholder:text-gray-400"
                                 />
                             </div>
 
-                            {educationType === 'Class XII' && (
+                            {(educationType === 'Class XII' || educationType === 'Diploma') && (
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-2">
                                         Stream / Specialization
@@ -258,7 +295,7 @@ const EditEducationModal: React.FC<EditEducationModalProps> = ({
                         {/* Percentage */}
                         <div>
                             <label className="block text-xs font-bold text-gray-700 mb-2">
-                                {educationType === 'Degree' ? 'CGPA / Percentage' : 'Percentage'}
+                                {currentTab === 'Degree' || currentTab === 'Post Graduation' ? 'CGPA / Percentage' : 'Percentage'}
                             </label>
                             <div className="relative">
                                 <input

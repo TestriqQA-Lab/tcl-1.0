@@ -69,10 +69,10 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 min-h-[100dvh] w-screen top-0 left-0">
             <div
-                className={`bg-white rounded-2xl w-full max-w-lg shadow-2xl transform transition-all duration-300 ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+                className={`bg-white rounded-2xl w-full max-w-lg shadow-2xl transform transition-all duration-300 max-h-[90vh] flex flex-col ${animateIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
             >
                 {/* Header */}
-                <div className="flex justify-between items-center p-6 pb-2">
+                <div className="flex justify-between items-center p-6 pb-2 shrink-0">
                     <h2 className="text-2xl font-bold text-gray-900">Key skills</h2>
                     <button
                         onClick={onClose}
@@ -83,7 +83,7 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
                 </div>
 
                 {/* Body */}
-                <div className="px-6 pb-2">
+                <div className="px-6 pb-2 overflow-y-auto">
                     <p className="text-sm text-gray-600 mb-6">
                         Recruiters look for candidates with specific keyskills. Add them here to appear in searches.
                     </p>
@@ -136,7 +136,7 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 mt-2 flex justify-end gap-3">
+                <div className="p-6 mt-2 flex justify-end gap-3 shrink-0">
                     <button
                         onClick={onClose}
                         className="px-6 py-2.5 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors"
