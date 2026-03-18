@@ -39,7 +39,7 @@ export function Navbar() {
                     {/* Center: Primary Navigation - Icon + Text + Badge Style */}
                     <nav className="hidden lg:flex items-center gap-1">
                         <Link
-                            href="#"
+                            href="/search"
                             className="group flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all"
                         >
                             <span className="material-symbols-outlined text-lg text-[#0f766d]">search</span>
@@ -96,7 +96,7 @@ export function Navbar() {
                         <div className="h-5 w-px bg-gray-200"></div>
 
                         <Link
-                            href="#"
+                            href="/employers"
                             className="bg-[#0f766d]/10 text-[#0f766d] font-semibold text-sm px-5 py-2 rounded-lg hover:bg-[#0f766d]/20 transition-colors"
                         >
                             For Employers
@@ -118,7 +118,7 @@ export function Navbar() {
                     <div className="lg:hidden bg-white border-b border-gray-200 p-6 space-y-4">
                         {/* Nav Links */}
                         <nav className="space-y-2">
-                            <Link href="#" className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50">
+                            <Link href="/search" className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50">
                                 <span className="material-symbols-outlined text-lg text-[#0f766d]">search</span>
                                 <span className="text-sm font-medium text-gray-800">Find Jobs</span>
                                 <span className="text-[10px] font-bold text-[#0f766d] bg-[#0f766d]/10 px-1.5 py-0.5 rounded ml-auto">14K+</span>
@@ -155,7 +155,7 @@ export function Navbar() {
 
                         {/* Employer CTA */}
                         <Link
-                            href="#"
+                            href="/employers"
                             className="block w-full text-center bg-[#0f766d]/10 text-[#0f766d] font-semibold text-sm px-5 py-3 rounded-lg"
                         >
                             For Employers

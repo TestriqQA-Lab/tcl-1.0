@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PLATFORM_STATS } from "@/data/mock-data";
 
 export function RecruiterCTA() {
@@ -17,12 +18,10 @@ export function RecruiterCTA() {
                             Join over 10,000+ companies hiring on TopCareerLive. Get access to a vetted pool of professionals and streamline your recruitment process.
                         </p>
                         <div className="flex flex-wrap gap-4 pt-4">
-                            <button className="bg-white text-[#0f766d] font-bold px-8 py-4 rounded-xl hover:shadow-xl transition-all">
+                            <Link href="/employer-dashboard/post-job" className="bg-white text-[#0f766d] font-bold px-8 py-4 rounded-xl hover:shadow-xl transition-all inline-block w-fit">
                                 Post a Job for Free
-                            </button>
-                            <button className="bg-transparent text-white border-2 border-white/30 font-bold px-8 py-4 rounded-xl hover:bg-white/10 transition-all">
-                                Contact Sales
-                            </button>
+                            </Link>
+
                         </div>
                     </div>
 

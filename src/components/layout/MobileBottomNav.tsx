@@ -24,15 +24,15 @@ import {
 
 // ── Primary bottom bar items (4 + More) ──────────────────────────────────────
 const primaryNav = [
-    { label: "Home", href: "/user-dashboard", icon: Home },
+    { label: "Home", href: "/?nav=true", icon: Home },
     { label: "Jobs", href: "/search", icon: Briefcase },
     { label: "Inbox", href: "/inbox", icon: MessageSquare },
-    { label: "Profile", href: "/user-profile", icon: User },
+    { label: "Profile", href: "/seeker/profile", icon: User },
 ];
 
 // ── Links inside the "More" drawer ───────────────────────────────────────────
 const moreLinks = [
-    { label: "Dashboard", href: "/user-dashboard", icon: LayoutDashboard },
+    { label: "Dashboard", href: "/seeker/dashboard", icon: LayoutDashboard },
     { label: "My Applications", href: "/user-applications", icon: FileText },
     { label: "Browse Jobs", href: "/search", icon: Search },
     { label: "Companies", href: "/companies", icon: Building2 },
@@ -95,14 +95,14 @@ export const MobileBottomNav = () => {
 
             {/* ── Backdrop ─────────────────────────────────────────────── */}
             <div
-                className={`lg:hidden fixed inset-0 bg-black/30 backdrop-blur-[1px] z-[60] transition-opacity duration-300
+                className={`lg:hidden fixed inset-0 bg-black/30 backdrop-blur-[1px] z-60 transition-opacity duration-300
                     ${isMoreOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
                 onClick={() => setIsMoreOpen(false)}
             />
 
             {/* ── More Drawer (slides from right) ──────────────────────── */}
             <aside
-                className={`lg:hidden fixed inset-y-0 right-0 z-[70] w-[280px]
+                className={`lg:hidden fixed inset-y-0 right-0 z-70 w-[280px]
                     bg-white shadow-[-4px_0_20px_rgba(0,0,0,0.1)] flex flex-col
                     transition-transform duration-400 ease-out
                     ${isMoreOpen ? "translate-x-0" : "translate-x-full"}`}
@@ -110,7 +110,7 @@ export const MobileBottomNav = () => {
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                     <Link
-                        href="/user-profile"
+                        href="/seeker/profile"
                         onClick={() => setIsMoreOpen(false)}
                         className="flex items-center gap-3 transition-opacity hover:opacity-80"
                     >

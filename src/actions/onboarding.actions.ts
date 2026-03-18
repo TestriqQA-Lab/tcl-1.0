@@ -48,37 +48,51 @@ export async function updateEmploymentAction(
         const { seekerProfiles, experience, skills, projects, languages } = await import("@/lib/db/schema");
         const { eq } = await import("drizzle-orm");
 
-        // 1. Update Seeker Profile
-        await db.update(seekerProfiles)
-            .set({
-                workStatus: data.workStatus,
-                lookingFor: data.lookingFor,
-                currentEmploymentStatus: data.employmentStatus,
-                totalExperienceYears: data.totalExperienceYears,
-                totalExperienceMonths: data.totalExperienceMonths,
-                currentIndustry: data.currentIndustry,
-                currentDepartment: data.currentDepartment,
-                currentRoleCategory: data.currentRoleCategory,
-                currentJobRole: data.currentJobRole,
-                currentSalary: data.currentSalary,
-                noticePeriod: data.noticePeriod as any, // Cast if enum mismatch, or map
-                updatedAt: new Date(),
-            })
-            .where(eq(seekerProfiles.userId, userId));
+        // 1. Check if Seeker Profile exists
+        const [existingProfile] = await db
+            .select()
+            .from(seekerProfiles)
+            .where(eq(seekerProfiles.userId, userId))
+            .limit(1);
+
+        const profileData = {
+            workStatus: data.workStatus,
+            lookingFor: data.lookingFor,
+            currentEmploymentStatus: data.employmentStatus,
+            totalExperienceYears: data.totalExperienceYears,
+            totalExperienceMonths: data.totalExperienceMonths,
+            currentIndustry: data.currentIndustry,
+            currentDepartment: data.currentDepartment,
+            currentRoleCategory: data.currentRoleCategory,
+            currentJobRole: data.currentJobRole,
+            currentSalary: data.currentSalary,
+            noticePeriod: data.noticePeriod as any,
+            updatedAt: new Date(),
+        };
+
+        if (existingProfile) {
+            await db.update(seekerProfiles)
+                .set(profileData)
+                .where(eq(seekerProfiles.userId, userId));
+        } else {
+            await db.insert(seekerProfiles).values({
+                ...profileData,
+                userId,
+                fullName: session.user.name || "Anonymous User", // Fallback name
+            });
+        }
 
         // 2. Insert/Update Experience (if Employed/Experienced)
         if (data.workStatus === "EXPERIENCED" && data.companyName && data.designation) {
             const jDate = data.joiningDate ? new Date(data.joiningDate) : new Date();
             const eDate = data.endDate ? new Date(data.endDate) : null;
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
             await db.insert(experience).values({
                 userId: userId,
                 companyName: data.companyName,
                 designation: data.designation,
-                startMonth: months[jDate.getMonth()],
-                startYear: jDate.getFullYear().toString(),
-                endMonth: eDate ? months[eDate.getMonth()] : null,
-                endYear: eDate ? eDate.getFullYear().toString() : null,
+                startDate: jDate,
+                endDate: eDate,
                 isCurrent: !data.endDate,
                 employmentType: "FULL_TIME",
             });
@@ -175,8 +189,8 @@ export async function updateEducationAction(
             stream: data.degree.specialization,
             isPursuing: data.degree.isPursuing,
             percentage: data.degree.cgpa,
-            passingYear: data.degree.endDate ? data.degree.endDate.getFullYear().toString() : null,
-            endingYear: data.degree.endDate ? data.degree.endDate.getFullYear().toString() : null,
+            startDate: data.degree.startDate,
+            endDate: data.degree.endDate || null,
         });
 
         // 2. Insert Class 12
@@ -187,8 +201,8 @@ export async function updateEducationAction(
             degree: "Class XII",
             stream: data.class12.specialization,
             isPursuing: data.class12.isPursuing,
-            passingYear: data.class12.endDate ? data.class12.endDate.getFullYear().toString() : null,
-            endingYear: data.class12.endDate ? data.class12.endDate.getFullYear().toString() : null,
+            startDate: data.class12.startDate,
+            endDate: data.class12.endDate || null,
         });
 
         return { success: true };
@@ -205,7 +219,8 @@ export async function updatePreferencesAction(
         headline: string;
         locations: string[];
         salary: number;
-        gender: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
+        gender?: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | "ANY" | null;
+        position?: string;
     }
 ) {
     try {
@@ -218,15 +233,33 @@ export async function updatePreferencesAction(
         const { seekerProfiles } = await import("@/lib/db/schema");
         const { eq } = await import("drizzle-orm");
 
-        await db.update(seekerProfiles)
-            .set({
-                bio: data.headline,
-                preferredWorkLocation: data.locations,
-                expectedSalaryMin: data.salary,
-                gender: data.gender,
-                updatedAt: new Date(),
-            })
-            .where(eq(seekerProfiles.userId, userId));
+        // Check if Seeker Profile exists
+        const [existingProfile] = await db
+            .select()
+            .from(seekerProfiles)
+            .where(eq(seekerProfiles.userId, userId))
+            .limit(1);
+
+        const profileData = {
+            bio: data.headline,
+            preferredWorkLocation: data.locations,
+            expectedSalaryMin: data.salary,
+            gender: data.gender || undefined,
+            position: data.position,
+            updatedAt: new Date(),
+        };
+
+        if (existingProfile) {
+            await db.update(seekerProfiles)
+                .set(profileData)
+                .where(eq(seekerProfiles.userId, userId));
+        } else {
+            await db.insert(seekerProfiles).values({
+                ...profileData,
+                userId,
+                fullName: session.user.name || "Anonymous User", // Fallback name
+            });
+        }
 
         return { success: true };
 
@@ -349,6 +382,7 @@ export async function getPreferencesAction(userId: string) {
                 locations: profile.preferredWorkLocation,
                 salary: profile.expectedSalaryMin,
                 gender: profile.gender,
+                position: profile.position,
             }
         };
 

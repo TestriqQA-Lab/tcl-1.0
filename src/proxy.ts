@@ -10,11 +10,12 @@ export default auth((req) => {
 
     // Routes that require authentication
     const PROTECTED_ROUTES = [
-        "/user-dashboard",
-        "/user-profile",
+        "/seeker/dashboard",
+        "/employer/dashboard",
+        "/admin-dashboard",
+        "/seeker/profile",
         "/user-applications",
         "/onboarding",
-        "/employer-dashboard",
         "/basic-profile",
         "/detailed-seeker-profile",
     ];
@@ -42,10 +43,9 @@ export default auth((req) => {
 
     const role = session?.user?.role;
 
-    // Seeker-only pages
     const seekerOnlyRoutes = [
-        "/user-dashboard",
-        "/user-profile",
+        "/seeker/dashboard",
+        "/seeker/profile",
         "/user-applications",
         "/onboarding",
         "/basic-profile",
@@ -55,15 +55,26 @@ export default auth((req) => {
         seekerOnlyRoutes.some((r) => pathname === r || pathname.startsWith(r + "/")) &&
         role !== "SEEKER"
     ) {
-        return NextResponse.redirect(new URL("/employer-dashboard", req.url));
+        if (role === "ADMIN") return NextResponse.redirect(new URL("/admin-dashboard", req.url));
+        return NextResponse.redirect(new URL("/employer/dashboard", req.url));
     }
 
     // Employer-only pages
     if (
-        (pathname === "/employer-dashboard" || pathname.startsWith("/employer-dashboard/")) &&
+        (pathname === "/employer/dashboard" || pathname.startsWith("/employer/dashboard/")) &&
         role !== "EMPLOYER"
     ) {
-        return NextResponse.redirect(new URL("/user-dashboard", req.url));
+        if (role === "ADMIN") return NextResponse.redirect(new URL("/admin-dashboard", req.url));
+        return NextResponse.redirect(new URL("/seeker/dashboard", req.url));
+    }
+
+    // Admin-only pages
+    if (
+        (pathname === "/admin-dashboard" || pathname.startsWith("/admin-dashboard/")) &&
+        role !== "ADMIN"
+    ) {
+        if (role === "EMPLOYER") return NextResponse.redirect(new URL("/employer/dashboard", req.url));
+        return NextResponse.redirect(new URL("/seeker/dashboard", req.url));
     }
 
     return NextResponse.next();

@@ -14,7 +14,7 @@ export function Footer({ session }: FooterProps) {
     const isLoggedIn = !!session?.user;
 
     return (
-        <footer className={`bg-[#1a1f2e] text-gray-300 mt-20 ${isLoggedIn ? "pb-16 lg:pb-0" : ""}`}>
+        <footer className={`bg-[#1a1f2e] text-gray-300 ${isLoggedIn ? "pb-16 lg:pb-0" : ""}`}>
             {/* Main Footer Content */}
             <div className="max-w-7xl mx-auto px-6 lg:px-10 py-16">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 lg:gap-12">
@@ -69,7 +69,7 @@ export function Footer({ session }: FooterProps) {
                     <div>
                         <h4 className="text-white text-sm font-semibold mb-5 uppercase tracking-wider">Company</h4>
                         <ul className="space-y-3 text-sm">
-                            <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
+                            <li><Link href="/about-us" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
                             <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">Careers</Link></li>
                             <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">Press & Media</Link></li>
                             <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">Contact</Link></li>
