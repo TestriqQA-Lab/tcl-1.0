@@ -8,9 +8,20 @@ import type { CreateJobPayload } from "@/types/job";
 
 export async function getJobs(params: {
     keyword?: string;
-    location?: string;
+    location?: string; // from hero search
+    locations?: string[]; // from sidebar filters
     jobTypes?: string[];
     salaryMin?: number;
+    salaryMax?: number;
+    experience?: number;
+    workModes?: string[];
+    departments?: string[];
+    companyTypes?: string[];
+    roleCategories?: string[];
+    industries?: string[];
+    education?: string[];
+    postedBy?: string[];
+    freshness?: string;
 }) {
     try {
         const query = db
@@ -25,6 +36,7 @@ export async function getJobs(params: {
                 salaryMax: jobs.salaryMax,
                 description: jobs.description,
                 createdAt: jobs.createdAt,
+                requiredSkills: jobs.requiredSkills,
             })
             .from(jobs)
             .innerJoin(employerProfiles, eq(jobs.employerId, employerProfiles.userId))
@@ -37,11 +49,38 @@ export async function getJobs(params: {
                         ilike(jobs.description, `%${params.keyword}%`),
                         ilike(employerProfiles.companyName, `%${params.keyword}%`)
                     ) : undefined,
-                    params.location ? ilike(jobs.location, `%${params.location}%`) : undefined,
+                    params.locations && params.locations.length > 0
+                        ? or(...params.locations.map(l => ilike(jobs.location, `%${l}%`)))
+                        : (params.location ? ilike(jobs.location, `%${params.location}%`) : undefined),
                     params.jobTypes && params.jobTypes.length > 0
                         ? inArray(jobs.type, params.jobTypes.map(t => t.toUpperCase() as any))
                         : undefined,
-                    params.salaryMin !== undefined ? gte(jobs.salaryMax, params.salaryMin) : undefined
+                    params.workModes && params.workModes.length > 0
+                        ? inArray(jobs.type, params.workModes.map(m => {
+                            if (m.toLowerCase().includes("remote")) return "REMOTE";
+                            if (m.toLowerCase().includes("hybrid")) return "HYBRID";
+                            return "ONSITE";
+                        }))
+                        : undefined,
+                    params.departments && params.departments.length > 0
+                        ? inArray(jobs.department, params.departments)
+                        : undefined,
+                    params.roleCategories && params.roleCategories.length > 0
+                        ? inArray(jobs.roleCategory, params.roleCategories)
+                        : undefined,
+                    params.industries && params.industries.length > 0
+                        ? inArray(jobs.industry, params.industries)
+                        : undefined,
+
+                    params.salaryMin !== undefined ? gte(jobs.salaryMax, params.salaryMin) : undefined,
+                    params.salaryMax !== undefined ? sql`${jobs.salaryMin} <= ${params.salaryMax}` : undefined,
+                    params.experience !== undefined ? gte(jobs.experienceLevel, params.experience) : undefined,
+                    params.freshness ? (
+                        params.freshness === "1d" ? gte(jobs.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000)) :
+                        params.freshness === "7d" ? gte(jobs.createdAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)) :
+                        params.freshness === "30d" ? gte(jobs.createdAt, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) :
+                        undefined
+                    ) : undefined
                 )
             )
             .orderBy(desc(jobs.createdAt));
@@ -75,6 +114,7 @@ export async function getJobById(jobId: string) {
                 screeningExperienceMin: jobs.screeningExperienceMin,
                 screeningEducationLevel: jobs.screeningEducationLevel,
                 screeningEnglishLevel: jobs.screeningEnglishLevel,
+                experienceLevel: jobs.experienceLevel,
                 createdAt: jobs.createdAt,
                 employerId: jobs.employerId,
                 company: {
@@ -89,12 +129,20 @@ export async function getJobById(jobId: string) {
             .where(eq(jobs.id, jobId));
 
         const result = await query;
-        console.log("getJobById Result Count:", result.length);
         if (result.length === 0) return null;
+
+        // Fetch application count
+        const appCountResult = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(applications)
+            .where(eq(applications.jobId, jobId));
+        
+        const applicantCount = Number(appCountResult[0]?.count ?? 0);
 
         const job = result[0];
         return {
             ...job,
+            applicantCount,
             salary: `₹${(job.salaryMin / 1000).toFixed(0)}K - ₹${(job.salaryMax / 1000).toFixed(0)}K`,
             type: job.type.charAt(0) + job.type.slice(1).toLowerCase()
         };
