@@ -167,6 +167,9 @@ export const jobs = pgTable("jobs", {
     approvalStatus: jobApprovalStatusEnum("approval_status").default("PENDING").notNull(),
     experienceLevel: integer("experience_level").notNull(),
     applicationDeadline: timestamp("application_deadline").notNull(),
+    department: text("department"),
+    industry: text("industry"),
+    roleCategory: text("role_category"),
 
     // Job Requirements (Simplified without join tables)
     requiredSkills: text("required_skills").array().default([]), // ["React", "Node"]
