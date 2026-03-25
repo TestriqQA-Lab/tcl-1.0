@@ -4,6 +4,7 @@ export interface Company {
     tagline: string;
     logo_bg: string; // Tailwind class for logo background
     logo_icon: string; // Material Symbol name
+    logo_url?: string; // Real image URL
     banner_image?: string; // Optional banner
     location: string;
     employees: string;

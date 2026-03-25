@@ -401,6 +401,17 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// 15. OTP Tokens Table (Phone OTP verification)
+export const otpTokens = pgTable("otp_tokens", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    phone: text("phone").notNull(),
+    otp: text("otp").notNull(),
+    type: text("type").notNull(),
+    attempts: integer("attempts").default(0).notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 
 // II] Relations
 
