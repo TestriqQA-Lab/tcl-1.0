@@ -2,14 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
     CheckCircle2, Check, EyeOff, Eye, UserPlus, Rocket,
     Building2, ChevronDown, PartyPopper, Loader2, Camera, X
 } from "lucide-react";
-import { useRef } from "react";
 import { registerEmployerAction } from "@/actions/employer.actions";
+import { sendPhoneOtpAction, verifyPhoneOtpAction } from "@/actions/otp.actions";
 
 type Step = "otp" | "basic-details" | "company-details";
 
@@ -22,6 +22,16 @@ export default function ClientRegistrationPage() {
     const [phone, setPhone] = useState("");
     const [whatsappConsent, setWhatsappConsent] = useState(true);
     const [termsConsent, setTermsConsent] = useState(true);
+
+    // ── OTP Verification state ──
+    const [otpSent, setOtpSent] = useState(false);
+    const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
+    const [otpVerified, setOtpVerified] = useState(false);
+    const [otpError, setOtpError] = useState("");
+    const [resendTimer, setResendTimer] = useState(0);
+    const [sendingOtp, setSendingOtp] = useState(false);
+    const [verifyingOtp, setVerifyingOtp] = useState(false);
+    const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // ── Basic Details Step state ──
     const [fullName, setFullName] = useState("");
@@ -61,12 +71,114 @@ export default function ClientRegistrationPage() {
         password.length >= 6 &&
         (accountType === "individual" || isWorkEmail(email));
     const isCompanyValid = companyName.trim().length > 0 && designation.trim().length > 0;
+    // ── Resend timer countdown ──
+    useEffect(() => {
+        if (resendTimer <= 0) return;
+        const interval = setInterval(() => {
+            setResendTimer((prev) => prev - 1);
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [resendTimer]);
 
-    const handleSendOTP = () => {
-        if (isOtpValid) {
-            setStep("basic-details");
+    // ── Auto-verify when all 6 digits filled ──
+    const handleVerifyOtp = useCallback(async (digits: string[]) => {
+        const otp = digits.join("");
+        if (otp.length !== 6) return;
+
+        setVerifyingOtp(true);
+        setOtpError("");
+        const result = await verifyPhoneOtpAction(phone, otp);
+        setVerifyingOtp(false);
+
+        if (result.success) {
+            setOtpVerified(true);
+            setTimeout(() => setStep("basic-details"), 600);
+        } else {
+            setOtpError(result.error || "Invalid OTP");
+            setOtpDigits(["", "", "", "", "", ""]);
+            setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
+        }
+    }, [phone]);
+
+    // ── Send OTP handler ──
+    const handleSendOTP = async () => {
+        if (!isOtpValid || sendingOtp) return;
+
+        setSendingOtp(true);
+        setOtpError("");
+        const result = await sendPhoneOtpAction(phone);
+        setSendingOtp(false);
+
+        if (result.success) {
+            setOtpSent(true);
+            setResendTimer(60);
+            setOtpDigits(["", "", "", "", "", ""]);
+            setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
+        } else {
+            setOtpError(result.error || "Failed to send OTP");
         }
     };
+
+    // ── OTP digit input handler ──
+    const handleOtpChange = (index: number, value: string) => {
+        if (!/^\d*$/.test(value)) return;
+        const newDigits = [...otpDigits];
+        newDigits[index] = value.slice(-1);
+        setOtpDigits(newDigits);
+        setOtpError("");
+        if (value && index < 5) {
+            otpInputRefs.current[index + 1]?.focus();
+        }
+        if (newDigits.every((d) => d !== "")) {
+            handleVerifyOtp(newDigits);
+        }
+    };
+
+    // ── OTP paste handler ──
+    const handleOtpPaste = (e: React.ClipboardEvent) => {
+        e.preventDefault();
+        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+        if (pasted.length === 0) return;
+        const newDigits = [...otpDigits];
+        for (let i = 0; i < 6; i++) {
+            newDigits[i] = pasted[i] || "";
+        }
+        setOtpDigits(newDigits);
+        const focusIdx = Math.min(pasted.length, 5);
+        otpInputRefs.current[focusIdx]?.focus();
+        if (newDigits.every((d) => d !== "")) {
+            handleVerifyOtp(newDigits);
+        }
+    };
+
+    // ── OTP backspace handler ──
+    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+        if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
+            otpInputRefs.current[index - 1]?.focus();
+        }
+    };
+
+    // ── Resend OTP handler ──
+    const handleResendOtp = async () => {
+        if (resendTimer > 0 || sendingOtp) return;
+        setSendingOtp(true);
+        setOtpError("");
+        setOtpDigits(["", "", "", "", "", ""]);
+        const result = await sendPhoneOtpAction(phone);
+        setSendingOtp(false);
+        if (result.success) {
+            setResendTimer(60);
+            setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
+        } else {
+            setOtpError(result.error || "Failed to resend OTP");
+        }
+    };
+
+    // ── Mask phone number for display ──
+    const maskedPhone = phone.length >= 10
+        ? `${phone.slice(0, 2)}${"X".repeat(phone.length - 4)}${phone.slice(-2)}`
+        : phone;
+
 
     const handleBasicContinue = () => {
         if (isBasicValid) {
@@ -181,42 +293,133 @@ export default function ClientRegistrationPage() {
                         </div>
                         <div className="w-full max-w-[420px] lg:w-[420px] lg:flex-shrink-0">
                             <div className="bg-white rounded-2xl p-7 md:p-9 lg:p-10 shadow-[0_12px_40px_-4px_rgba(0,0,0,0.1)] flex flex-col gap-5 md:gap-6">
-                                <h2 className="text-[19px] md:text-[20px] lg:text-[22px] font-bold text-[#0e1b1a] font-inter">Continue with mobile</h2>
+                                <h2 className="text-[19px] md:text-[20px] lg:text-[22px] font-bold text-[#0e1b1a] font-inter">
+                                    {otpSent ? "Verify your mobile" : "Continue with mobile"}
+                                </h2>
+
+                                {/* Phone Input */}
                                 <div className="flex flex-col gap-2">
                                     <label className="text-[13px] lg:text-sm font-semibold text-[#0e1b1a] font-inter">Mobile number</label>
-                                    <div className="flex items-center h-11 md:h-[46px] lg:h-12 rounded-[10px] border-[1.5px] border-[#E4E4E7] bg-[#FAFAFA] px-3 md:px-4 gap-2">
+                                    <div className={`flex items-center h-11 md:h-[46px] lg:h-12 rounded-[10px] border-[1.5px] ${otpSent ? "border-[#22c55e]/40 bg-[#f0fdf4]" : "border-[#E4E4E7] bg-[#FAFAFA]"} px-3 md:px-4 gap-2 transition-colors`}>
                                         <span className="text-[13px] lg:text-sm font-medium text-[#0e1b1a] font-inter whitespace-nowrap select-none">+91 ▾</span>
                                         <div className="w-px h-5 md:h-[22px] lg:h-6 bg-[#E4E4E7]" />
-                                        <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="Enter mobile number"
-                                            className="flex-1 bg-transparent text-[13px] lg:text-sm text-[#0e1b1a] placeholder:text-[#A1A1AA] font-inter outline-none" />
+                                        <input type="tel" value={phone}
+                                            onChange={(e) => { if (!otpSent) setPhone(e.target.value.replace(/\D/g, "").slice(0, 10)); }}
+                                            placeholder="Enter mobile number" readOnly={otpSent}
+                                            className={`flex-1 bg-transparent text-[13px] lg:text-sm text-[#0e1b1a] placeholder:text-[#A1A1AA] font-inter outline-none ${otpSent ? "cursor-default" : ""}`} />
+                                        {otpSent && (
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="w-4 h-4 rounded-full bg-[#22c55e] flex items-center justify-center">
+                                                    <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                                                </div>
+                                                <button type="button"
+                                                    onClick={() => { setOtpSent(false); setOtpDigits(["", "", "", "", "", ""]); setOtpError(""); setOtpVerified(false); }}
+                                                    className="text-[11px] text-[#2563EB] font-semibold font-inter hover:underline cursor-pointer">
+                                                    Change
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                                <div className="flex flex-col gap-2.5 md:gap-3">
-                                    <label className="flex items-start gap-2.5 cursor-pointer">
-                                        <button type="button" onClick={() => setWhatsappConsent(!whatsappConsent)}
-                                            className={`w-[18px] h-[18px] lg:w-5 lg:h-5 rounded flex-shrink-0 flex items-center justify-center transition-colors mt-0.5 ${whatsappConsent ? "bg-[#2563EB]" : "border-[1.5px] border-[#D4D4D8] bg-white"}`}>
-                                            {whatsappConsent && <CheckCircle2 className="w-3 h-3 text-white" strokeWidth={3} />}
+
+                                {/* OTP Sent Message */}
+                                {otpSent && !otpVerified && (
+                                    <p className="text-[12px] text-[#64748B] font-inter text-center">
+                                        OTP sent to <span className="font-semibold text-[#0e1b1a]">+91 {maskedPhone}</span>
+                                    </p>
+                                )}
+
+                                {/* 6-Digit OTP Input */}
+                                {otpSent && !otpVerified && (
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-[13px] lg:text-sm font-semibold text-[#0e1b1a] font-inter text-center">Enter 6-digit OTP</label>
+                                        <div className="flex justify-center gap-2 md:gap-3">
+                                            {otpDigits.map((digit, i) => (
+                                                <input key={i}
+                                                    ref={(el) => { otpInputRefs.current[i] = el; }}
+                                                    type="text" inputMode="numeric" maxLength={1} value={digit}
+                                                    onChange={(e) => handleOtpChange(i, e.target.value)}
+                                                    onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                                                    onPaste={i === 0 ? handleOtpPaste : undefined}
+                                                    disabled={verifyingOtp}
+                                                    className={`w-10 h-12 md:w-12 md:h-14 text-center text-lg md:text-xl font-bold font-inter rounded-[10px] border-[1.5px] outline-none transition-all ${
+                                                        otpError ? "border-red-400 bg-red-50"
+                                                        : digit ? "border-[#0f766d] bg-[#f0fdf9]"
+                                                        : "border-[#E4E4E7] bg-[#FAFAFA]"
+                                                    } focus:border-[#0f766d] focus:ring-2 focus:ring-[#0f766d]/20`} />
+                                            ))}
+                                        </div>
+                                        {verifyingOtp && (
+                                            <div className="flex items-center justify-center gap-2 text-[13px] text-[#0f766d] font-medium font-inter">
+                                                <Loader2 className="w-4 h-4 animate-spin" /> Verifying...
+                                            </div>
+                                        )}
+                                        {otpError && (
+                                            <p className="text-[12px] text-red-500 font-medium font-inter text-center bg-red-50 rounded-lg px-3 py-2">{otpError}</p>
+                                        )}
+                                        <div className="text-center">
+                                            {resendTimer > 0 ? (
+                                                <p className="text-[12px] text-[#94A3B8] font-inter">
+                                                    Resend OTP in <span className="font-semibold text-[#0e1b1a]">{resendTimer}s</span>
+                                                </p>
+                                            ) : (
+                                                <button type="button" onClick={handleResendOtp} disabled={sendingOtp}
+                                                    className="text-[13px] text-[#2563EB] font-semibold font-inter hover:underline cursor-pointer disabled:opacity-50">
+                                                    {sendingOtp ? "Sending..." : "Resend OTP"}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* OTP Verified Success */}
+                                {otpVerified && (
+                                    <div className="flex items-center justify-center gap-2 py-3 bg-[#f0fdf4] rounded-xl border border-[#22c55e]/20">
+                                        <div className="w-6 h-6 rounded-full bg-[#22c55e] flex items-center justify-center">
+                                            <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                                        </div>
+                                        <span className="text-[13px] font-semibold text-[#166534] font-inter">Mobile verified successfully!</span>
+                                    </div>
+                                )}
+
+                                {/* Consent Checkboxes - only before OTP sent */}
+                                {!otpSent && (
+                                    <div className="flex flex-col gap-2.5 md:gap-3">
+                                        <label className="flex items-start gap-2.5 cursor-pointer">
+                                            <button type="button" onClick={() => setWhatsappConsent(!whatsappConsent)}
+                                                className={`w-[18px] h-[18px] lg:w-5 lg:h-5 rounded flex-shrink-0 flex items-center justify-center transition-colors mt-0.5 ${whatsappConsent ? "bg-[#2563EB]" : "border-[1.5px] border-[#D4D4D8] bg-white"}`}>
+                                                {whatsappConsent && <CheckCircle2 className="w-3 h-3 text-white" strokeWidth={3} />}
+                                            </button>
+                                            <span className="text-xs lg:text-[13px] text-[#3F3F46] font-inter leading-snug">
+                                                I agree to receive important updates on{" "}<span className="inline-flex items-center gap-0.5">🟢 WhatsApp</span>
+                                            </span>
+                                        </label>
+                                        <label className="flex items-start gap-2.5 cursor-pointer">
+                                            <button type="button" onClick={() => setTermsConsent(!termsConsent)}
+                                                className={`w-[18px] h-[18px] lg:w-5 lg:h-5 rounded flex-shrink-0 flex items-center justify-center transition-colors mt-0.5 ${termsConsent ? "bg-[#2563EB]" : "border-[1.5px] border-[#D4D4D8] bg-white"}`}>
+                                                {termsConsent && <CheckCircle2 className="w-3 h-3 text-white" strokeWidth={3} />}
+                                            </button>
+                                            <span className="text-xs lg:text-[13px] text-[#3F3F46] font-inter leading-snug">
+                                                I agree to the{" "}<Link href="#" className="text-[#2563EB] hover:underline font-medium">Privacy Policy</Link>{" "}and{" "}<Link href="#" className="text-[#2563EB] hover:underline font-medium">Terms &amp; Conditions</Link>
+                                            </span>
+                                        </label>
+                                    </div>
+                                )}
+
+                                {/* Send OTP Button - only before OTP sent */}
+                                {!otpSent && (
+                                    <>
+                                        {otpError && (
+                                            <p className="text-[12px] text-red-500 font-medium font-inter text-center bg-red-50 rounded-lg px-3 py-2">{otpError}</p>
+                                        )}
+                                        <button type="button" onClick={handleSendOTP} disabled={!isOtpValid || sendingOtp}
+                                            className={`w-full h-11 md:h-[46px] lg:h-12 rounded-[10px] text-sm md:text-[15px] font-semibold font-inter transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${isOtpValid && !sendingOtp
+                                                ? "bg-[#0f766d] text-white shadow-lg shadow-[#0f766d]/30 hover:bg-[#0d635c]"
+                                                : "bg-[#E4E4E7] text-[#71717A] cursor-not-allowed"}`}>
+                                            {sendingOtp ? (<><Loader2 className="w-4 h-4 animate-spin" /> Sending OTP...</>) : "Send OTP"}
                                         </button>
-                                        <span className="text-xs lg:text-[13px] text-[#3F3F46] font-inter leading-snug">
-                                            I agree to receive important updates on{" "}<span className="inline-flex items-center gap-0.5">🟢 WhatsApp</span>
-                                        </span>
-                                    </label>
-                                    <label className="flex items-start gap-2.5 cursor-pointer">
-                                        <button type="button" onClick={() => setTermsConsent(!termsConsent)}
-                                            className={`w-[18px] h-[18px] lg:w-5 lg:h-5 rounded flex-shrink-0 flex items-center justify-center transition-colors mt-0.5 ${termsConsent ? "bg-[#2563EB]" : "border-[1.5px] border-[#D4D4D8] bg-white"}`}>
-                                            {termsConsent && <CheckCircle2 className="w-3 h-3 text-white" strokeWidth={3} />}
-                                        </button>
-                                        <span className="text-xs lg:text-[13px] text-[#3F3F46] font-inter leading-snug">
-                                            I agree to the{" "}<Link href="#" className="text-[#2563EB] hover:underline font-medium">Privacy Policy</Link>{" "}and{" "}<Link href="#" className="text-[#2563EB] hover:underline font-medium">Terms &amp; Conditions</Link>
-                                        </span>
-                                    </label>
-                                </div>
-                                <button type="button" onClick={handleSendOTP} disabled={!isOtpValid}
-                                    className={`w-full h-11 md:h-[46px] lg:h-12 rounded-[10px] text-sm md:text-[15px] font-semibold font-inter transition-all active:scale-[0.98] ${isOtpValid
-                                        ? "bg-[#0f766d] text-white shadow-lg shadow-[#0f766d]/30 hover:bg-[#0d635c]"
-                                        : "bg-[#E4E4E7] text-[#71717A] cursor-not-allowed"}`}>
-                                    Send OTP
-                                </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>

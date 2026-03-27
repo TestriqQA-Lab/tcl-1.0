@@ -6,7 +6,7 @@ interface OpenRolesListProps {
 
 export function OpenRolesList({ company }: OpenRolesListProps) {
     return (
-        <section>
+        <section id="open-roles">
             <div className="flex items-center justify-between mb-6 md:mb-8">
                 <h2 className="text-2xl font-bold text-slate-900">Open Roles</h2>
                 <span className="text-[#0f766d] text-sm font-semibold">{company.roles.length} active</span>
