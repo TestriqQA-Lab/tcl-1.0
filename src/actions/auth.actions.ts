@@ -22,6 +22,12 @@ export async function loginAction(email: string, password: string, expectedRole?
             return { error: "Invalid email format" };
         }
 
+        // Block admin email from regular login — admin must use /admin-login
+        const isAdminEmail = process.env.ADMIN_EMAIL && email.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
+        if (isAdminEmail) {
+            return { error: "Admin accounts cannot login here. Please use the admin portal." };
+        }
+
         // Role check: verify the user's role matches the expected portal
         if (expectedRole) {
             const { db } = await import("@/lib/db/db");
@@ -39,9 +45,8 @@ export async function loginAction(email: string, password: string, expectedRole?
             }
 
             const userRole = found[0].role;
-            const isAdminEmail = email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
 
-            if (userRole !== expectedRole && !isAdminEmail) {
+            if (userRole !== expectedRole) {
                 if (expectedRole === "EMPLOYER") {
                     return { error: "This email is registered as a Job Seeker. Please use the Seeker login." };
                 } else {
@@ -58,8 +63,7 @@ export async function loginAction(email: string, password: string, expectedRole?
         });
 
         // If we reach here without error, login was successful
-        const isAdmin = process.env.ADMIN_EMAIL && email.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
-        return { success: true, isAdmin };
+        return { success: true };
     } catch (error) {
         // Auth.js throws AuthError for invalid credentials
         if (error instanceof AuthError) {
