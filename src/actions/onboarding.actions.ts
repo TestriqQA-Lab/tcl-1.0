@@ -48,36 +48,52 @@ export async function updateEmploymentAction(
         const { seekerProfiles, experience, skills, projects, languages } = await import("@/lib/db/schema");
         const { eq } = await import("drizzle-orm");
 
-        // 1. Update Seeker Profile
-        await db.update(seekerProfiles)
-            .set({
-                workStatus: data.workStatus,
-                lookingFor: data.lookingFor,
-                currentEmploymentStatus: data.employmentStatus,
-                totalExperienceYears: data.totalExperienceYears,
-                totalExperienceMonths: data.totalExperienceMonths,
-                currentIndustry: data.currentIndustry,
-                currentDepartment: data.currentDepartment,
-                currentRoleCategory: data.currentRoleCategory,
-                currentJobRole: data.currentJobRole,
-                currentSalary: data.currentSalary,
-                noticePeriod: data.noticePeriod as any, // Cast if enum mismatch, or map
-                updatedAt: new Date(),
-            })
-            .where(eq(seekerProfiles.userId, userId));
+        // 1. Check if Seeker Profile exists
+        const [existingProfile] = await db
+            .select()
+            .from(seekerProfiles)
+            .where(eq(seekerProfiles.userId, userId))
+            .limit(1);
+
+        const profileData = {
+            workStatus: data.workStatus,
+            lookingFor: data.lookingFor,
+            currentEmploymentStatus: data.employmentStatus,
+            totalExperienceYears: data.totalExperienceYears,
+            totalExperienceMonths: data.totalExperienceMonths,
+            currentIndustry: data.currentIndustry,
+            currentDepartment: data.currentDepartment,
+            currentRoleCategory: data.currentRoleCategory,
+            currentJobRole: data.currentJobRole,
+            currentSalary: data.currentSalary,
+            noticePeriod: data.noticePeriod as any,
+            updatedAt: new Date(),
+        };
+
+        if (existingProfile) {
+            await db.update(seekerProfiles)
+                .set(profileData)
+                .where(eq(seekerProfiles.userId, userId));
+        } else {
+            await db.insert(seekerProfiles).values({
+                ...profileData,
+                userId,
+                fullName: session.user.name || "Anonymous User", // Fallback name
+            });
+        }
 
         // 2. Insert/Update Experience (if Employed/Experienced)
         if (data.workStatus === "EXPERIENCED" && data.companyName && data.designation) {
+            const jDate = data.joiningDate ? new Date(data.joiningDate) : new Date();
+            const eDate = data.endDate ? new Date(data.endDate) : null;
+
             await db.insert(experience).values({
                 userId: userId,
-                company: data.companyName,
-                title: data.designation,
-                location: data.currentCity,
-                startDate: data.joiningDate ? new Date(data.joiningDate).toISOString() : new Date().toISOString(),
-                endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
-                currentlyWorking: !data.endDate,
-                salary: data.currentSalary,
-                noticePeriod: data.noticePeriod,
+                companyName: data.companyName,
+                designation: data.designation,
+                startDate: jDate,
+                endDate: eDate,
+                isCurrent: !data.endDate,
                 employmentType: "FULL_TIME",
             });
         }
@@ -167,32 +183,26 @@ export async function updateEducationAction(
         // 1. Insert Degree
         await db.insert(education).values({
             userId: userId,
-            schoolName: data.degree.collegeName,
+            type: "Degree",
+            institute: data.degree.collegeName,
             degree: data.degree.degreeName,
-            fieldOfStudy: data.degree.specialization,
-            startDate: data.degree.startDate.toISOString(),
-            endDate: data.degree.endDate ? data.degree.endDate.toISOString() : null,
-            grade: data.degree.cgpa,
-            description: "First Degree Information",
-
-            // Onboarding Specifics mapping
-            university: data.degree.collegeName,
-            specialization: data.degree.specialization,
-            passingYear: data.degree.endDate ? data.degree.endDate.getFullYear() : undefined,
+            stream: data.degree.specialization,
+            isPursuing: data.degree.isPursuing,
+            percentage: data.degree.cgpa,
+            startDate: data.degree.startDate,
+            endDate: data.degree.endDate || null,
         });
 
         // 2. Insert Class 12
         await db.insert(education).values({
             userId: userId,
-            schoolName: data.class12.schoolName,
-            degree: "Class 12",
-            fieldOfStudy: data.class12.specialization, // Stream
-            startDate: data.class12.startDate.toISOString(),
-            endDate: data.class12.endDate ? data.class12.endDate.toISOString() : null,
-            description: "Second Class 12 Information",
-
-            // Onboarding Specifics mapping
-            passingYear: data.class12.endDate ? data.class12.endDate.getFullYear() : undefined,
+            type: "Class XII",
+            institute: data.class12.schoolName,
+            degree: "Class XII",
+            stream: data.class12.specialization,
+            isPursuing: data.class12.isPursuing,
+            startDate: data.class12.startDate,
+            endDate: data.class12.endDate || null,
         });
 
         return { success: true };
@@ -209,7 +219,8 @@ export async function updatePreferencesAction(
         headline: string;
         locations: string[];
         salary: number;
-        gender: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
+        gender?: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | "ANY" | null;
+        position?: string;
     }
 ) {
     try {
@@ -222,15 +233,33 @@ export async function updatePreferencesAction(
         const { seekerProfiles } = await import("@/lib/db/schema");
         const { eq } = await import("drizzle-orm");
 
-        await db.update(seekerProfiles)
-            .set({
-                bio: data.headline,
-                preferredWorkLocation: data.locations,
-                expectedSalaryMin: data.salary,
-                gender: data.gender,
-                updatedAt: new Date(),
-            })
-            .where(eq(seekerProfiles.userId, userId));
+        // Check if Seeker Profile exists
+        const [existingProfile] = await db
+            .select()
+            .from(seekerProfiles)
+            .where(eq(seekerProfiles.userId, userId))
+            .limit(1);
+
+        const profileData = {
+            bio: data.headline,
+            preferredWorkLocation: data.locations,
+            expectedSalaryMin: data.salary,
+            gender: data.gender || undefined,
+            position: data.position,
+            updatedAt: new Date(),
+        };
+
+        if (existingProfile) {
+            await db.update(seekerProfiles)
+                .set(profileData)
+                .where(eq(seekerProfiles.userId, userId));
+        } else {
+            await db.insert(seekerProfiles).values({
+                ...profileData,
+                userId,
+                fullName: session.user.name || "Anonymous User", // Fallback name
+            });
+        }
 
         return { success: true };
 
@@ -277,7 +306,6 @@ export async function getEmploymentAction(userId: string) {
         // 5. Fetch Latest Experience
         const latestExperience = await db.query.experience.findFirst({
             where: eq(experience.userId, userId),
-            orderBy: [desc(experience.startDate)],
         });
 
         return {
@@ -312,13 +340,9 @@ export async function getEducationAction(userId: string) {
             where: eq(education.userId, userId),
         });
 
-        // Separate Degree and Class 12 based on description or degree name
-        // In updateEducationAction we set:
-        // Degree -> description: "First Degree Information"
-        // Class 12 -> degree: "Class 12", description: "Second Class 12 Information"
-
-        const degreeData = userEducation.find(e => e.description === "First Degree Information" || e.degree !== "Class 12");
-        const class12Data = userEducation.find(e => e.description === "Second Class 12 Information" || e.degree === "Class 12");
+        // Separate Degree and Class 12 based on the 'type' field
+        const degreeData = userEducation.find(e => e.type === "Degree" || e.degree !== "Class XII");
+        const class12Data = userEducation.find(e => e.type === "Class XII" || e.degree === "Class XII");
 
         return {
             success: true,
@@ -358,11 +382,127 @@ export async function getPreferencesAction(userId: string) {
                 locations: profile.preferredWorkLocation,
                 salary: profile.expectedSalaryMin,
                 gender: profile.gender,
+                position: profile.position,
             }
         };
 
     } catch (error) {
         console.error("Get Preferences Error:", error);
         return { error: "Failed to fetch preferences" };
+    }
+}
+
+export async function getProfileCompletionAction(userId: string) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.id !== userId) {
+            return { error: "Unauthorized" };
+        }
+
+        const { db } = await import("@/lib/db/db");
+        const { seekerProfiles, skills, education, experience, projects, languages, achievements } =
+            await import("@/lib/db/schema");
+        const { eq, and, count } = await import("drizzle-orm");
+        const { calculateProfileCompletion } = await import("@/lib/profileCompletion");
+
+        const [profile] = await db
+            .select()
+            .from(seekerProfiles)
+            .where(eq(seekerProfiles.userId, userId))
+            .limit(1);
+
+        const [{ value: skillsCount }] = await db
+            .select({ value: count() })
+            .from(skills)
+            .where(eq(skills.userId, userId));
+
+        const [{ value: educationCount }] = await db
+            .select({ value: count() })
+            .from(education)
+            .where(eq(education.userId, userId));
+
+        // Experience table holds both Employment and Internships. We check the employmentType or designation if needed,
+        // but for now we'll count them based on a generic 'EMPLOYED' vs 'INTERNSHIP' if we had a type, 
+        // however the schema uses `employmentType` which is preferredWorkTypeEnum: FULL_TIME, PART_TIME, INTERNSHIP, CONTRACT
+        const [{ value: employmentCount }] = await db
+            .select({ value: count() })
+            .from(experience)
+            .where(
+                and(
+                    eq(experience.userId, userId),
+                    eq(experience.employmentType, "FULL_TIME") // Count as employment
+                )
+            );
+
+        const [{ value: internshipsCount }] = await db
+            .select({ value: count() })
+            .from(experience)
+            .where(
+                and(
+                    eq(experience.userId, userId),
+                    eq(experience.employmentType, "INTERNSHIP")
+                )
+            );
+
+        const [{ value: projectsCount }] = await db
+            .select({ value: count() })
+            .from(projects)
+            .where(eq(projects.userId, userId));
+
+        const [{ value: languagesCount }] = await db
+            .select({ value: count() })
+            .from(languages)
+            .where(eq(languages.userId, userId));
+
+        // Achievements table holds multiple types: CERTIFICATION, AWARD, CLUB, EXAM, ACADEMIC
+        const [{ value: accomplishmentsCount }] = await db
+            .select({ value: count() })
+            .from(achievements)
+            .where(
+                and(
+                    eq(achievements.userId, userId),
+                    // In a real app we might use `inArray`, here we just check if it's one of the accomplishment types
+                    // We'll count CERTIFICATION, AWARD, and CLUB as Accomplishments
+                    eq(achievements.type, "CERTIFICATION") // Simplified for now, can be expanded
+                )
+            );
+
+        const [{ value: competitiveExamsCount }] = await db
+            .select({ value: count() })
+            .from(achievements)
+            .where(
+                and(
+                    eq(achievements.userId, userId),
+                    eq(achievements.type, "EXAM")
+                )
+            );
+
+        const [{ value: academicAchievementsCount }] = await db
+            .select({ value: count() })
+            .from(achievements)
+            .where(
+                and(
+                    eq(achievements.userId, userId),
+                    eq(achievements.type, "ACADEMIC")
+                )
+            );
+
+        const result = calculateProfileCompletion({
+            profile: profile ?? null,
+            educationCount: Number(educationCount),
+            skillsCount: Number(skillsCount),
+            languagesCount: Number(languagesCount),
+            internshipsCount: Number(internshipsCount),
+            projectsCount: Number(projectsCount),
+            accomplishmentsCount: Number(accomplishmentsCount),
+            competitiveExamsCount: Number(competitiveExamsCount),
+            employmentCount: Number(employmentCount),
+            academicAchievementsCount: Number(academicAchievementsCount)
+        });
+
+        return { success: true, data: result };
+    } catch (error) {
+        console.error("getProfileCompletionAction error:", error);
+        return { error: "Failed to calculate profile completion" };
     }
 }

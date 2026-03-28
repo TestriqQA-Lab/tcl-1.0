@@ -4,6 +4,7 @@ export interface Category {
   id: string;
   name: string;
   iconName: string; // Material Symbol name
+  jobCount?: string;
 }
 
 export interface Job {
@@ -20,12 +21,12 @@ export interface Job {
 }
 
 export const CATEGORIES: Category[] = [
-  { id: "1", name: "Technology", iconName: "terminal" },
-  { id: "2", name: "Finance", iconName: "account_balance" },
-  { id: "3", name: "Marketing", iconName: "campaign" },
-  { id: "4", name: "Healthcare", iconName: "healing" },
-  { id: "5", name: "Education", iconName: "school" },
-  { id: "6", name: "Design", iconName: "palette" },
+  { id: "1", name: "AI & Machine Learning", iconName: "psychology", jobCount: "1.2K+" },
+  { id: "2", name: "SaaS & Software", iconName: "cloud", jobCount: "3.4K+" },
+  { id: "3", name: "E-Commerce", iconName: "shopping_cart", jobCount: "2.1K+" },
+  { id: "4", name: "FinTech & Crypto", iconName: "account_balance", jobCount: "800+" },
+  { id: "5", name: "Growth Marketing", iconName: "trending_up", jobCount: "1.5K+" },
+  { id: "6", name: "DeepTech / Hardware", iconName: "memory", jobCount: "400+" },
 ];
 
 export const FEATURED_JOBS: Job[] = [
@@ -35,8 +36,8 @@ export const FEATURED_JOBS: Job[] = [
     company: "Stripe",
     location: "San Francisco, CA",
     type: "Full Time",
-    salary: "$140k - $160k",
-    tags: ["Figma", "SaaS", "$140k-$190k"],
+    salary: "₹14L - ₹18L",
+    tags: ["Figma", "SaaS", "₹14L-₹18L"],
     logoBg: "bg-gray-50",
     logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBdAdZlkBNKNvl9pCfPHc0fMa4dpRGuayXm3cbr8CA9LDIqCO4beIUo1y9ouA6F3ZLw5YqA90dUFd4dmVZyh_MVyGe_1qIS0-IRcADI2NVPm7tWgPrYXn6befebSS-aAL3eCge73Z4PbjASJYOwHW4Wyi0gk05mZTnyKXl-6LRcZP0QTJEF6uWlyZKv9jTzUVS-08pWNnY--ABY0gRB02jARzfkpae7uIIqZcT7LTsAw1fXvJMz1AucwhPIg-_53dXRo0659YrEi8DB"
   },
@@ -46,8 +47,8 @@ export const FEATURED_JOBS: Job[] = [
     company: "Airbnb",
     location: "Remote, USA",
     type: "Remote",
-    salary: "$160k+",
-    tags: ["Rust", "AWS", "$180k+"],
+    salary: "₹18L+",
+    tags: ["Rust", "AWS", "₹18L+"],
     logoBg: "bg-gray-50",
     logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAyksUJ4zn11jvirQ3rx-g5gSjlcD4t7hMWZLjMb94P71Q41E2uXVHde3vPMngKF0oL3-8kD4Ek8Rcki5poOAwRJ27eFxztD8ELInhBgT8ZI0cJKbxSK9LLnqXkk081YlrFcSMMV5v7mKNNhYpykHvvdB4QDbiaLiWwq3qDAjbxl9H_MtzTn_R9fbcnSdmqk59DQS-tQvZ-VZRKeneQZX6TEwLs1P8ARXCxFZEA9ma-80uVeLyA0ikcfwueXCAtivbzjKsh3lR6PnAd"
   },
@@ -57,8 +58,8 @@ export const FEATURED_JOBS: Job[] = [
     company: "Notion",
     location: "New York, NY",
     type: "Hybrid",
-    salary: "$120k - $150k",
-    tags: ["B2B", "Writing", "$120k-$150k"],
+    salary: "₹12L - ₹16L",
+    tags: ["B2B", "Writing", "₹12L-₹16L"],
     logoBg: "bg-gray-50",
     logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBswTaKOfAwevTOvqVyAd_8Q1pE7p6lrvZpV2pXqDNGg8VM-L6NB9Bk304MqxgBX4xp6bUsB4njBay6hqATFeyIUI_6826KfDv8m1XN6nvZhwm_w-ipT7OnlfGSNeNijrql7mK6kmX-I4vSI9lyIUnmuOfl1OYIeqc9-Ai9dv50Sy16Y2Mxe_WB3ZFG_63Nfk5gaEng2wnmucXKoSIQOsNpyuC7SgYKkL4hluK9mS9fPxM4u42qghBtF0ulJM9N_C3MNmnP6-71zy4q"
   },
@@ -79,8 +80,8 @@ export const FEATURED_JOBS: Job[] = [
     company: "Canva",
     location: "Sydney, AU",
     type: "Urgent", // Mapped from "Urgent" pill in HTML
-    salary: "$90k - $130k",
-    tags: ["SEO", "Ads", "$90k-$130k"],
+    salary: "₹8L - ₹12L",
+    tags: ["SEO", "Ads", "₹8L-₹12L"],
     logoBg: "bg-yellow-50",
     logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAvW-L8Er0uPoQZcU8aFYfN6on4BJzYfaGYHryQ0Yp4TIvivRNzUcHxqgEyQWYcozW_hlZdzTZujf6yAiZENLRv_AD7n0NqzvKAtKwFwN2BXEnmjQJdabQAiHVK0gIbeGRvFI4EMG7xtOHhsuPaoD8oBoZ7cxiP9Mji0X6y5_fER5UUlOcYd3TlfTOP8HaAZpGtCdfznDeIf7g-hnjJ5ahaU7zfRAuwQxdAMg4AYi0vyIw9mJ8HRvFF7WOiflrZIO727YOmudaWc1_p"
   },
@@ -90,8 +91,8 @@ export const FEATURED_JOBS: Job[] = [
     company: "Slack",
     location: "Remote, EMEA",
     type: "Remote",
-    salary: "$160k+",
-    tags: ["Kubernetes", "CI/CD", "$160k+"],
+    salary: "₹16L+",
+    tags: ["Kubernetes", "CI/CD", "₹16L+"],
     logoBg: "bg-gray-50",
     logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuA4r1sxSw0jBDDytvi5FD8-aokVogA2CEey4rsBqYAcofRb2HLw3PjiofvB6fmZvcajygMMddNRFfGCJpqp0djOvGFg_yZYl6sc_m7wm20L1GNuejP4FEgoAV8xbXFcYggOfhQ-kT4crpIZqQ3zQHV_lWy-KkUQ-B-lSWmTzSJe5yvXLytFzM2ImuJOz17mmiC8shMQdK3DqgrXaOp1_2mDcMuvAdYwS6zJ1dE5Qx4tozeVZDobI0ek0J5wCBjhJTsq9HLSf2TTcQTI"
   },

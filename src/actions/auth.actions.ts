@@ -9,7 +9,7 @@ import { AuthError } from "next-auth";
  * @param password - User password
  * @returns Success or error object
  */
-export async function loginAction(email: string, password: string) {
+export async function loginAction(email: string, password: string, expectedRole?: "SEEKER" | "EMPLOYER") {
     try {
         // Validate inputs
         if (!email || !password) {
@@ -22,6 +22,34 @@ export async function loginAction(email: string, password: string) {
             return { error: "Invalid email format" };
         }
 
+        // Role check: verify the user's role matches the expected portal
+        if (expectedRole) {
+            const { db } = await import("@/lib/db/db");
+            const { users } = await import("@/lib/db/schema");
+            const { eq } = await import("drizzle-orm");
+
+            const found = await db
+                .select({ role: users.userRole })
+                .from(users)
+                .where(eq(users.email, email.toLowerCase()))
+                .limit(1);
+
+            if (found.length === 0) {
+                return { error: "Invalid email or password" };
+            }
+
+            const userRole = found[0].role;
+            const isAdminEmail = email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
+
+            if (userRole !== expectedRole && !isAdminEmail) {
+                if (expectedRole === "EMPLOYER") {
+                    return { error: "This email is registered as a Job Seeker. Please use the Seeker login." };
+                } else {
+                    return { error: "This email is registered as an Employer. Please use the Employer login." };
+                }
+            }
+        }
+
         // Call Auth.js signIn with credentials
         const result = await signIn("credentials", {
             email,
@@ -30,7 +58,8 @@ export async function loginAction(email: string, password: string) {
         });
 
         // If we reach here without error, login was successful
-        return { success: true };
+        const isAdmin = process.env.ADMIN_EMAIL && email.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
+        return { success: true, isAdmin };
     } catch (error) {
         // Auth.js throws AuthError for invalid credentials
         if (error instanceof AuthError) {
@@ -50,6 +79,12 @@ export async function loginAction(email: string, password: string) {
 export async function logoutAction() {
     try {
         await signOut({ redirect: false });
+
+        // Clear the oauth_role cookie set during Google sign-in flow
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        cookieStore.set("oauth_role", "", { maxAge: 0, path: "/" });
+
         return { success: true };
     } catch (error) {
         console.error("Logout error:", error);
@@ -70,7 +105,7 @@ export async function registerAction(
     password: string,
     role: string = "SEEKER",
     mobileNumber?: string,
-    workStatus?: "EXPERIENCED" | "FRESHER",
+    currentLocation?: string,
     resumeUrl?: string
 ) {
     try {
@@ -108,18 +143,25 @@ export async function registerAction(
         if (existingUser && existingUser.provider === "google") {
 
             // Ensure role is valid
-            const validRole = ["SEEKER", "EMPLOYER"].includes(role) ? role : existingUser.userRole;
+            const isAdminEmail = email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
+            let validRole: "SEEKER" | "EMPLOYER" | "ADMIN" = existingUser.userRole;
+            
+            if (isAdminEmail) {
+                validRole = "ADMIN";
+            } else if (["SEEKER", "EMPLOYER"].includes(role)) {
+                validRole = role as "SEEKER" | "EMPLOYER";
+            }
 
             await db.transaction(async (tx) => {
                 // Update users table with phone number and ensure role is correct
                 await tx.update(users)
                     .set({
                         phoneNumber: mobileNumber || existingUser.phoneNumber,
-                        userRole: validRole as "SEEKER" | "EMPLOYER",
+                        userRole: validRole,
                     })
                     .where(eq(users.id, existingUser.id));
 
-                // Update or create seeker profile
+                // Update or create seeker profile (Admins don't strictly need one, but this preserves existing behavior for SEEKER/EMPLOYER)
                 if (validRole === "SEEKER") {
                     const existingProfiles = await tx
                         .select()
@@ -130,7 +172,8 @@ export async function registerAction(
                     if (existingProfiles.length > 0) {
                         await tx.update(seekerProfiles)
                             .set({
-                                workStatus: workStatus || existingProfiles[0].workStatus,
+                                fullName: name, // Allow user to override Google name
+                                currentLocation: currentLocation || existingProfiles[0].currentLocation,
                                 resumeUrl: resumeUrl || existingProfiles[0].resumeUrl,
                             })
                             .where(eq(seekerProfiles.userId, existingUser.id));
@@ -141,7 +184,8 @@ export async function registerAction(
                             experienceLevel: 0,
                             resumeUrl: resumeUrl || "",
                             coverLetter: "",
-                            workStatus: workStatus || "FRESHER",
+                            workStatus: "FRESHER",
+                            currentLocation: currentLocation || null,
                         });
                     }
                 }
@@ -166,7 +210,10 @@ export async function registerAction(
         const username = `${baseUsername}${uniqueSuffix}`;
 
         // Ensure role is valid
-        const validRole = ["SEEKER", "EMPLOYER"].includes(role) ? role : "SEEKER";
+        const isAdminEmail = email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
+        const validRole: "SEEKER" | "EMPLOYER" | "ADMIN" = isAdminEmail 
+            ? "ADMIN" 
+            : (["SEEKER", "EMPLOYER"].includes(role) ? role as "SEEKER" | "EMPLOYER" : "SEEKER");
 
         // Use transaction to ensure both user and profile are created
         await db.transaction(async (tx) => {
@@ -175,7 +222,7 @@ export async function registerAction(
                 email,
                 password: hashedPassword,
                 username,
-                userRole: validRole as "SEEKER" | "EMPLOYER",
+                userRole: validRole,
                 phoneNumber: mobileNumber || null,
                 isVerified: false,
                 accountStatus: "ACTIVE",
@@ -189,17 +236,16 @@ export async function registerAction(
                     experienceLevel: 0,
                     resumeUrl: resumeUrl || "",
                     coverLetter: "",
-                    workStatus: workStatus || "FRESHER", // Mapping to new field in schema
+                    workStatus: "FRESHER", // Step 2 onboarding manages this
+                    currentLocation: currentLocation || null,
                 });
             } else if (validRole === "EMPLOYER") {
                 await tx.insert(employerProfiles).values({
                     userId: newUser.id,
-                    companyName: name, // Use registered name as initial company name
-                    companyDescription: "Pending description",
-                    companyWebsite: "https://example.com",
-                    companySize: 1,
-                    companyIndustry: "General",
-                    companyLocation: "Remote",
+                    fullName: name,
+                    accountType: "COMPANY",
+                    hiringFor: "COMPANY",
+                    companyName: null,
                     companyLogo: "",
                 });
             }

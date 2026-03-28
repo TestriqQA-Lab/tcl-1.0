@@ -4,6 +4,7 @@ export interface Company {
     tagline: string;
     logo_bg: string; // Tailwind class for logo background
     logo_icon: string; // Material Symbol name
+    logo_url?: string; // Real image URL
     banner_image?: string; // Optional banner
     location: string;
     employees: string;
@@ -76,7 +77,7 @@ export const COMPANY_DATA: Company = {
             icon_bg: "bg-indigo-500/10",
             icon_color: "text-indigo-600",
             title: "Growth",
-            description: "Dedicated mentorship programs and a $5k annual professional development budget for all."
+            description: "Dedicated mentorship programs and a ₹50,000 annual professional development budget for all."
         }
     ],
     roles: [

@@ -2,10 +2,31 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Check, Edit3, Briefcase } from "lucide-react";
 
-export const MobileProfileCard = () => {
-    const completionPercentage = 63;
+export const MobileProfileCard = ({ userName, userImage, completionPercentage = 0, isLoading = false }: { userName?: string | null; userImage?: string | null; completionPercentage?: number; isLoading?: boolean }) => {
+
+    if (isLoading) {
+        return (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6 animate-pulse">
+                <div className="flex items-center gap-4 mb-4">
+                    <div className="w-14 h-14 bg-gray-200 rounded-full"></div>
+                    <div className="flex-1">
+                        <div className="h-5 bg-gray-200 rounded w-1/2 mb-2"></div>
+                        <div className="h-4 bg-gray-100 rounded w-3/4"></div>
+                    </div>
+                </div>
+                <div className="mb-2">
+                    <div className="flex justify-between mb-2">
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        <div className="h-4 bg-gray-200 rounded w-8"></div>
+                    </div>
+                    <div className="h-2 w-full bg-gray-100 rounded-full"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
@@ -14,8 +35,8 @@ export const MobileProfileCard = () => {
                 <div className="relative w-16 h-16 flex-shrink-0">
                     <div className="w-full h-full rounded-full overflow-hidden border-2 border-[#f0f9f8]">
                         <Image
-                            src="https://ui-avatars.com/api/?name=Rohan+Bhatia&background=0D8ABC&color=fff"
-                            alt="Rohan"
+                            src={userImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName || "User")}&background=0D8ABC&color=fff`}
+                            alt={userName || "User"}
                             fill
                             className="object-cover"
                         />
@@ -25,14 +46,14 @@ export const MobileProfileCard = () => {
                 {/* Info */}
                 <div className="flex-1">
                     <div className="flex items-center gap-1.5 mb-1">
-                        <h2 className="text-lg font-bold text-gray-900">Rohan Bhatia</h2>
+                        <h2 className="text-lg font-bold text-gray-900">{userName || "User"}</h2>
                         <div className="bg-[#0f766d] rounded-full p-0.5">
                             <Check className="w-2 h-2 text-white stroke-[3]" />
                         </div>
                     </div>
                     <p className="text-[#0f766d] text-sm font-semibold flex items-center gap-1.5">
                         <Check className="w-3.5 h-3.5" />
-                        63% profile complete
+                        {completionPercentage}% profile complete
                     </p>
                 </div>
             </div>
@@ -41,10 +62,10 @@ export const MobileProfileCard = () => {
             <div className="mb-2">
                 <div className="flex justify-between text-sm font-semibold text-[#0f766d] mb-2">
                     <span>Profile Strength</span>
-                    <span>63%</span>
+                    <span>{completionPercentage}%</span>
                 </div>
                 <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#0f766d] rounded-full w-[63%]"></div>
+                    <div className="h-full bg-[#0f766d] rounded-full" style={{ width: `${completionPercentage}%` }}></div>
                 </div>
             </div>
 
@@ -52,10 +73,10 @@ export const MobileProfileCard = () => {
                 Add your skills to reach 100% and get 3x more visibility.
             </p>
 
-            <button className="w-full bg-[#0f766d] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#0d655d] transition-colors">
+            <Link href="/seeker/profile" className="w-full bg-[#0f766d] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#0d655d] transition-colors">
                 <Edit3 className="w-4 h-4" />
                 Complete Profile
-            </button>
+            </Link>
         </div>
     );
 };

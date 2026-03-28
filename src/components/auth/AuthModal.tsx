@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 interface AuthModalProps {
@@ -12,6 +13,12 @@ interface AuthModalProps {
 }
 
 export const AuthModal = ({ isOpen, onClose, children, title, subtitle }: AuthModalProps) => {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Close on Escape key
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
@@ -27,9 +34,9 @@ export const AuthModal = ({ isOpen, onClose, children, title, subtitle }: AuthMo
         };
     }, [isOpen, onClose]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !mounted) return null;
 
-    return (
+    const modalContent = (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-8">
             {/* Backdrop */}
             <div
@@ -66,4 +73,6 @@ export const AuthModal = ({ isOpen, onClose, children, title, subtitle }: AuthMo
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };

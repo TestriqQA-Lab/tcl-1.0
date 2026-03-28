@@ -7,6 +7,11 @@
   --foreground: #0e1b1a;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
 @theme inline {
   --color-primary: var(--primary);
   --color-background-light: var(--background-light);
@@ -23,6 +28,17 @@ body {
   font-family: var(--font-sans);
   background-color: var(--background-light);
   color: var(--foreground);
+}
+
+/* Brand color text selection highlight - Force override */
+::selection {
+  background-color: #0f766d !important;
+  color: #ffffff !important;
+}
+
+*::selection {
+  background-color: #0f766d !important;
+  color: #ffffff !important;
 }
 
 h1,

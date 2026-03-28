@@ -1,20 +1,87 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { SearchJobCard } from "@/components/search/SearchJobCard";
-import { SEARCH_JOBS, JOB_TYPE_FILTERS, DATE_POSTED_FILTERS } from "@/data/search-mock-data";
+import { getJobs } from "@/actions/job.actions";
+import { SearchJobFilters, JobFilterState } from "@/components/search/SearchJobFilters";
 
-export default function SearchPage() {
-    const [searchKeyword, setSearchKeyword] = useState("Product Designer");
-    const [searchLocation, setSearchLocation] = useState("Bengaluru");
-    const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>(["Full-time"]);
-    const [selectedDateFilter, setSelectedDateFilter] = useState("Last 7 days");
+const INITIAL_FILTER_STATE: JobFilterState = {
+    freshness: "all",
+    experience: "",
+    salaryRange: [],
+    workModes: [],
+    locations: [],
+    industries: [],
+    departments: [],
+    companyTypes: "",
+    roleCategories: [],
+    postedBy: []
+};
+
+function SearchContent() {
+    const searchParams = useSearchParams();
+    
+    // Read initial values from URL if they exist
+    const initialKeyword = searchParams.get("keyword") || "";
+    const initialLocation = searchParams.get("location") || "";
+
+    const [searchKeyword, setSearchKeyword] = useState(initialKeyword);
+    const [searchLocation, setSearchLocation] = useState(initialLocation);
+    const [filters, setFilters] = useState<JobFilterState>(INITIAL_FILTER_STATE);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-    const toggleJobType = (type: string) => {
-        setSelectedJobTypes((prev) =>
-            prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-        );
+    const [jobs, setJobs] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchJobs = async () => {
+        setLoading(true);
+        try {
+            // Parse salary ranges if any
+            let salaryMin = undefined;
+            let salaryMax = undefined;
+            if (filters.salaryRange.length > 0) {
+                const ranges = filters.salaryRange.map(r => {
+                    const match = r.match(/(\d+)-(\d+)/);
+                    if (match) return [parseInt(match[1]) * 100000, parseInt(match[2]) * 100000];
+                    if (r.includes("100+")) return [10000000, 999999999];
+                    return [0, 0];
+                });
+                salaryMin = Math.min(...ranges.map(r => r[0]));
+                salaryMax = Math.max(...ranges.map(r => r[1]));
+            }
+
+            const data = await getJobs({
+                keyword: searchKeyword,
+                location: searchLocation,
+                workModes: filters.workModes,
+                salaryMin,
+                salaryMax,
+                experience: filters.experience ? parseInt(filters.experience) : undefined,
+                freshness: filters.freshness !== "all" ? filters.freshness : undefined,
+                departments: filters.departments.length > 0 ? filters.departments : undefined,
+                companyTypes: filters.companyTypes ? [filters.companyTypes] : undefined,
+                roleCategories: filters.roleCategories.length > 0 ? filters.roleCategories : undefined,
+                industries: filters.industries.length > 0 ? filters.industries : undefined,
+                locations: filters.locations,
+                postedBy: filters.postedBy,
+            });
+            setJobs(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchJobs();
+    }, [filters]); // re-fetch when filters change
+
+    const handleClearAll = () => {
+        setFilters(INITIAL_FILTER_STATE);
+        setSearchKeyword("");
+        setSearchLocation("");
     };
 
     return (
@@ -43,7 +110,10 @@ export default function SearchPage() {
                                 onChange={(e) => setSearchLocation(e.target.value)}
                             />
                         </div>
-                        <button className="w-full md:w-auto rounded-xl bg-[#0f766d] px-8 py-3 font-bold text-white shadow-lg shadow-[#0f766d]/20 hover:bg-[#0f766d]/90 active:scale-[0.98] transition-all">
+                        <button
+                            onClick={fetchJobs}
+                            className="w-full md:w-auto rounded-xl bg-[#0f766d] px-8 py-3 font-bold text-white shadow-lg shadow-[#0f766d]/20 hover:bg-[#0f766d]/90 active:scale-[0.98] transition-all"
+                        >
                             Search
                         </button>
                     </div>
@@ -51,31 +121,26 @@ export default function SearchPage() {
             </div>
 
             {/* Results Header */}
-            <div className="max-w-7xl mx-auto md:px-2 py-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-md md:text-lg font-bold text-slate-900">
-                            238 jobs found for '{searchKeyword}' in {searchLocation}
+            <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-10 py-6 min-w-0">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                        <p className="text-md md:text-lg font-bold text-slate-900 truncate">
+                            {jobs.length} job{jobs.length === 1 ? "" : "s"} found
+                            {searchKeyword ? ` for '${searchKeyword}'` : ""}
+                            {searchLocation ? ` in ${searchLocation}` : ""}
                         </p>
                     </div>
-                    <div className="hidden md:flex items-center gap-3 text-sm">
-                        <span className="text-slate-500">Sort by</span>
-                        <select className="border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-[#0f766d]">
-                            <option>Most Relevant</option>
-                            <option>Latest</option>
-                            <option>Salary: High to Low</option>
-                        </select>
-                    </div>
+
                     {/* Mobile Filter Button */}
                     <button
-                        className="md:hidden flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold"
+                        className="md:hidden flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold shrink-0"
                         onClick={() => setShowMobileFilters(true)}
                     >
                         <span className="material-symbols-outlined text-sm">tune</span>
                         Filter
-                        {selectedJobTypes.length > 0 && (
+                        {Object.values(filters).flat().filter(v => v !== "" && v !== "all").length > 0 && (
                             <span className="flex size-5 items-center justify-center rounded-full bg-[#0f766d] text-[10px] text-white">
-                                {selectedJobTypes.length}
+                                {Object.values(filters).flat().filter(v => v !== "" && v !== "all").length}
                             </span>
                         )}
                     </button>
@@ -83,85 +148,43 @@ export default function SearchPage() {
             </div>
 
             {/* Main Content: Sidebar + Job Listings */}
-            <div className="max-w-7xl mx-auto pb-12">
-                <div className="flex gap-8">
+            <div className="max-w-7xl mx-auto pb-12 px-4 md:px-6 lg:px-10 min-w-0">
+                <div className="flex flex-col md:flex-row gap-8 min-w-0">
                     {/* Desktop Filters Sidebar */}
-                    <aside className="hidden md:block w-64 shrink-0">
-                        <div className="sticky top-24 bg-white rounded-xl border border-slate-200 p-5 space-y-6">
-                            <div className="flex items-center justify-between">
-                                <h3 className="font-bold text-slate-900">Filters</h3>
-                                <button className="text-sm text-[#0f766d] font-medium hover:underline">Clear all</button>
-                            </div>
-
-                            {/* Job Type */}
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Job Type</h4>
-                                <div className="space-y-2">
-                                    {JOB_TYPE_FILTERS.map((type) => (
-                                        <label key={type} className="flex items-center gap-3 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                className="size-4 rounded border-slate-300 text-[#0f766d] focus:ring-[#0f766d]"
-                                                checked={selectedJobTypes.includes(type)}
-                                                onChange={() => toggleJobType(type)}
-                                            />
-                                            <span className="text-sm text-slate-700">{type}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Salary Range */}
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Salary Range</h4>
-                                <div className="space-y-3">
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="200"
-                                        defaultValue="150"
-                                        className="w-full accent-[#0f766d]"
-                                    />
-                                    <div className="flex justify-between text-xs text-slate-500">
-                                        <span>$0</span>
-                                        <span>$200k+</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Date Posted */}
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Date Posted</h4>
-                                <div className="space-y-2">
-                                    {DATE_POSTED_FILTERS.map((date) => (
-                                        <label key={date} className="flex items-center gap-3 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="datePosted"
-                                                className="size-4 border-slate-300 text-[#0f766d] focus:ring-[#0f766d]"
-                                                checked={selectedDateFilter === date}
-                                                onChange={() => setSelectedDateFilter(date)}
-                                            />
-                                            <span className="text-sm text-slate-700">{date}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                    <aside className="hidden md:block w-72 shrink-0">
+                        <SearchJobFilters 
+                            filters={filters} 
+                            onChange={setFilters} 
+                            onClear={handleClearAll}
+                        />
                     </aside>
 
                     {/* Job Listings */}
-                    <main className="flex-1 space-y-4">
-                        {SEARCH_JOBS.map((job) => (
-                            <SearchJobCard key={job.id} job={job} />
-                        ))}
+                    <main className="flex-1 space-y-4 min-w-0 w-full overflow-hidden">
+                        {loading ? (
+                            <div className="flex justify-center items-center h-64 w-full">
+                                <span className="material-symbols-outlined text-4xl animate-spin text-[#0f766d]">refresh</span>
+                            </div>
+                        ) : jobs.length > 0 ? (
+                            jobs.map((job) => (
+                                <SearchJobCard key={job.id} job={job} />
+                            ))
+                        ) : (
+                            <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+                                <span className="material-symbols-outlined text-6xl text-slate-300 mb-4 block">search_off</span>
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">No jobs found</h3>
+                                <p className="text-slate-500">We couldn't find any jobs matching your criteria. Try adjusting your filters.</p>
+                            </div>
+                        )}
 
                         {/* Load More Button */}
-                        <div className="pt-6 text-center">
-                            <button className="rounded-full border-2 border-slate-200 bg-white px-8 py-3 text-sm font-bold text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-                                Load more jobs
-                            </button>
-                        </div>
+                        {jobs.length > 0 && (
+                            <div className="pt-6 text-center">
+                                <button className="rounded-full border-2 border-slate-200 bg-white px-8 py-3 text-sm font-bold text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors">
+                                    Load more jobs
+                                </button>
+                            </div>
+                        )}
                     </main>
                 </div>
             </div>
@@ -170,7 +193,7 @@ export default function SearchPage() {
             {showMobileFilters && (
                 <div className="fixed inset-0 z-50 bg-black/50 md:hidden" onClick={() => setShowMobileFilters(false)}>
                     <div
-                        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 max-h-[80vh] overflow-y-auto"
+                        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between mb-6">
@@ -180,46 +203,18 @@ export default function SearchPage() {
                             </button>
                         </div>
 
-                        {/* Job Type */}
-                        <div className="mb-6">
-                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Job Type</h4>
-                            <div className="space-y-3">
-                                {JOB_TYPE_FILTERS.map((type) => (
-                                    <label key={type} className="flex items-center gap-3 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            className="size-5 rounded border-slate-300 text-[#0f766d] focus:ring-[#0f766d]"
-                                            checked={selectedJobTypes.includes(type)}
-                                            onChange={() => toggleJobType(type)}
-                                        />
-                                        <span className="text-sm text-slate-700">{type}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Date Posted */}
-                        <div className="mb-6">
-                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Date Posted</h4>
-                            <div className="space-y-3">
-                                {DATE_POSTED_FILTERS.map((date) => (
-                                    <label key={date} className="flex items-center gap-3 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="datePostedMobile"
-                                            className="size-5 border-slate-300 text-[#0f766d] focus:ring-[#0f766d]"
-                                            checked={selectedDateFilter === date}
-                                            onChange={() => setSelectedDateFilter(date)}
-                                        />
-                                        <span className="text-sm text-slate-700">{date}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
+                        <SearchJobFilters 
+                            filters={filters} 
+                            onChange={setFilters} 
+                            onClear={handleClearAll}
+                        />
 
                         <button
-                            className="w-full rounded-xl bg-[#0f766d] py-4 font-bold text-white"
-                            onClick={() => setShowMobileFilters(false)}
+                            className="w-full rounded-xl bg-[#0f766d] py-4 font-bold text-white mt-6"
+                            onClick={() => {
+                                setShowMobileFilters(false);
+                                fetchJobs();
+                            }}
                         >
                             Apply Filters
                         </button>
@@ -227,5 +222,13 @@ export default function SearchPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function SearchPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-[#0f766d]"><span className="material-symbols-outlined text-4xl animate-spin">refresh</span></div>}>
+            <SearchContent />
+        </Suspense>
     );
 }

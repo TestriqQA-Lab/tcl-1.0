@@ -1,70 +1,102 @@
 // Mock data for search page
 
-export interface SearchJob {
-    id: string;
-    title: string;
-    company: string;
-    companyLogo: string;
-    location: string;
-    type: string;
-    description: string;
-    salary: string;
-}
+export const JOB_TYPE_FILTERS = ["Onsite", "Hybrid", "Remote"];
 
-export const SEARCH_JOBS: SearchJob[] = [
-    {
-        id: "1",
-        title: "Senior Product Designer",
-        company: "Google",
-        companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuCdZa_HZnMhN8Y16gaQS0wmgJAX2QQPz7g8xYDA-CFKERzCSQyWqTXeboGl6ZLyt3dzfKl3hEyjjKWzF50mUvAFLYNxcbhyonFHndN8VAgQtbENjbC_IXiKlUhGlLOkrGuJnLEx8LK38Pd14SF-jHoD_kLRKZVb6-LgeEBiJd1_3hZulgs-bPp2NREZoWNTjbHbB3J40eI2_VRb-uafIV2i2Vffh_LAgxI4fGGEdl42UBJX2Ia5eNRIlStZF320YYiXBW04S0r3D3rh",
-        location: "Bengaluru (Hybrid)",
-        type: "Full-time",
-        description: "We are looking for a Senior Product Designer to lead design initiatives for our cloud infrastructure products. You will collaborate closely with engineering and PMs to define the user journey...",
-        salary: "$140k - $180k",
-    },
-    {
-        id: "2",
-        title: "UX Designer (Growth)",
-        company: "Razorpay",
-        companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuBhlor9VzdD8vX3YDQePkFjBsfp4c2Xws4UBQVap-Ye0bTqi0RgdNJeZGxy4RMAXyfQsk8l9NfkyJHUs6N7qS_l961MbASsqfl8s9OMF2IIAAeVMV25nY7rCZKgu7kbAql5cQi5P0vQGtbJ1V-SWwCyPVNi_dkIy4Z68XwDVCq7Njj-aN_swc60UKuaH-bB8Wuo68mtLymPgQcFEOLXvAjHfQEPk4h83TsWszrWpmPEdjUaoetJj514pnDg4e6S-WN1Fp5hTEZj91jU",
-        location: "Koramangala, Bengaluru",
-        type: "Remote Friendly",
-        description: "Join the growth team at India's leading fintech platform. You will be responsible for optimizing onboarding funnels and running A/B tests to improve conversion rates...",
-        salary: "$120k - $150k",
-    },
-    {
-        id: "3",
-        title: "Lead Visual Designer",
-        company: "Swiggy",
-        companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuCw2puTohRujx7XoA10TVVrYH39PX2duHda_hKI-8UOpoVXsBm6c8Z-TIN__1FF8wLPmBWucmE0BgO-LgirNAWbYtqSj4ELxpaPdetRDbctJz5DCPyyxKZ7c_zVT8KZ2lwfOHR551oCwvPwDDJLX0ZGNZDILIWrb7ddooXjRZXIauzK96lgGDk2anY4TsLgvX4s2CJ_oazaYLO-dv8pm0bRn0ZS62e-Wq9PCv6ERgAbiAUjG_A-SjB04r0AgFqr8KCy2kFyShJD02a3",
-        location: "Bengaluru (On-site)",
-        type: "Full-time",
-        description: "Lead the brand identity and visual strategy across all customer touchpoints. We are looking for a visionary who can elevate our aesthetic standards...",
-        salary: "$100k - $140k",
-    },
-    {
-        id: "4",
-        title: "Product Designer",
-        company: "Flipkart",
-        companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuA9Zr0zZLAImweO7R3BvYv5fTdgteiAgQO6aBmEvQ9_4XDCeZxqdG6iFrsK3XnPjCaosMgqEDduy9dvcBlS0ceyWB8wYDvqFb_j6IPnIvD36tvqaPsc7YElzJFxLNGEO6MW8EWJHR9VbX9BqKWAICKZtGierY06MK2-q1iT2YxQA6Pe6K-cYsYNL8SB4QcMGCJhk5KJCGF-mODYbKYh6T4t2NWXTolIs3Rljq_cTQ6lAVJp8On2TcO8zPL_eLJJYxABRk10u8wrTSxj",
-        location: "Bengaluru (Hybrid)",
-        type: "Full-time",
-        description: "Design intuitive shopping experiences for millions of users. Work on features that impact India's largest e-commerce platform and its diverse customer base...",
-        salary: "$90k - $130k",
-    },
-    {
-        id: "5",
-        title: "UI/UX Designer",
-        company: "PhonePe",
-        companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuDDQSE2tzOxcUhSAD1bn8uJTSLE8q_yNQkDARmc5TU-z3a_UyKUjhf9wl0LKrYvMnHDNrDfn2v_feQ12R7oFy-YunVi0baDXpUFRdfN1Cg689Geusf_yTd1REODX5cZ-xLT74JuPuYH10rSwewqKZPLt-JDr4vJdYdGRcplGUT0_rx1ugSR-5qVKGV1p1G9msOhC2Hp81v9daKZZJXw9tgAt3coCsFBUYVhq4JVPy3ikrA3Je_gBHUNR1UruAyI6FhuNxpTpoSRoJDe",
-        location: "Bengaluru (Remote)",
-        type: "Remote Friendly",
-        description: "Create seamless payment experiences for one of India's fastest-growing fintech apps. Design for scale and simplicity across mobile platforms...",
-        salary: "$80k - $120k",
-    },
+export const DATE_POSTED_FILTERS = [
+    { label: "Any time", value: "all" },
+    { label: "Last 24 hours", value: "1d" },
+    { label: "Last 7 days", value: "7d" },
+    { label: "Last 30 days", value: "30d" }
 ];
 
-export const JOB_TYPE_FILTERS = ["Full-time", "Remote", "Contract", "Internship"];
+export const WORK_MODE_FILTERS = ["Onsite", "Work from office", "Remote", "Hybrid"];
 
-export const DATE_POSTED_FILTERS = ["Last 24 hours", "Last 7 days", "Last 30 days"];
+export const INDIAN_CITIES = [
+    "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad", "Chennai", "Kolkata", "Surat", 
+    "Pune", "Jaipur", "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", 
+    "Pimpri-Chinchwad", "Patna", "Vadodara", "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad", 
+    "Meerut", "Rajkot", "Kalyan-Dombivli", "Vasai-Virar", "Varanasi", "Srinagar", "Aurangabad", 
+    "Dhanbad", "Amritsar", "Navi Mumbai", "Allahabad", "Ranchi", "Howrah", "Jabalpur", "Gwalior", 
+    "Vijayawada", "Jodhpur", "Madurai", "Raipur", "Kota", "Guwahati", "Chandigarh", "Solapur", 
+    "Hubli–Dharwad", "Bareilly", "Moradabad", "Mysore", "Gurgaon", "Aligarh", "Jalandhar", 
+    "Tiruchirappalli", "Bhubaneswar", "Salem", "Mira-Bhayandar", "Warangal", "Guntur", "Bhiwandi", 
+    "Saharanpur", "Gorakhpur", "Bikaner", "Amravati", "Noida", "Jamshedpur", "Bhilai", "Cuttack", 
+    "Firozabad", "Kochi", "Nellore", "Bhavnagar", "Dehradun", "Durgapur", "Rourkela", "Ajmer", 
+    "Kollam", "Ujjain"
+];
 
+export const EXPERIENCE_OPTIONS = [
+    { label: "Any", value: "" },
+    { label: "Fresher", value: "0" },
+    { label: "1 Year", value: "1" },
+    { label: "2 Years", value: "2" },
+    { label: "3 Years", value: "3" },
+    { label: "5 Years", value: "5" },
+    { label: "7 Years", value: "7" },
+    { label: "10+ Years", value: "10" }
+];
+
+export const SALARY_FILTERS = [
+    "0-3 Lakhs",
+    "3-6 Lakhs",
+    "6-10 Lakhs",
+    "10-15 Lakhs",
+    "15-25 Lakhs",
+    "25-50 Lakhs",
+    "50-75 Lakhs",
+    "75-100 Lakhs",
+    "100+ Lakhs"
+];
+
+export const DEPARTMENT_FILTERS = [
+    "Engineering - Software & QA",
+    "IT & Information Security",
+    "UX, Design & Architecture",
+    "Sales & Business Development",
+    "Marketing & Communication",
+    "Project & Program Management",
+    "Data Science & Analytics",
+    "Customer Success & Support"
+];
+
+export const COMPANY_TYPE_FILTERS = [
+    "Foreign MNC",
+    "Corporate",
+    "Startup",
+    "Indian MNC",
+    "Others"
+];
+
+export const INDUSTRY_FILTERS = [
+    "IT Services & Consulting",
+    "Software Product",
+    "Internet",
+    "E-Commerce",
+    "Fintech",
+    "Edtech",
+    "Healthcare",
+    "Recruitment / Staffing"
+];
+
+export const EDUCATION_FILTERS = [
+    "Any Graduate",
+    "B.Tech/B.E.",
+    "B.Com",
+    "MCA",
+    "M.Tech",
+    "MBA/PGDM",
+    "Any Postgraduate",
+    "Doctorate"
+];
+
+export const ROLE_CATEGORY_FILTERS = [
+    "Software Development",
+    "Quality Assurance",
+    "Data Science",
+    "System Architecture",
+    "UI / UX Design",
+    "Mobile App Development",
+    "DevOps"
+];
+
+export const POSTED_BY_FILTERS = ["Company", "Consultant"];

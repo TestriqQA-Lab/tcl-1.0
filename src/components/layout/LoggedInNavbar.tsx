@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Bell, X } from "lucide-react";
+import { Search, Bell, X, LogOut, LayoutDashboard } from "lucide-react";
 import { Session } from "next-auth";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { NotificationPopup } from "./NotificationPopup";
@@ -18,6 +18,19 @@ export const LoggedInNavbar = ({ session, onLogout }: LoggedInNavbarProps) => {
     const userInitial = user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U";
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const profileMenuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+                setIsProfileMenuOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     return (
         <>
@@ -72,13 +85,48 @@ export const LoggedInNavbar = ({ session, onLogout }: LoggedInNavbarProps) => {
                             </div>
 
                             {/* User Avatar */}
-                            <Link href="/user-dashboard" className="w-10 h-10 rounded-full bg-[#0e3f3a] text-white flex items-center justify-center font-bold border border-gray-200 overflow-hidden cursor-pointer">
-                                {user?.image ? (
-                                    <Image src={user.image} alt={user.name || "User"} width={40} height={40} className="object-cover" />
-                                ) : (
-                                    <span>{userInitial}</span>
+                            <div className="relative" ref={profileMenuRef}>
+                                <button
+                                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                    className="w-10 h-10 rounded-full bg-[#0e3f3a] text-white flex items-center justify-center font-bold border border-gray-200 overflow-hidden cursor-pointer"
+                                    aria-label="User Profile Menu"
+                                >
+                                    {user?.image ? (
+                                        <Image src={user.image} alt={user.name || "User"} width={40} height={40} className="object-cover" />
+                                    ) : (
+                                        <span>{userInitial}</span>
+                                    )}
+                                </button>
+
+                                {isProfileMenuOpen && (
+                                    <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="px-4 py-3 border-b border-gray-100">
+                                            <p className="text-sm font-semibold text-gray-900 truncate">{user?.name || "User"}</p>
+                                            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                                        </div>
+                                        <div className="p-2 space-y-1">
+                                            <Link
+                                                href="/seeker/dashboard"
+                                                onClick={() => setIsProfileMenuOpen(false)}
+                                                className="w-full text-left px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#0f766d] hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-2"
+                                            >
+                                                <LayoutDashboard className="w-4 h-4" />
+                                                Dashboard
+                                            </Link>
+                                            <button
+                                                onClick={() => {
+                                                    setIsProfileMenuOpen(false);
+                                                    onLogout();
+                                                }}
+                                                className="w-full text-left px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
+                                            >
+                                                <LogOut className="w-4 h-4" />
+                                                Logout
+                                            </button>
+                                        </div>
+                                    </div>
                                 )}
-                            </Link>
+                            </div>
                         </div>
                     </div>
                 </div>

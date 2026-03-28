@@ -17,7 +17,7 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
         email: "",
         password: "",
         mobileNumber: "",
-        workStatus: "FRESHER",
+        currentLocation: "",
         whatsappUpdates: true,
     });
     const [errors, setErrors] = useState<Partial<Record<keyof RegisterFormData, string>>>({});
@@ -82,7 +82,7 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
                         email: "",
                         password: "",
                         mobileNumber: "",
-                        workStatus: "FRESHER",
+                        currentLocation: "",
                         whatsappUpdates: true,
                     });
                     alert("Account created successfully! Please sign in.");
@@ -206,7 +206,7 @@ export const RegisterForm = ({ onSwitchToLogin, role = "SEEKER" }: RegisterFormP
                 type="submit"
                 variant="primary"
                 size="lg"
-                className="w-full !rounded-xl !py-3.5 !text-sm font-semibold shadow-lg shadow-[#0f766d]/20 hover:shadow-[#0f766d]/30 transition-all mt-1 cursor-pointer"
+                className="w-full rounded-xl! py-3.5! text-sm! font-semibold shadow-lg shadow-[#0f766d]/20 hover:shadow-[#0f766d]/30 transition-all mt-1 cursor-pointer"
                 disabled={!isFormValid || isSubmitting}
             >
                 {isSubmitting ? "Creating account..." : "Create Account"}
