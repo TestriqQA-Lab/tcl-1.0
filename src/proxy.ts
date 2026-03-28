@@ -8,6 +8,17 @@ export default auth((req) => {
     const pathname = nextUrl.pathname;
     const isLoggedIn = !!session?.user;
 
+    // Allow admin-login page to be accessed by anyone
+    if (pathname === "/admin-login") {
+        // If already logged in as admin, redirect to dashboard
+        if (isLoggedIn && session?.user?.role === "ADMIN") {
+            return NextResponse.redirect(new URL("/admin-dashboard", req.url));
+        }
+        const response = NextResponse.next();
+        response.headers.set("x-pathname", pathname);
+        return response;
+    }
+
     // Routes that require authentication
     const PROTECTED_ROUTES = [
         "/seeker/dashboard",
@@ -30,13 +41,19 @@ export default auth((req) => {
     );
 
     if (!isProtectedPage && !isProtectedApi) {
-        return NextResponse.next();
+        const response = NextResponse.next();
+        response.headers.set("x-pathname", pathname);
+        return response;
     }
 
     // Not authenticated
     if (!isLoggedIn) {
         if (isProtectedApi) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        // Redirect to admin-login for admin routes, home for others
+        if (pathname === "/admin-dashboard" || pathname.startsWith("/admin-dashboard/")) {
+            return NextResponse.redirect(new URL("/admin-login", req.url));
         }
         return NextResponse.redirect(new URL("/", req.url));
     }
@@ -73,11 +90,12 @@ export default auth((req) => {
         (pathname === "/admin-dashboard" || pathname.startsWith("/admin-dashboard/")) &&
         role !== "ADMIN"
     ) {
-        if (role === "EMPLOYER") return NextResponse.redirect(new URL("/employer/dashboard", req.url));
-        return NextResponse.redirect(new URL("/seeker/dashboard", req.url));
+        return NextResponse.redirect(new URL("/admin-login", req.url));
     }
 
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-pathname", pathname);
+    return response;
 });
 
 export const config = {
