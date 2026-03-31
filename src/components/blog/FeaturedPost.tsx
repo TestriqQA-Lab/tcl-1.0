@@ -10,8 +10,8 @@ export function FeaturedPost() {
                 {/* Image Side */}
                 <div className="relative h-[300px] lg:h-auto bg-gray-200 min-h-[400px]">
                     <Image
-                        src="https://placehold.co/800x600/e2e8f0/1e293b?text=Remote+Work+Future"
-                        alt="Featured Article - Remote Work"
+                        src="/images/blog-remote-work.png"
+                        alt="Featured Article - The Future of Remote Work in 2026"
                         fill
                         className="object-cover"
                     />
@@ -38,8 +38,14 @@ export function FeaturedPost() {
                     </p>
 
                     <div className="flex items-center gap-3 mt-auto">
-                        <div className="size-10 rounded-full bg-gray-300 overflow-hidden">
-                            {/* Placeholder Avatar */}
+                        <div className="size-10 rounded-full overflow-hidden">
+                            <Image
+                                src="https://ui-avatars.com/api/?name=Sarah+Jenkins&background=0f766d&color=fff&size=80"
+                                alt="Sarah Jenkins"
+                                width={40}
+                                height={40}
+                                className="object-cover"
+                            />
                         </div>
                         <div className="flex flex-col">
                             <span className="text-sm font-bold text-gray-900">Sarah Jenkins</span>

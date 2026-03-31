@@ -11,7 +11,7 @@ const ARTICLES = [
         excerpt: "Don't get caught off guard. Learn the structured way to answer \"Tell me about a time when...\"",
         date: "Oct 24, 2023",
         views: "1.2k",
-        imageUrl: "https://placehold.co/600x400/e2e8f0/1e293b?text=Interview+Success"
+        imageUrl: "/images/blog-interview.png"
     },
     {
         category: "Growth",
@@ -19,7 +19,7 @@ const ARTICLES = [
         excerpt: "Feeling stagnant? Here is a checklist to determine your next career move with confidence.",
         date: "Oct 22, 2023",
         views: "850",
-        imageUrl: "https://placehold.co/600x400/e2e8f0/1e293b?text=Career+Growth"
+        imageUrl: "/images/blog-career-growth.png"
     },
     // Download Card Check
     {
@@ -31,7 +31,7 @@ const ARTICLES = [
         excerpt: "The old ways of strict management are dying. Here is how to lead modern teams effectively.",
         date: "Oct 20, 2023",
         views: "3.4k",
-        imageUrl: "https://placehold.co/600x400/e2e8f0/1e293b?text=Leadership"
+        imageUrl: "/images/blog-leadership.png"
     },
     {
         category: "Productivity",
@@ -39,7 +39,7 @@ const ARTICLES = [
         excerpt: "Strategies to reclaim your attention span and produce higher quality output in less time.",
         date: "Oct 18, 2023",
         views: "2.1k",
-        imageUrl: "https://placehold.co/600x400/e2e8f0/1e293b?text=Deep+Work"
+        imageUrl: "/images/blog-deep-work.png"
     },
     {
         category: "Finance",
@@ -47,7 +47,7 @@ const ARTICLES = [
         excerpt: "Avoid these common pitfalls when discussing compensation with your future employer.",
         date: "Oct 15, 2023",
         views: "5k",
-        imageUrl: "https://placehold.co/600x400/e2e8f0/1e293b?text=Salary+Negotiation"
+        imageUrl: "/images/blog-salary-negotiation.png"
     }
 ];
 
