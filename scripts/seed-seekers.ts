@@ -6,6 +6,8 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../src/lib/db/schema";
 import { sql } from "drizzle-orm";
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
 
 const { users, seekerProfiles } = schema;
 
@@ -24,12 +26,21 @@ const westernLineStations = [
     "Naigaon", "Vasai Road", "Nalla Sopara", "Virar"
 ];
 
-const firstNames = ["Abhishek", "Aman", "Aditya", "Amit", "Ankit", "Deepak", "Karan", "Rahul", "Rajesh", "Sanjay", "Sneha", "Priya", "Anjali", "Neha", "Riya", "Kunal", "Mahesh", "Siddharth", "Pooja", "Vikram"];
-const lastNames = ["Sharma", "Patel", "Singh", "Mehta", "Iyer", "Jain", "Desai", "Kulkarni", "Patil", "Shah", "Gupta", "Malhotra", "Shinde", "More", "Bhatia"];
+const firstNames = [
+    "Abhishek", "Aman", "Aditya", "Amit", "Ankit", "Deepak", "Karan", "Rahul", "Rajesh", "Sanjay", 
+    "Sneha", "Priya", "Anjali", "Neha", "Riya", "Kunal", "Mahesh", "Siddharth", "Pooja", "Vikram",
+    "Arjun", "Ishaan", "Vihaan", "Pranav", "Sai", "Aavya", "Ananya", "Diya", "Myra", "Saanvi",
+    "Rohan", "Sameer", "Tushar", "Varun", "Yash", "Kavita", "Meera", "Palak", "Shweta", "Tanvi"
+];
+const lastNames = [
+    "Sharma", "Patel", "Singh", "Mehta", "Iyer", "Jain", "Desai", "Kulkarni", "Patil", "Shah", 
+    "Gupta", "Malhotra", "Shinde", "More", "Bhatia", "Kapur", "Verma", "Reddy", "Nair", "Gokhale",
+    "Chaudhary", "Dubey", "Pandey", "Sawant", "Thorat", "Salunkhe", "Jadhav", "Bhosale", "Pawar", "Kadam"
+];
 
-const jobPositions = ["Frontend Developer", "Backend Developer", "Fullstack Engineer", "Data Analyst", "UI/UX Designer", "Product Manager", "HR Generalist", "Sales Executive", "Marketing Specialist", "Customer Support Lead"];
-const industries = ["IT", "Finance", "Healthcare", "Education", "Retail", "Manufacturing", "E-commerce"];
-const departments = ["Engineering", "Product", "Sales", "Marketing", "Human Resources", "Finance", "Operations"];
+const jobPositions = ["Frontend Developer", "Backend Developer", "Fullstack Engineer", "Data Analyst", "UI/UX Designer", "Product Manager", "HR Generalist", "Sales Executive", "Marketing Specialist", "Customer Support Lead", "DevOps Engineer", "QA Engineer", "Business Analyst"];
+const industries = ["IT", "Finance", "Healthcare", "Education", "Retail", "Manufacturing", "E-commerce", "Apparel", "Logistics"];
+const departments = ["Engineering", "Product", "Sales", "Marketing", "Human Resources", "Finance", "Operations", "Design", "Quality Assurance"];
 
 async function seed() {
     try {
@@ -37,16 +48,30 @@ async function seed() {
         // Clear existing data to avoid conflicts with usernames/emails
         await db.execute(sql`TRUNCATE TABLE "seeker_profiles", "users" CASCADE`);
 
-        console.log("🌱 Seeding 50 COMPLETE seeker profiles...");
+        console.log("🌱 Seeding 100 COMPLETE seeker profiles...");
 
         const hashedPassword = await hash("Password@123", 10);
 
-        for (let i = 0; i < 50; i++) {
+        // Prepare Resume Base64
+        let resumeBase64 = "https://example.com/resumes/dummy-resume.pdf";
+        const resumePath = join(process.cwd(), "public", "resumes", "dummy-resume.pdf");
+        
+        if (existsSync(resumePath)) {
+            const fileBuffer = readFileSync(resumePath);
+            const base64Content = fileBuffer.toString('base64');
+            resumeBase64 = `data:application/pdf;base64,${base64Content}`;
+            console.log("📄 Resume converted to Base64 successfully.");
+        } else {
+            console.warn("⚠️ Dummy resume file not found at public/resumes/dummy-resume.pdf. Using fallback URL.");
+        }
+
+        for (let i = 0; i < 100; i++) {
             const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
             const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
             const fullName = `${firstName} ${lastName}`;
-            const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}${Math.floor(Math.random() * 1000)}@example.com`;
-            const username = `${firstName.toLowerCase()}${i}${Math.floor(Math.random() * 10000)}`;
+            // Use static parts of email/username for consistency within the 100
+            const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${i+1}@example.com`;
+            const username = `${firstName.toLowerCase()}${i+1}_${Math.floor(Math.random() * 1000)}`;
             const location = westernLineStations[Math.floor(Math.random() * westernLineStations.length)];
             const position = jobPositions[Math.floor(Math.random() * jobPositions.length)];
             const industry = industries[Math.floor(Math.random() * industries.length)];
@@ -101,11 +126,11 @@ async function seed() {
                     currentSalary: workStatus === "EXPERIENCED" ? currentSalary : 0,
                     bio: `Passionate ${position} based in ${location} with interest in ${industry}.`,
                     careerGoals: `To grow as a ${position} in ${industry}.`,
-                    resumeUrl: "https://example.com/resumes/dummy-resume.pdf",
+                    resumeUrl: resumeBase64,
                     coverLetter: `Interested in ${industry} roles.`,
-                    portfolioUrl: `https://${firstName.toLowerCase()}.dev`,
-                    githubUrl: `https://github.com/${username}`,
-                    linkedinUrl: `https://linkedin.com/in/${username}`,
+                    portfolioUrl: `https://myportfoliome.vercel.app/`,
+                    githubUrl: `https://github.com/SteeveSticks`,
+                    linkedinUrl: `https://www.linkedin.com/in/stephen-adebanjo-82a6ba359/`,
                     otherLinks: [],
                     expectedSalaryMin,
                     expectedSalaryMax,
@@ -116,7 +141,7 @@ async function seed() {
                     isPublic: true,
                 });
             });
-            console.log(`✅ Added COMPLETE Profile [${i+1}/50]: ${fullName} (${location})`);
+            console.log(`✅ Added COMPLETE Profile [${i+1}/100]: ${fullName} (${location})`);
         }
         console.log("🎉 Seeding complete!");
     } catch (error) {
