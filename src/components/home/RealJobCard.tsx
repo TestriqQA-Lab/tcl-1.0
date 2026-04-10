@@ -60,7 +60,7 @@ export function RealJobCard({ job }: RealJobCardProps) {
                     <p className="text-[15px] text-gray-600 font-medium mt-1.5">{job.company || "Confidential Company"}</p>
                 </div>
                 {/* Company Logo */}
-                <div className="size-16 sm:size-20 shrink-0 rounded-xl border border-gray-100 p-2 sm:p-3 flex items-center justify-center bg-white shadow-sm">
+                <div className="size-16 sm:size-20 shrink-0 rounded-full border border-gray-100 p-2 sm:p-3 flex items-center justify-center bg-white shadow-sm">
                     {job.companyLogo ? (
                         <img src={job.companyLogo} alt={job.company || "Company"} className="w-full h-full object-contain" />
                     ) : (

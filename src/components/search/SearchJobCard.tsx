@@ -101,7 +101,7 @@ export function SearchJobCard({ job }: SearchJobCardProps) {
                 </div>
 
                 {/* Company Logo on Right */}
-                <div className="shrink-0 size-20 rounded-[20px] border border-slate-100 p-3 bg-white flex items-center justify-center shadow-sm group-hover:shadow-md transition-all">
+                <div className="shrink-0 size-20 rounded-full border border-slate-100 p-3 bg-white flex items-center justify-center shadow-sm group-hover:shadow-md transition-all">
                     {job.companyLogo ? (
                         <img 
                             src={job.companyLogo} 

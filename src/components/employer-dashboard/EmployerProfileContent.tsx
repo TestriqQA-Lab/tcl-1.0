@@ -167,8 +167,8 @@ export default function EmployerProfileContent() {
                     <div className="flex flex-col sm:flex-row items-center gap-5">
                         <div className="relative group">
                             {logoPreview ? (
-                                <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden ring-2 ring-[#E2E8F0] shadow-sm bg-[#F8FAFB]">
-                                    <img src={logoPreview} alt="Company logo" className="w-full h-full object-contain p-1" />
+                                <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden ring-2 ring-[#E2E8F0] shadow-sm bg-white">
+                                    <img src={logoPreview} alt="Company logo" className="w-full h-full object-contain p-3" />
                                     <button
                                         type="button"
                                         onClick={handleRemoveLogo}
@@ -188,7 +188,7 @@ export default function EmployerProfileContent() {
                                 <button
                                     type="button"
                                     onClick={() => logoInputRef.current?.click()}
-                                    className="w-24 h-24 md:w-28 md:h-28 rounded-2xl border-2 border-dashed border-[#CBD5E1] bg-[#F8FAFB] flex flex-col items-center justify-center gap-1.5 hover:border-[#0f766d] hover:bg-[#f0fdf4] transition-all cursor-pointer"
+                                    className="w-24 h-24 md:w-28 md:h-28 rounded-full border-2 border-dashed border-[#CBD5E1] bg-[#F8FAFB] flex flex-col items-center justify-center gap-1.5 hover:border-[#0f766d] hover:bg-[#f0fdf4] transition-all cursor-pointer"
                                 >
                                     <Camera className="w-6 h-6 text-[#94A3B8]" />
                                     <span className="text-[10px] text-[#94A3B8] font-semibold">Upload Logo</span>
