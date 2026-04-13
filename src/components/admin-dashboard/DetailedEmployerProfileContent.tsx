@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, FileText, Eye, Loader2, Globe, Mail, Phone, Calendar, User, Briefcase, X, ExternalLink, Download, Trash2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, FileText, Eye, Loader2, Globe, Mail, Phone, Calendar, User, Briefcase, X, ExternalLink, Download, Trash2, AlertTriangle, CheckCircle, AlertCircle, Info } from "lucide-react";
 import { getEmployerProfileDetailAction, updateEmployerVerificationStatusAction, deleteEmployerAction } from "@/actions/admin.actions";
 import { useRouter } from "next/navigation";
 
@@ -50,6 +50,10 @@ export default function DetailedEmployerProfileContent() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState("");
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showRejectInput, setShowRejectInput] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState("");
+    const [rejectionError, setRejectionError] = useState<string | null>(null);
+    const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'warning' | 'error'; text: string } | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -75,22 +79,72 @@ export default function DetailedEmployerProfileContent() {
 
     const handleStatusUpdate = async (newStatus: "VERIFIED" | "REJECTED") => {
         if (!employer || isUpdating) return;
-        
+
+        // Client-side validation for rejection
+        if (newStatus === "REJECTED") {
+            const trimmed = rejectionReason.trim();
+            if (trimmed.length < 10) {
+                setRejectionError("Please provide a reason (at least 10 characters)");
+                return;
+            }
+            if (trimmed.length > 500) {
+                setRejectionError("Reason must be under 500 characters");
+                return;
+            }
+        }
+
         setIsUpdating(true);
+        setStatusMessage(null);
+
         try {
-            const result = await updateEmployerVerificationStatusAction(employer.userId, newStatus);
+            const result = await updateEmployerVerificationStatusAction(
+                employer.userId,
+                newStatus,
+                newStatus === "REJECTED" ? rejectionReason.trim() : undefined
+            );
+
             if (result.success) {
                 setEmployer(prev => prev ? { ...prev, status: newStatus } : null);
+                setShowRejectInput(false);
+                setRejectionReason("");
+                setRejectionError(null);
+
+                if (result.emailSent) {
+                    setStatusMessage({
+                        type: 'success',
+                        text: newStatus === "VERIFIED"
+                            ? "Employer approved. Notification email sent."
+                            : "Employer rejected. Notification email sent."
+                    });
+                } else {
+                    setStatusMessage({
+                        type: 'warning',
+                        text: `Employer ${newStatus.toLowerCase()}, but notification email could not be sent. Please inform the employer manually.`
+                    });
+                }
             } else {
-                alert(result.error || "Failed to update status");
+                setStatusMessage({
+                    type: 'error',
+                    text: result.error || "Failed to update status. Please try again."
+                });
             }
         } catch (err) {
-            alert("An unexpected error occurred");
+            setStatusMessage({
+                type: 'error',
+                text: "An unexpected error occurred. Please try again."
+            });
             console.error(err);
         } finally {
             setIsUpdating(false);
         }
     };
+
+    // Auto-dismiss status message after 6 seconds
+    useEffect(() => {
+        if (!statusMessage) return;
+        const timer = setTimeout(() => setStatusMessage(null), 6000);
+        return () => clearTimeout(timer);
+    }, [statusMessage]);
 
     const getLogoColor = (name: string | null) => {
         if (!name) return "#3B82F6";
@@ -246,19 +300,82 @@ export default function DetailedEmployerProfileContent() {
                             <div className="flex items-center gap-2">
                                 <button 
                                     onClick={() => handleStatusUpdate("VERIFIED")}
-                                    disabled={employer.status === 'VERIFIED' || isUpdating}
+                                    disabled={employer.status === 'VERIFIED' || employer.status === 'REJECTED' || isUpdating}
                                     className="flex-1 bg-[#10B981] text-white text-sm font-semibold px-4 py-2.5 rounded-md hover:bg-[#059669] transition-colors font-inter disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]"
                                 >
-                                    {isUpdating ? <Loader2 size={14} className="animate-spin" /> : "Approve"}
+                                    {isUpdating && !showRejectInput ? <><Loader2 size={14} className="animate-spin" /> Approving...</> : "Approve"}
                                 </button>
                                 <button 
-                                    onClick={() => handleStatusUpdate("REJECTED")}
-                                    disabled={employer.status === 'REJECTED' || isUpdating}
-                                    className="flex-1 bg-[#EF4444] text-white text-sm font-semibold px-4 py-2.5 rounded-md hover:bg-[#DC2626] transition-colors font-inter disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]"
+                                    onClick={() => { setShowRejectInput(true); setRejectionError(null); }}
+                                    disabled={employer.status === 'VERIFIED' || employer.status === 'REJECTED' || isUpdating}
+                                    className={`flex-1 text-white text-sm font-semibold px-4 py-2.5 rounded-md transition-colors font-inter disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] ${
+                                        showRejectInput ? 'bg-[#DC2626] ring-2 ring-[#FCA5A5]' : 'bg-[#EF4444] hover:bg-[#DC2626]'
+                                    }`}
                                 >
-                                    {isUpdating ? <Loader2 size={14} className="animate-spin" /> : "Reject"}
+                                    Reject
                                 </button>
                             </div>
+
+                            {/* Rejection Reason Input */}
+                            {showRejectInput && (
+                                <div className="flex flex-col gap-2 mt-1 animate-in slide-in-from-top-2 duration-200">
+                                    <textarea
+                                        value={rejectionReason}
+                                        onChange={(e) => { setRejectionReason(e.target.value); setRejectionError(null); }}
+                                        disabled={isUpdating}
+                                        placeholder="Provide a reason for rejection..."
+                                        rows={3}
+                                        maxLength={500}
+                                        className={`w-full rounded-lg border-[1.5px] px-3 py-2.5 text-sm font-inter outline-none resize-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                                            rejectionError
+                                                ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]/20'
+                                                : 'border-[#E2E8F0] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20'
+                                        }`}
+                                    />
+                                    <div className="flex items-center justify-between">
+                                        {rejectionError ? (
+                                            <span className="text-xs text-[#EF4444] font-medium font-inter">{rejectionError}</span>
+                                        ) : (
+                                            <span className="text-xs text-[#9CA3AF] font-inter">Minimum 10 characters</span>
+                                        )}
+                                        <span className={`text-xs font-inter ${
+                                            rejectionReason.length > 500 ? 'text-[#EF4444] font-semibold' : 'text-[#9CA3AF]'
+                                        }`}>
+                                            {rejectionReason.length}/500
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <button
+                                            onClick={() => { setShowRejectInput(false); setRejectionReason(""); setRejectionError(null); }}
+                                            disabled={isUpdating}
+                                            className="flex-1 h-9 rounded-md border border-[#E2E8F0] text-sm font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors font-inter disabled:opacity-50"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={() => handleStatusUpdate("REJECTED")}
+                                            disabled={rejectionReason.trim().length < 10 || isUpdating}
+                                            className="flex-1 h-9 rounded-md bg-[#EF4444] text-white text-sm font-semibold hover:bg-[#DC2626] transition-colors font-inter disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        >
+                                            {isUpdating ? <><Loader2 size={14} className="animate-spin" /> Rejecting...</> : "Confirm Rejection"}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Status Message Banner */}
+                            {statusMessage && (
+                                <div className={`flex items-start gap-2.5 p-3 rounded-lg text-sm font-inter mt-1 animate-in fade-in slide-in-from-top-1 duration-300 ${
+                                    statusMessage.type === 'success' ? 'bg-[#F0FDF4] text-[#166534] border border-[#BBF7D0]' :
+                                    statusMessage.type === 'warning' ? 'bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]' :
+                                    'bg-[#FEF2F2] text-[#991B1B] border border-[#FECACA]'
+                                }`}>
+                                    {statusMessage.type === 'success' ? <CheckCircle size={16} className="shrink-0 mt-0.5" /> :
+                                     statusMessage.type === 'warning' ? <Info size={16} className="shrink-0 mt-0.5" /> :
+                                     <AlertCircle size={16} className="shrink-0 mt-0.5" />}
+                                    <span className="font-medium leading-snug">{statusMessage.text}</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Delete Employer */}
