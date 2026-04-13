@@ -3,6 +3,7 @@
 import { db } from "@/lib/db/db";
 import { employerProfiles, jobs, users } from "@/lib/db/schema";
 import { eq, sql, ilike, and, count, inArray, or } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 
 export interface CompanyListItem {
     id: string;
@@ -176,7 +177,7 @@ export async function getCompanies(filters: CompanyFilters = {}): Promise<Compan
     }
 }
 
-export async function getCompanyStats(): Promise<CompanyStats> {
+const _getCompanyStats = async (): Promise<CompanyStats> => {
     try {
         const [companiesCount] = await db
             .select({ count: sql<number>`cast(count(*) as integer)` })
@@ -218,9 +219,16 @@ export async function getCompanyStats(): Promise<CompanyStats> {
         console.error("Error fetching company stats:", error);
         return { totalCompanies: 0, totalIndustries: 0, totalOpenJobs: 0 };
     }
-}
+};
 
-export async function getFeaturedCompanies(): Promise<CompanyListItem[]> {
+// Cached version — revalidates every 5 minutes
+export const getCompanyStats = unstable_cache(
+    _getCompanyStats,
+    ["company-stats"],
+    { revalidate: 300, tags: ["companies"] }
+);
+
+const _getFeaturedCompanies = async (): Promise<CompanyListItem[]> => {
     try {
         // Get companies with most open approved jobs
         const topEmployers = await db
@@ -316,7 +324,14 @@ export async function getFeaturedCompanies(): Promise<CompanyListItem[]> {
         console.error("Error fetching featured companies:", error);
         return [];
     }
-}
+};
+
+// Cached version — revalidates every 5 minutes
+export const getFeaturedCompanies = unstable_cache(
+    _getFeaturedCompanies,
+    ["featured-companies"],
+    { revalidate: 300, tags: ["companies"] }
+);
 
 export async function getDistinctIndustries(): Promise<string[]> {
     try {

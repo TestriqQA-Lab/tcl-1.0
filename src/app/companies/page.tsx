@@ -12,6 +12,8 @@ import {
     getDistinctLocations,
 } from "@/actions/company.actions";
 
+export const revalidate = 300; // Revalidate every 5 minutes — company data doesn't change often
+
 export const metadata: Metadata = {
     title: "Explore Companies | TopCareerLive",
     description:

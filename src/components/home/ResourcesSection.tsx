@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
 
 export function ResourcesSection() {
@@ -60,10 +61,12 @@ export function ResourcesSection() {
                             
                             {/* Image Container */}
                             <div className="relative h-56 w-full overflow-hidden bg-gray-100">
-                                <img 
+                                <Image 
                                     src={blog.imageUrl} 
                                     alt={blog.title} 
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, 33vw"
+                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                                 />
                                 {/* Category Badge overlapping image */}
                                 <div className="absolute top-4 left-4">

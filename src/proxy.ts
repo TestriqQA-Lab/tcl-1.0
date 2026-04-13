@@ -100,6 +100,28 @@ export default auth((req) => {
 
 export const config = {
     matcher: [
-        "/((?!_next/static|_next/image|favicon.ico|icon.svg|api/auth).*)",
+        // Only run auth middleware on routes that actually need it
+        // --- Seeker routes ---
+        "/seeker/:path*",
+        // --- Employer dashboard routes (inside (employer-dashboard) route group) ---
+        "/employer-dashboard/:path*",
+        "/employer-applications/:path*",
+        "/job-postings/:path*",
+        "/database-search/:path*",
+        // --- Employer public-facing routes that check login state ---
+        "/employers/:path*",
+        // --- Admin routes ---
+        "/admin-dashboard/:path*",
+        "/admin-login",
+        // --- Onboarding & profile setup ---
+        "/onboarding/:path*",
+        "/basic-profile/:path*",
+        "/detailed-seeker-profile/:path*",
+        // --- User-specific pages ---
+        "/user-applications/:path*",
+        // --- Protected APIs ---
+        "/api/profile/:path*",
+        // --- Root page (needs auth for seeker redirect logic) ---
+        "/",
     ],
 };

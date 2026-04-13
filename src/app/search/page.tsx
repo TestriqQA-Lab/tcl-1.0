@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { SearchJobCard } from "@/components/search/SearchJobCard";
 import { getJobs } from "@/actions/job.actions";
@@ -33,8 +33,9 @@ function SearchContent() {
 
     const [jobs, setJobs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    const fetchJobs = async () => {
+    const fetchJobs = useCallback(async () => {
         setLoading(true);
         try {
             // Parse salary ranges if any
@@ -72,10 +73,22 @@ function SearchContent() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filters, searchKeyword, searchLocation]);
 
+    // Debounced re-fetch when filters change (300ms delay to batch rapid changes)
     useEffect(() => {
-        fetchJobs();
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
+            fetchJobs();
+        }, 300);
+
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
     }, [filters]); // re-fetch when filters change
 
     const handleClearAll = () => {

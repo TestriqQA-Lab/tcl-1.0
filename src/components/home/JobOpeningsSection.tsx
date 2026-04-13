@@ -1,12 +1,11 @@
-import { getJobs } from "@/actions/job.actions";
+import { getHomepageFeaturedJobs } from "@/actions/job.actions";
 import { RealJobCard } from "./RealJobCard";
 import Link from "next/link";
 
 
 export async function JobOpeningsSection() {
-    // Fetch real jobs
-    const jobs = await getJobs({});
-    const featuredJobs = jobs.slice(0, 6);
+    // Fetch featured jobs (cached for 60s)
+    const featuredJobs = await getHomepageFeaturedJobs();
 
     return (
         <section className="py-20 bg-[#0f766d]/[0.02] -mx-6 lg:-mx-10 px-6 lg:px-10 rounded-3xl">

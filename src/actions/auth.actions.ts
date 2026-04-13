@@ -2,6 +2,10 @@
 
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
+import { db } from "@/lib/db/db";
+import { users, seekerProfiles, employerProfiles } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { hash } from "bcryptjs";
 
 /**
  * Server action to handle user login
@@ -30,10 +34,6 @@ export async function loginAction(email: string, password: string, expectedRole?
 
         // Role check: verify the user's role matches the expected portal
         if (expectedRole) {
-            const { db } = await import("@/lib/db/db");
-            const { users } = await import("@/lib/db/schema");
-            const { eq } = await import("drizzle-orm");
-
             const found = await db
                 .select({ role: users.userRole })
                 .from(users)
@@ -120,13 +120,6 @@ export async function registerAction(
 
         // Password is required for normal registration, but optional for Google auth
         // We will check whether the user exists and is a Google user later
-
-
-        // Lazy load bcrypt and db dependencies
-        const { hash } = await import("bcryptjs");
-        const { db } = await import("@/lib/db/db");
-        const { users, seekerProfiles, employerProfiles } = await import("@/lib/db/schema");
-        const { eq } = await import("drizzle-orm");
 
         // Check if user already exists
         const existingUsers = await db

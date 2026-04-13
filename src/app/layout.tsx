@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Sora, Inter } from "next/font/google";
+import { Geist, Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/NavbarClient";
 import { Footer } from "@/components/layout/Footer";
@@ -12,16 +12,7 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
-const sora = Sora({
-  variable: "--font-sora",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
 
 const inter = Inter({
   variable: "--font-inter",
@@ -57,7 +48,7 @@ export default async function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} ${inter.variable} antialiased bg-[#f8fafc] text-[#0e1b1a] flex flex-col min-h-screen font-sans overflow-x-hidden`}
+        className={`${geistSans.variable} ${inter.variable} antialiased bg-[#f8fafc] text-[#0e1b1a] flex flex-col min-h-screen font-sans overflow-x-hidden`}
       >
         <AuthProvider session={session}>
           {isBare ? (

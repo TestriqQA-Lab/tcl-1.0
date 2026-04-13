@@ -5,7 +5,50 @@ import { jobs, employerProfiles, users, applications, seekerProfiles } from "@/l
 import { auth } from "@/auth";
 import { eq, ilike, or, and, inArray, desc, sql, gte } from "drizzle-orm";
 import type { CreateJobPayload } from "@/types/job";
+import { unstable_cache } from "next/cache";
 
+// Cached version of getJobs for the homepage (no filters, just recent open jobs)
+export const getHomepageFeaturedJobs = unstable_cache(
+    async () => {
+        try {
+            const results = await db
+                .select({
+                    id: jobs.id,
+                    title: jobs.title,
+                    company: employerProfiles.companyName,
+                    companyLogo: employerProfiles.companyLogo,
+                    location: jobs.location,
+                    type: jobs.type,
+                    salaryMin: jobs.salaryMin,
+                    salaryMax: jobs.salaryMax,
+                    description: jobs.description,
+                    createdAt: jobs.createdAt,
+                    requiredSkills: jobs.requiredSkills,
+                })
+                .from(jobs)
+                .innerJoin(employerProfiles, eq(jobs.employerId, employerProfiles.userId))
+                .where(
+                    and(
+                        eq(jobs.status, "OPEN"),
+                        eq(jobs.approvalStatus, "APPROVED")
+                    )
+                )
+                .orderBy(desc(jobs.createdAt))
+                .limit(6);
+
+            return results.map(job => ({
+                ...job,
+                salary: `₹${(job.salaryMin / 1000).toFixed(0)}K - ₹${(job.salaryMax / 1000).toFixed(0)}K`,
+                type: job.type.charAt(0) + job.type.slice(1).toLowerCase()
+            }));
+        } catch (error) {
+            console.error("Error fetching homepage jobs:", error);
+            return [];
+        }
+    },
+    ["homepage-featured-jobs"],
+    { revalidate: 60, tags: ["jobs"] } // Cache for 60 seconds
+);
 export async function getJobs(params: {
     keyword?: string;
     location?: string; // from hero search
@@ -83,7 +126,8 @@ export async function getJobs(params: {
                     ) : undefined
                 )
             )
-            .orderBy(desc(jobs.createdAt));
+            .orderBy(desc(jobs.createdAt))
+            .limit(50); // Cap results to prevent massive payloads
 
         const results = await query;
 
@@ -706,7 +750,6 @@ export async function getRecommendedJobsAction(userId: string) {
             .limit(1);
 
         const userPosition = profileResult[0]?.position?.toLowerCase() || "";
-        console.log("DEBUG: getRecommendedJobsAction - User Position:", userPosition);
 
         // 2. Determine category keywords or handle mix fallback
         let keywords: string[] = [];
@@ -719,12 +762,12 @@ export async function getRecommendedJobsAction(userId: string) {
                 }
             }
         }
-        console.log("DEBUG: getRecommendedJobsAction - Identified Keywords:", keywords);
+
 
         let recommendedJobs: any[] = [];
 
         if (keywords.length > 0) {
-            console.log("DEBUG: getRecommendedJobsAction - Fetching roles-based jobs...");
+
             // Recommendation based on role/category
             const keywordConditions = keywords.map(kw => or(
                 ilike(jobs.title, `%${kw}%`),
@@ -749,12 +792,12 @@ export async function getRecommendedJobsAction(userId: string) {
                 .orderBy(desc(jobs.createdAt))
                 .limit(10);
 
-            console.log(`DEBUG: getRecommendedJobsAction - Found ${recommendedJobs.length} role-based jobs.`);
+
         }
 
         // If no jobs found or no keywords, use mix fallback
         if (recommendedJobs.length === 0) {
-            console.log("DEBUG: getRecommendedJobsAction - Triggering MIX FALLBACK...");
+
             // MIX FALLBACK: Fetch 2 jobs from each category to ensure variety
             const categoryResults = await Promise.all(
                 Object.values(ROLE_CATEGORIES).slice(0, 5).map(async (roles) => {
@@ -785,12 +828,12 @@ export async function getRecommendedJobsAction(userId: string) {
             );
 
             recommendedJobs = categoryResults.flat();
-            console.log(`DEBUG: getRecommendedJobsAction - Mix fallback found ${recommendedJobs.length} jobs.`);
+
 
             // Fill up with general recent jobs if needed (up to 10 total)
             if (recommendedJobs.length < 10) {
                 const existingIds = recommendedJobs.map(j => j.id);
-                console.log("DEBUG: getRecommendedJobsAction - Filling with extra recent jobs...");
+
 
                 try {
                     const extraJobs = await db
@@ -816,7 +859,6 @@ export async function getRecommendedJobsAction(userId: string) {
                         .limit(10 - recommendedJobs.length);
 
                     recommendedJobs = [...recommendedJobs, ...extraJobs];
-                    console.log(`DEBUG: getRecommendedJobsAction - Total jobs after extra fill: ${recommendedJobs.length}`);
                 } catch (e) {
                     console.error("DEBUG: getRecommendedJobsAction - Error during extra fill:", e);
                 }
