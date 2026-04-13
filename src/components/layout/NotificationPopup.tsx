@@ -19,7 +19,7 @@ const mockNotifications: Notification[] = [
         id: "1",
         type: "job",
         title: "New Job Match: Senior React Developer",
-        description: "GlobalStream Systems posted a role matching your profile — ₹18-25L, Mumbai",
+        description: "GlobalStream Systems posted a role matching your profile — ₹18-25L, Mumbai.",
         time: "2 min ago",
         read: false,
         icon: <Briefcase className="w-4 h-4" />,
@@ -200,8 +200,8 @@ export const NotificationPopup = ({ isOpen, onClose }: NotificationPopupProps) =
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex-1 text-xs font-semibold py-2 rounded-lg transition-all duration-200 ${isActive
-                                        ? "bg-white text-[#0f766d] shadow-sm"
-                                        : "text-gray-500 hover:text-gray-700"
+                                    ? "bg-white text-[#0f766d] shadow-sm"
+                                    : "text-gray-500 hover:text-gray-700"
                                     }`}
                             >
                                 {tab.label}
