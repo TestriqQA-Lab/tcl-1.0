@@ -69,17 +69,19 @@ export function BlogPostHeader({ title, description, author, publishedAt, readTi
                 </div>
             </div>
 
-            {/* Hero Image — full width, clean */}
+            {/* Hero Image — centered, clean */}
             {heroImage && (
-                <div className="relative w-full aspect-[16/8] sm:aspect-[16/7] rounded-xl overflow-hidden bg-gray-100">
-                    <Image
-                        src={heroImage}
-                        alt={title}
-                        fill
-                        className="object-fit"
-                        priority
-                        sizes="(max-width: 768px) 100vw, 1200px"
-                    />
+                <div className="flex justify-center">
+                    <div className="relative w-full max-w-5xl h-[450px] rounded-xl overflow-hidden">
+                        <Image
+                            src={heroImage}
+                            alt={title}
+                            fill
+                            className="object-cover"
+                            priority
+                            sizes="(max-width: 768px) 100vw, 1024px"
+                        />
+                    </div>
                 </div>
             )}
         </header>
