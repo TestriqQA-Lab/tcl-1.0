@@ -38,7 +38,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  let session = null;
+  try {
+    session = await auth();
+  } catch (error) {
+    console.error("Auth session error:", error);
+  }
 
   // Check if this is a bare/standalone page (no Navbar/Footer)
   const headersList = await headers();

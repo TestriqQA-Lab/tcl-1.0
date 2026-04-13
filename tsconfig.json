@@ -42,6 +42,14 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "scratch",
+    "scripts",
+    "check-db.ts",
+    "check-users.ts",
+    "fix-db-profile.ts",
+    "fix-db.ts",
+    "list-users.ts",
+    "test-company-action.ts"
   ]
 }
