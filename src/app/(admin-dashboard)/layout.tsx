@@ -15,17 +15,15 @@ export default async function AdminDashboardLayout({
 }) {
     const session = await auth();
 
-    // Not logged in → send to login
-    /*
+    // Not logged in → send to admin login
     if (!session?.user) {
-        redirect("/login");
+        redirect("/admin-login");
     }
 
     // Logged in but not an admin → send home
     if (session.user.role !== "ADMIN") {
         redirect("/");
     }
-    */
 
     return (
         <div className="fixed inset-0 z-[100] bg-[#F9FAFB] flex md:flex-row flex-col overflow-hidden">
@@ -35,3 +33,4 @@ export default async function AdminDashboardLayout({
         </div>
     );
 }
+

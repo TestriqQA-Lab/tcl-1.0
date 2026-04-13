@@ -87,7 +87,7 @@ export default function AdminLayoutWrapper({
                                         className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] font-medium text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                                         onClick={() => {
                                             setIsProfileOpen(false);
-                                            signOut({ callbackUrl: "/login" });
+                                            signOut({ callbackUrl: "/admin-login" });
                                         }}
                                     >
                                         <LogOut size={16} />

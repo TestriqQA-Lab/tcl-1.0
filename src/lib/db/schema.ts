@@ -167,6 +167,9 @@ export const jobs = pgTable("jobs", {
     approvalStatus: jobApprovalStatusEnum("approval_status").default("PENDING").notNull(),
     experienceLevel: integer("experience_level").notNull(),
     applicationDeadline: timestamp("application_deadline").notNull(),
+    department: text("department"),
+    industry: text("industry"),
+    roleCategory: text("role_category"),
 
     // Job Requirements (Simplified without join tables)
     requiredSkills: text("required_skills").array().default([]), // ["React", "Node"]
@@ -394,6 +397,17 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     token: text("token").notNull().unique(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 15. OTP Tokens Table (Phone OTP verification)
+export const otpTokens = pgTable("otp_tokens", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    phone: text("phone").notNull(),
+    otp: text("otp").notNull(),
+    type: text("type").notNull(),
+    attempts: integer("attempts").default(0).notNull(),
     expiresAt: timestamp("expires_at").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });

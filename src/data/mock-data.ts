@@ -4,6 +4,7 @@ export interface Category {
   id: string;
   name: string;
   iconName: string; // Material Symbol name
+  jobCount?: string;
 }
 
 export interface Job {
@@ -20,12 +21,12 @@ export interface Job {
 }
 
 export const CATEGORIES: Category[] = [
-  { id: "1", name: "Technology", iconName: "terminal" },
-  { id: "2", name: "Finance", iconName: "account_balance" },
-  { id: "3", name: "Marketing", iconName: "campaign" },
-  { id: "4", name: "Healthcare", iconName: "healing" },
-  { id: "5", name: "Education", iconName: "school" },
-  { id: "6", name: "Design", iconName: "palette" },
+  { id: "1", name: "AI & Machine Learning", iconName: "psychology", jobCount: "1.2K+" },
+  { id: "2", name: "SaaS & Software", iconName: "cloud", jobCount: "3.4K+" },
+  { id: "3", name: "E-Commerce", iconName: "shopping_cart", jobCount: "2.1K+" },
+  { id: "4", name: "FinTech & Crypto", iconName: "account_balance", jobCount: "800+" },
+  { id: "5", name: "Growth Marketing", iconName: "trending_up", jobCount: "1.5K+" },
+  { id: "6", name: "DeepTech / Hardware", iconName: "memory", jobCount: "400+" },
 ];
 
 export const FEATURED_JOBS: Job[] = [

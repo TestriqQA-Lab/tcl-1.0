@@ -157,7 +157,7 @@ const Education = () => {
                                 </div>
                             </div>
                             {edu.percentage && (
-                                <p className="text-xs text-gray-500 mt-1">Percentage/CGPA: <span className="text-emerald-700 font-bold">{edu.percentage}{(edu.type === 'Class X' || edu.type === 'Class XII') && '%'}</span></p>
+                                <p className="text-xs text-gray-500 mt-1">Percentage/CGPA: <span className="text-emerald-700 font-bold">{edu.percentage}{(!edu.percentage.toString().includes('%') && (edu.type === 'Class X' || edu.type === 'Class XII')) && '%'}</span></p>
                             )}
                         </div>
                     ))}

@@ -168,7 +168,7 @@ export function DashboardSidebar({
                 >
                     <div className="size-9 bg-[#0f766d] rounded-full flex items-center justify-center shrink-0 overflow-hidden">
                         {companyLogo ? (
-                            <img src={companyLogo} alt={displayName} className="w-full h-full object-cover" />
+                            <img src={companyLogo} alt={displayName} className="w-full h-full object-contain p-1.5 bg-white" />
                         ) : (
                             <span className="text-white text-[13px] font-bold">{initials}</span>
                         )}

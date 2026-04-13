@@ -163,7 +163,7 @@ export function DashboardTopBar({
                         onClick={() => setProfileOpen(true)}
                     >
                         {companyLogo ? (
-                            <img src={companyLogo} alt={displayName} className="w-full h-full object-cover" />
+                            <img src={companyLogo} alt={displayName} className="w-full h-full object-contain p-1.5 bg-white" />
                         ) : (
                             <span className="text-white text-[13px] md:text-sm font-bold">{initials}</span>
                         )}
@@ -234,7 +234,7 @@ export function DashboardTopBar({
                         <div className="p-5 border-b border-[#F1F5F9] flex items-center gap-3">
                             <div className="size-11 bg-[#0f766d] rounded-full flex items-center justify-center shadow-inner shrink-0 overflow-hidden">
                                 {companyLogo ? (
-                                    <img src={companyLogo} alt={displayName} className="w-full h-full object-cover" />
+                                    <img src={companyLogo} alt={displayName} className="w-full h-full object-contain p-1.5 bg-white" />
                                 ) : (
                                     <span className="text-white text-sm font-bold">{initials}</span>
                                 )}

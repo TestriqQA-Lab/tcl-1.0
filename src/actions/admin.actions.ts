@@ -256,10 +256,12 @@ export async function getAdminDashboardStatsAction() {
 
 /**
  * Updates the verification status of an employer.
+ * Sends approval/rejection notification email to the employer.
  */
 export async function updateEmployerVerificationStatusAction(
     employerUserId: string,
-    status: "VERIFIED" | "REJECTED" | "PENDING" | "UNVERIFIED"
+    status: "VERIFIED" | "REJECTED" | "PENDING" | "UNVERIFIED",
+    rejectionReason?: string
 ) {
     try {
         const session = await auth();
@@ -267,6 +269,17 @@ export async function updateEmployerVerificationStatusAction(
             return { error: "Unauthorized. Admin access required." };
         }
 
+        // Server-side validation for rejection reason
+        if (status === "REJECTED") {
+            if (!rejectionReason || rejectionReason.trim().length < 10) {
+                return { error: "A rejection reason (minimum 10 characters) is required." };
+            }
+            if (rejectionReason.trim().length > 500) {
+                return { error: "Rejection reason must be under 500 characters." };
+            }
+        }
+
+        // Update verification status in DB
         await db
             .update(employerProfiles)
             .set({
@@ -275,7 +288,40 @@ export async function updateEmployerVerificationStatusAction(
             })
             .where(eq(employerProfiles.userId, employerUserId));
 
-        return { success: true };
+        // Send notification email (resilient — doesn't break status update if it fails)
+        let emailSent = true;
+        try {
+            if (status === "VERIFIED" || status === "REJECTED") {
+                const { sendEmployerApprovalEmail, sendEmployerRejectionEmail } = await import("@/lib/email/mailer");
+
+                // Fetch employer email and company name
+                const [userData] = await db
+                    .select({
+                        email: users.email,
+                        companyName: employerProfiles.companyName,
+                    })
+                    .from(users)
+                    .innerJoin(employerProfiles, eq(users.id, employerProfiles.userId))
+                    .where(eq(users.id, employerUserId))
+                    .limit(1);
+
+                if (userData) {
+                    if (status === "VERIFIED") {
+                        await sendEmployerApprovalEmail(userData.email, userData.companyName || "your company");
+                    } else if (status === "REJECTED") {
+                        await sendEmployerRejectionEmail(userData.email, userData.companyName || "your company", rejectionReason!.trim());
+                    }
+                } else {
+                    console.error("Could not find employer data for email notification, userId:", employerUserId);
+                    emailSent = false;
+                }
+            }
+        } catch (emailError) {
+            console.error("Failed to send employer notification email:", emailError);
+            emailSent = false;
+        }
+
+        return { success: true, emailSent };
     } catch (error) {
         console.error("Failed to update verification status:", error);
         return { error: "Failed to update verification status. Please try again." };

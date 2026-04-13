@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/NavbarClient";
 import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/components/auth/SessionProvider";
 import { auth } from "@/auth";
+import { headers } from "next/headers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,7 +38,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  let session = null;
+  try {
+    session = await auth();
+  } catch (error) {
+    console.error("Auth session error:", error);
+  }
+
+  // Check if this is a bare/standalone page (no Navbar/Footer)
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || headersList.get("x-next-pathname") || headersList.get("x-invoke-path") || "";
+  const isBare = pathname.startsWith("/admin-login");
 
   return (
     <html lang="en">
@@ -49,11 +60,17 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} ${inter.variable} antialiased bg-[#f8fafc] text-[#0e1b1a] flex flex-col min-h-screen font-sans overflow-x-hidden`}
       >
         <AuthProvider session={session}>
-          <Navbar session={session} />
-          <main className="flex-grow max-w-[1440px] mx-auto px-4 md:px-6 lg:px-10 w-full min-w-0">
-            {children}
-          </main>
-          <Footer session={session} />
+          {isBare ? (
+            children
+          ) : (
+            <>
+              <Navbar session={session} />
+              <main className="flex-grow max-w-[1440px] mx-auto px-4 md:px-6 lg:px-10 w-full min-w-0">
+                {children}
+              </main>
+              <Footer session={session} />
+            </>
+          )}
         </AuthProvider>
       </body>
     </html>

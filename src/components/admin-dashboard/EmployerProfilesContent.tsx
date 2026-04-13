@@ -145,11 +145,11 @@ export default function EmployerProfilesContent() {
                                 {/* Company */}
                                 <div className="flex items-center gap-3">
                                     <div
-                                        className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-white font-bold overflow-hidden"
+                                        className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-white font-bold overflow-hidden border border-gray-100"
                                         style={{ backgroundColor: employer.logoUrl ? '#F9FAFB' : getLogoColor(employer.companyName || employer.name) }}
                                     >
                                         {employer.logoUrl ? (
-                                            <img src={employer.logoUrl} alt={employer.companyName || employer.name || ''} className="w-full h-full object-contain p-0.5" />
+                                            <img src={employer.logoUrl} alt={employer.companyName || employer.name || ''} className="w-full h-full object-contain p-1.5 bg-white" />
                                         ) : (
                                             (employer.companyName || employer.name || "E")[0].toUpperCase()
                                         )}
@@ -213,11 +213,11 @@ export default function EmployerProfilesContent() {
                                 {/* Card Top: Logo + Name/Industry + Badge */}
                                 <div className="flex items-center gap-3">
                                     <div
-                                        className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-white font-bold overflow-hidden"
+                                        className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-white font-bold overflow-hidden border border-gray-100"
                                         style={{ backgroundColor: employer.logoUrl ? '#F9FAFB' : getLogoColor(employer.companyName || employer.name) }}
                                     >
                                         {employer.logoUrl ? (
-                                            <img src={employer.logoUrl} alt={employer.companyName || employer.name || ''} className="w-full h-full object-contain p-0.5" />
+                                            <img src={employer.logoUrl} alt={employer.companyName || employer.name || ''} className="w-full h-full object-contain p-1.5 bg-white" />
                                         ) : (
                                             (employer.companyName || employer.name || "E")[0].toUpperCase()
                                         )}
