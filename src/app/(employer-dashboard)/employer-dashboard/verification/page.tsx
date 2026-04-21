@@ -11,7 +11,7 @@ import { TabletNavStrip } from "@/components/employer-dashboard/TabletNavStrip";
 import { MobileBottomNav } from "@/components/employer-dashboard/MobileBottomNav";
 import { EmployerFooter } from "@/components/employer/EmployerFooter";
 
-type VerificationStatus = "UNVERIFIED" | "PENDING" | "VERIFIED" | "REJECTED";
+type VerificationStatus = "UNVERIFIED" | "PENDING" | "VERIFIED" | "APPROVED" | "REJECTED";
 type AccountType = "COMPANY" | "INDIVIDUAL";
 
 export default function VerificationPage() {
@@ -244,7 +244,7 @@ export default function VerificationPage() {
                                 </div>
                             )}
 
-                            {status === "VERIFIED" && (
+                            {(status === "VERIFIED" || status === "APPROVED") && (
                                 <div className="bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl p-5 md:p-6 flex items-start gap-4 shadow-sm">
                                     <div className="w-10 h-10 rounded-full bg-green-100 shrink-0 flex items-center justify-center mt-0.5">
                                         <CheckCircle2 className="w-5 h-5 text-green-600" />
