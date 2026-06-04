@@ -6,10 +6,11 @@ import { eq, and, gt, desc } from "drizzle-orm";
 import { sendOtpSms } from "@/lib/sms/sms";
 
 /**
- * Generate a random 6-digit OTP
+ * DEV BYPASS: Always returns hardcoded OTP "1234"
+ * Original: Math.floor(100000 + Math.random() * 900000).toString()
  */
 function generateOtp(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    return "1234";
 }
 
 /**
@@ -66,12 +67,11 @@ export async function sendPhoneOtpAction(phone: string) {
             expiresAt,
         });
 
-        // Send OTP via SMS
-        const smsResult = await sendOtpSms(cleanPhone, otp);
-
-        if (!smsResult.success) {
-            return { error: smsResult.error || "Failed to send OTP. Please try again." };
-        }
+        // DEV BYPASS: Skip SMS sending, OTP is always 1234
+        // const smsResult = await sendOtpSms(cleanPhone, otp);
+        // if (!smsResult.success) {
+        //     return { error: smsResult.error || "Failed to send OTP. Please try again." };
+        // }
 
         return { success: true };
     } catch (error) {
@@ -90,8 +90,8 @@ export async function verifyPhoneOtpAction(phone: string, otp: string) {
             return { error: "Invalid phone number" };
         }
 
-        if (!otp || otp.length !== 6) {
-            return { error: "Please enter a valid 6-digit OTP" };
+        if (!otp || otp.length !== 4) {
+            return { error: "Please enter a valid 4-digit OTP" };
         }
 
         // Find the latest OTP record for this phone

@@ -25,7 +25,7 @@ export default function ClientRegistrationPage() {
 
     // ── OTP Verification state ──
     const [otpSent, setOtpSent] = useState(false);
-    const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
+    const [otpDigits, setOtpDigits] = useState(["", "", "", ""]);
     const [otpVerified, setOtpVerified] = useState(false);
     const [otpError, setOtpError] = useState("");
     const [resendTimer, setResendTimer] = useState(0);
@@ -83,7 +83,7 @@ export default function ClientRegistrationPage() {
     // ── Auto-verify when all 6 digits filled ──
     const handleVerifyOtp = useCallback(async (digits: string[]) => {
         const otp = digits.join("");
-        if (otp.length !== 6) return;
+        if (otp.length !== 4) return;
 
         setVerifyingOtp(true);
         setOtpError("");
@@ -95,7 +95,7 @@ export default function ClientRegistrationPage() {
             setTimeout(() => setStep("basic-details"), 600);
         } else {
             setOtpError(result.error || "Invalid OTP");
-            setOtpDigits(["", "", "", "", "", ""]);
+            setOtpDigits(["", "", "", ""]);
             setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
         }
     }, [phone]);
@@ -112,7 +112,7 @@ export default function ClientRegistrationPage() {
         if (result.success) {
             setOtpSent(true);
             setResendTimer(60);
-            setOtpDigits(["", "", "", "", "", ""]);
+            setOtpDigits(["", "", "", ""]);
             setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
         } else {
             setOtpError(result.error || "Failed to send OTP");
@@ -126,7 +126,7 @@ export default function ClientRegistrationPage() {
         newDigits[index] = value.slice(-1);
         setOtpDigits(newDigits);
         setOtpError("");
-        if (value && index < 5) {
+        if (value && index < 3) {
             otpInputRefs.current[index + 1]?.focus();
         }
         if (newDigits.every((d) => d !== "")) {
@@ -137,14 +137,14 @@ export default function ClientRegistrationPage() {
     // ── OTP paste handler ──
     const handleOtpPaste = (e: React.ClipboardEvent) => {
         e.preventDefault();
-        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 4);
         if (pasted.length === 0) return;
         const newDigits = [...otpDigits];
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 4; i++) {
             newDigits[i] = pasted[i] || "";
         }
         setOtpDigits(newDigits);
-        const focusIdx = Math.min(pasted.length, 5);
+        const focusIdx = Math.min(pasted.length, 3);
         otpInputRefs.current[focusIdx]?.focus();
         if (newDigits.every((d) => d !== "")) {
             handleVerifyOtp(newDigits);
@@ -163,7 +163,7 @@ export default function ClientRegistrationPage() {
         if (resendTimer > 0 || sendingOtp) return;
         setSendingOtp(true);
         setOtpError("");
-        setOtpDigits(["", "", "", "", "", ""]);
+        setOtpDigits(["", "", "", ""]);
         const result = await sendPhoneOtpAction(phone);
         setSendingOtp(false);
         if (result.success) {
@@ -332,7 +332,11 @@ export default function ClientRegistrationPage() {
                                 {/* 6-Digit OTP Input */}
                                 {otpSent && !otpVerified && (
                                     <div className="flex flex-col gap-3">
-                                        <label className="text-[13px] lg:text-sm font-semibold text-[#0e1b1a] font-inter text-center">Enter 6-digit OTP</label>
+                                        <label className="text-[13px] lg:text-sm font-semibold text-[#0e1b1a] font-inter text-center">Enter 4-digit OTP</label>
+                                        {/* DEV BYPASS: Show hardcoded OTP hint */}
+                                        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                                            <span className="text-[12px] font-semibold text-amber-700 font-inter">🔑 OTP is: <span className="text-[15px] font-bold text-amber-900 tracking-widest">1234</span></span>
+                                        </div>
                                         <div className="flex justify-center gap-2 md:gap-3">
                                             {otpDigits.map((digit, i) => (
                                                 <input key={i}
