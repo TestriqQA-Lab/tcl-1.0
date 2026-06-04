@@ -12,7 +12,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "types": [
       "node",
       "react",
@@ -42,6 +42,14 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "scratch",
+    "scripts",
+    "check-db.ts",
+    "check-users.ts",
+    "fix-db-profile.ts",
+    "fix-db.ts",
+    "list-users.ts",
+    "test-company-action.ts"
   ]
 }
